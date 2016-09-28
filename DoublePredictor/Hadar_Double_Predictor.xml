@@ -106,8 +106,8 @@ function MobMath(name, line, wildcards)
 HadarDouble.KillsSinceReboot = string.gsub(wildcards[1],",","")
 HadarDouble.KillsSinceTracked = string.gsub(wildcards[2],",","")
 local number = HadarDouble.KillsSinceTracked/1000000
-local round = rounddown(number)
-HadarDouble.ThisMillion = round*1000000
+local doubround = math.floor(number)
+HadarDouble.ThisMillion = doubround*1000000
 HadarDouble.NextMillion = HadarDouble.ThisMillion+1000000
 HadarDouble.KillsNeeded = HadarDouble.NextMillion-HadarDouble.KillsSinceTracked
 HadarDouble.KillsCompleted = HadarDouble.KillsSinceTracked-HadarDouble.ThisMillion
@@ -142,14 +142,14 @@ function LetItGo(name, line, wildcards)
 if HadarDouble.TotalMin<=0 then
 HadarDouble.MobsKilledPerMinute=200
 else
-HadarDouble.MobsKilledPerMinute=rounddown(HadarDouble.KillsSinceReboot/HadarDouble.TotalMin)
+HadarDouble.MobsKilledPerMinute=math.floor(HadarDouble.KillsSinceReboot/HadarDouble.TotalMin)
 end
 
 
-HadarDouble.MinutesLeft=rounddown(HadarDouble.KillsNeeded/HadarDouble.MobsKilledPerMinute)
-HadarDouble.DaysLeft=rounddown(HadarDouble.MinutesLeft/1440)
+HadarDouble.MinutesLeft=math.floor(HadarDouble.KillsNeeded/HadarDouble.MobsKilledPerMinute)
+HadarDouble.DaysLeft=math.floor(HadarDouble.MinutesLeft/1440)
 HadarDouble.LeftoverMinutes=HadarDouble.MinutesLeft - (HadarDouble.DaysLeft*1440)
-HadarDouble.HoursLeft=rounddown(HadarDouble.LeftoverMinutes/60)
+HadarDouble.HoursLeft=math.floor(HadarDouble.LeftoverMinutes/60)
 local quickmath = HadarDouble.HoursLeft*60
 HadarDouble.MinutesLeft=HadarDouble.LeftoverMinutes-quickmath
 
