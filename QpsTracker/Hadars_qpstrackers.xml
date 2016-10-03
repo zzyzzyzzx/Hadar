@@ -244,7 +244,11 @@ end
 function OnPluginBroadcast(msg, id, name, text)
   if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
     if (text == "comm.quest") then
-		for i,v in pairs(gmcp("comm.quest")) do
+		local res, dagmcp = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","comm.quest")
+		
+		assert(loadstring("LoadInfo = "..dagmcp or "")) ()
+		
+		for i,v in pairs(LoadInfo) do
 			if i=="qp" then Hadarsqpstrackers.qp=v end
 			if i=="tierqp" then Hadarsqpstrackers.tierqp=v end
 			if i=="mccp" then Hadarsqpstrackers.mccp=v end
@@ -266,6 +270,8 @@ function OnPluginBroadcast(msg, id, name, text)
 				StartTime("q")
 			end -- End start of quest
 		end
+	
+		
 	end --end if comm.quest
 		if (text=="char.status") then
 		
@@ -291,8 +297,8 @@ end
 function MakeOutput(where)
 local output = "@CL@cast "..string.upper(where)
 	if where=="q" then
-	output = output.." @W(@R"..Hadarsqpstrackersqtime.hour.."@Wh @R"..Hadarsqpstrackersqtime.min.."@Wm @R"..Hadarsqpstrackersqtime.sec.."@Ws)@w @CT@cotal @CQ@cps@W: @R"..Hadarsqpstrackers.totqp.." @W/ @CB@creakdown@W: @R"..Hadarsqpstrackers.qp.."@C @Cb@case@W"
-	if tonumber(Hadarsqpstrackers.mccp) ~ = 0 then output = output..", @R..Hadarsqpstrackers.mccp.." @Cm@cccp@W"
+	output = output.." @W(@R"..Hadarsqpstrackersqtime.hour.."@Wh @R"..Hadarsqpstrackersqtime.min.."@Wm @R"..Hadarsqpstrackersqtime.sec.."@Ws)@w @CT@cotal @CQ@cps@W: @R"..Hadarsqpstrackers.totqp.." @W/ @CB@creakdown@W: @R"..Hadarsqpstrackers.qp.."@C @Cb@case"
+	if tonumber(Hadarsqpstrackers.mccp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.mccp.." @Cm@cccp@W" end
 	if tonumber(Hadarsqpstrackers.lucky) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.lucky.." @Cl@cucky" end
 	if tonumber(Hadarsqpstrackers.tier) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tierqp.." @Ct@cier" end
 	
@@ -372,7 +378,6 @@ if Hadarsqpstrackerstotal.pracs == nil then  Hadarsqpstrackerstotal.pracs=0 end
 if Hadarsqpstrackerstotal.timespent == nil then Hadarsqpstrackerstotal.timespent=0 end
 if Hadarsqpstrackerstotal.averagetime == nil then Hadarsqpstrackerstotal.averagetime=0 end
 
-Hadarsqpstrackerstotal.comp = Hadarsqpstrackerstotal.comp+
 
 end--amazing hadar will never end!
 
