@@ -31,7 +31,6 @@ Not sure what to put here yet, give me a bit and ill make it
 <include name="constants.lua"/>
 
 <!--  Triggers  -->
---You raise a level! You are now level 18.
 <triggers>
   <trigger
    enabled="y"
@@ -249,6 +248,7 @@ function OnPluginBroadcast(msg, id, name, text)
 		assert(loadstring("LoadInfo = "..dagmcp or "")) ()
 		
 		for i,v in pairs(LoadInfo) do
+		
 			if i=="qp" then Hadarsqpstrackers.qp=v end
 			if i=="tierqp" then Hadarsqpstrackers.tierqp=v end
 			if i=="mccp" then Hadarsqpstrackers.mccp=v end
@@ -264,14 +264,19 @@ function OnPluginBroadcast(msg, id, name, text)
 			if i=="opk" then Hadarsqpstrackers.opk=v end
 			
 			if i=="action" and v=="comp" then
-				StopTime("q")
+				Hadarsqpstrackers.time=1
 			end -- End completed quest
 			
 			if i=="action" and v=="start" then
-				StartTime("q")
+				Hadarsqpstrackers.time=2
 			end -- End start of quest
 		end
-	
+		
+		if Hadarsqpstrackers.time==1 then 
+			StopTime("q")
+		elseif Hadarsqpstrackers.time==2 then
+			StartTime("q")
+		end
 		
 	end --end if comm.quest
 		if (text=="char.status") then
@@ -312,7 +317,7 @@ local output = "@CL@cast "..string.upper(where)
 		output = output.."@W, @GX2"
 	end -- end the stupid figuring out if 2x or 3x exp
 	
-	output = output.."@W / @CB@conus@W: @R"..Hadarsqpstrackers.gold.."@CG@cold"
+	output = output.."@W / @CB@conus@W: @R"..Hadarsqpstrackers.gold.." @CG@cold"
 	if tonumber(Hadarsqpstrackers.pracs) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.pracs.." @CP@cracs" end
 	if tonumber(Hadarsqpstrackers.trains) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.trains.." @CT@crains" end
 	if tonumber(Hadarsqpstrackers.tp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tp.." @CT@cps" end
@@ -332,6 +337,7 @@ function StartTime(arg)
 	elseif arg == "cp" then
 		Hadarsqpstrackers.CPstartTime=os.time()
 	end
+	Hadarsqpstrackers.time=0--work around maybe
 end--End StartTime
 
 function Report(name, line, wildcards)
@@ -355,6 +361,7 @@ Hadarsqpstrackers.reportchan="gt"
 	elseif arg == "cp" then
 		Hadarsqpstrackers.CPstopTime=os.time()
 	end
+	Hadarsqpstrackers.time=0--work around maybe
 end--End StartTime
 
 function ResetTrackerData()
