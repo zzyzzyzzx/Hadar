@@ -1026,38 +1026,9 @@ end
    match="^You receive (\d+)(\+\d+)?(\+\d+)?(\+\d+)? experience points.$"
    regexp="y"
    send_to="12"
+   script="POSCode"
    sequence="100"
   >
-  <send>
-a = "%1"
-
-if %2==nil then
-	b = 0
-else 
-	b = "%2"
-end
-
-if %3==nil then 
-	c = 0
-else
-	c = "%3"
-end
-
-if %4==nil then
-	d = 0
-else
-	d = "%4"
-end
-
-xy = tonumber(a) + tonumber(b) + tonumber(c) + tonumber(d)
-
-if xy then
-  SetVariable ("st_counter_mobexptotal", (GetVariable "st_counter_mobexptotal") + xy)
-  SetVariable ("st_counter_mobexpsession", (GetVariable "st_counter_mobexpsession") + xy)
-  SetVariable ("st_counter_mobexphour", (GetVariable "st_counter_mobexphour") + xy)
-  SetVariable ("st_counter_mobexpdouble", (GetVariable "st_counter_mobexpdouble") + xy)
-end
-</send>
   </trigger>
   <trigger
    custom_colour="12"
@@ -8493,6 +8464,37 @@ SetVariable ("st_counter_levelhour", "0")</send>
 function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
 end
+
+function POSCode(name, line, wildcards)
+a = wildcards[1]
+b = wildcards[2]
+c = wildcards[3]
+d = wildcards[4]
+
+print("Debug Hadar: A:"..a.." B:"..b.." C:"..c.." D:"..d)
+
+if b==nil or b=="" then
+	b = 0
+end
+
+if c==nil or b=="" then 
+	c = 0
+end
+
+if d==nil or b=="" then
+	d = 0
+end
+
+xy = tonumber(a) + tonumber(b) + tonumber(c) + tonumber(d)
+
+if xy then
+  SetVariable ("st_counter_mobexptotal", (GetVariable "st_counter_mobexptotal") + xy)
+  SetVariable ("st_counter_mobexpsession", (GetVariable "st_counter_mobexpsession") + xy)
+  SetVariable ("st_counter_mobexphour", (GetVariable "st_counter_mobexphour") + xy)
+  SetVariable ("st_counter_mobexpdouble", (GetVariable "st_counter_mobexpdouble") + xy)
+end
+end
+
 ]]>
 </script> 
 
