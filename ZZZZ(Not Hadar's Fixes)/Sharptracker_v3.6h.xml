@@ -8471,8 +8471,6 @@ b = string.gsub(wildcards[2], "+", "")
 c = string.gsub(wildcards[3], "+", "")
 d = string.gsub(wildcards[4], "+", "")
 
-print("Debug Hadar: A:"..a.." B:"..b.." C:"..c.." D:"..d)
-
 if b==nil or b=="" then
 	b = 0
 end
