@@ -1023,24 +1023,32 @@ end
    custom_colour="12"
    enabled="y"
    group="strack_counter_mobkills"
-   match="^You receive (\d{1,3})(\+\d+)?(\+\d+)?(\+\d+)? experience points.$"
+   match="^You receive (\d+)(\+\d+)?(\+\d+)?(\+\d+)? experience points.$"
    regexp="y"
    send_to="12"
    sequence="100"
   >
   <send>
 a = "%1"
-b = "%2"
-if "%3" then 
-c = "%3"
-else
-c = 0
+
+if "%2"==nil then
+	b = 0
+else 
+	b = "%2"
 end
-if "%4" then
-d = "%4"
+
+if "%3"==nil then 
+	c = 0
 else
-d = 0
+	c = "%3"
 end
+
+if "%4"==nil then
+	d = 0
+else
+	d = "%4"
+end
+
 xy = tonumber(a) + tonumber(b) + tonumber(c) + tonumber(d)
 
 if xy then
