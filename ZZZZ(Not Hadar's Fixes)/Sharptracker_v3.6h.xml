@@ -1031,19 +1031,19 @@ end
   <send>
 a = "%1"
 
-if "%2"==nil then
+if %2==nil then
 	b = 0
 else 
 	b = "%2"
 end
 
-if "%3"==nil then 
+if %3==nil then 
 	c = 0
 else
 	c = "%3"
 end
 
-if "%4"==nil then
+if %4==nil then
 	d = 0
 else
 	d = "%4"
