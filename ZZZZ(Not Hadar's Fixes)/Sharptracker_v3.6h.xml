@@ -8466,10 +8466,10 @@ function OnHelp ()
 end
 
 function POSCode(name, line, wildcards)
-a = wildcards[1]
-b = wildcards[2]
-c = wildcards[3]
-d = wildcards[4]
+a = string.gsub(wildcards[1], "+", "")
+b = string.gsub(wildcards[2], "+", "")
+c = string.gsub(wildcards[3], "+", "")
+d = string.gsub(wildcards[4], "+", "")
 
 print("Debug Hadar: A:"..a.." B:"..b.." C:"..c.." D:"..d)
 
