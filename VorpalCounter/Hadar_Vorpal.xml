@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadar_Vorpal"
+   author="Hadar"
+   id="718f73b7d7c6a1250b77aa0e"
+   language="Lua"
+   purpose="Quick and dirty vorpal counter"
+   date_written="2016-11-30"
+   requires="4.98"
+   version="1.0"
+   save_state="y"
+   >
+<description trim="y">
+<![CDATA[
+mmm mobs losing heads
+]]>
+</description>
+
+</plugin>
+
+<include name="constants.lua"/>
+
+<!--  Triggers  -->
+<triggers>
+  <trigger
+   enabled="y"
+   match="^Your (.*) glows brightly and almost decapitates (.*).$"
+   regexp="y"
+   send_to="12"
+   script="VorpCount"
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+
+<aliases>
+    <alias
+   match="vorpshow"
+   enabled="y"
+   send_to="12"
+   sequence="100"
+   script="VorpShow"
+  >
+  </alias>
+      <alias
+   match="vorpset *"
+   enabled="y"
+   send_to="12"
+   sequence="100"
+   script="vorpset"
+  >
+  </alias>
+</aliases>
+
+<script>
+<![CDATA[
+require "checkplugin"
+require "serialize"
+
+function VorpCount(name, line, wildcards)
+
+if vm then
+	vm = vm+1
+else
+	vm = 1
+end
+
+if vt then
+	vt = vt+1
+else
+	vt = 1
+end
+
+Send("echo MMM vorpals")
+
+--#if (@vorpalmort=11) {$vm=th} {#if (@vorpalmort=12) {$vm=th} {#if (@vorpalmort=13) {$vm=th} {#if (@vorpalmort=14) {$vm=th} {#if (@vorpalmort=15) {$vm=th} {#if (@vorpalmort=16) {$vm=th} {#if (@vorpalmort=17) {$vm=th} {#if (@vorpalmort=18) {$vm=th} {#if (@vorpalmort=19) {$vm=th} {#if (%ends(@vorpalmort,"0")) {$vm=th} {#if (%ends(@vorpalmort,"0")) {$vm=th} {#if (%ends(@vorpalmort,"1")) {$vm=st} {#if (%ends(@vorpalmort,"2")) {$vm=nd} {#if (%ends(@vorpalmort,"3")) {$vm=rd} {#if (%ends(@vorpalmort,"4")) {$vm=th} {#if (%ends(@vorpalmort,"5")) {$vm=th} {#if (%ends(@vorpalmort,"6")) {$vm=th} {#if (%ends(@vorpalmort,"7")) {$vm=th} {#if (%ends(@vorpalmort,"8")) {$vm=th} {#if (%ends(@vorpalmort,"9")) {$vm=th}}}}}}}}}}}}}}}}}}}}
+--#if (@vorpaltotal=11) {$vt=th} {#if (@vorpaltotal=12) {$vt=th} {#if (@vorpaltotal=13) {$vt=th} {#if (@vorpaltotal=14) {$vt=th} {#if (@vorpaltotal=15) {$vt=th} {#if (@vorpaltotal=16) {$vt=th} {#if (@vorpaltotal=17) {$vt=th} {#if (@vorpaltotal=18) {$vt=th} {#if (@vorpaltotal=19) {$vt=th} {#if (%ends(@vorpaltotal,"0")) {$vt=th} {#if (%ends(@vorpaltotal,"0")) {$vt=th} {#if (%ends(@vorpaltotal,"1")) {$vt=st} {#if (%ends(@vorpaltotal,"2")) {$vt=nd} {#if (%ends(@vorpaltotal,"3")) {$vt=rd} {#if (%ends(@vorpaltotal,"4")) {$vt=th} {#if (%ends(@vorpaltotal,"5")) {$vt=th} {#if (%ends(@vorpaltotal,"6")) {$vt=th} {#if (%ends(@vorpaltotal,"7")) {$vt=th} {#if (%ends(@vorpaltotal,"8")) {$vt=th} {#if (%ends(@vorpaltotal,"9")) {$vt=th}}}}}}}}}}}}}}}}}}}}
+SendSpecial("gt @CV@corpal @C(@R"..vm.."@C/@R"..vt.."@C)@w")
+SaveState()
+end
+
+function VorpShow()
+SendSpecial("echo @CV@corpal @C(@R"..vm.."@C/@R"..vt.."@C)@w")
+end
+
+function vorpset(name, lines, wildcards)
+vm = 1
+vt = wildcards[1]
+SaveState()
+end
+
+function VorpReset()
+vm = 0 
+print("Boom baby, vorpals reset!")
+end
+
+function OnPluginInstall ()
+
+if GetVariable ("enabled") == "false" then
+    ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+    check (EnablePlugin(GetPluginID (), false))
+    return
+end -- they didn't enable us last time
+  
+OnPluginEnable ()
+
+end -- endinstall
+
+function OnPluginEnable ()
+	assert (loadstring (GetVariable ("vt") or "")) ()
+	assert (loadstring (GetVariable ("vm") or "")) ()
+end -- endenable
+
+function OnPluginSaveState ()
+	SetVariable ("vt", serialize.save ("vt"))
+	SetVariable ("vm", serialize.save ("vm"))
+end --end save state
+
+]]>
+</script>
+
+</muclient>

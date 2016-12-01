@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!-- Saved on Tuesday, September 20, 2016, 2:53 PM -->
+<!-- MuClient version 5.01 -->
+
+<muclient>
+<plugin
+   name="Hadars_Kill"
+   author="Hadar"
+   id="def114f15afbaa25a849fc4b"
+   language="Lua"
+   purpose="Change kill to something else"
+   save_state="y"
+   date_written="2016-09-20 14:51:44"
+   requires="4.00"
+   version="1.0"
+   >
+<description trim="y">
+<![CDATA[
+Not sure what to put here yet, give me a bit and ill make it
+]]>
+</description>
+
+</plugin>
+
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Triggers  -->
+<triggers>
+  <trigger
+   match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
+   name="upattack"
+   regexp="y"
+   send_to="12"
+   script="SlistUpdate"
+   sequence="100"
+  >
+  </trigger>
+  
+  <trigger
+   enabled="y"
+   match="^\{\/spellheaders\}$"
+   regexp="y"
+   send_to="12"
+   script="SlistDone"
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+
+<!--  Plugin help  -->
+
+<aliases>
+  <alias
+   match="^kill( (.*))?"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="Trogdor"
+  >
+  </alias>
+    <alias
+   match="^setkill( (.*))?"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="SetKill"
+  >
+  </alias>
+</aliases>
+
+<script>
+<![CDATA[
+
+require "HadarLuaCommon"
+require "serialize"
+
+
+function SetKill(name, line, wildcards)
+
+local v1 = Trim(string.lower(wildcards[1]))
+
+	if v1=="update" then
+		allskills={}
+		allspells={}
+		EnableTrigger("upattack",true)
+		SendSpecial("slist noprompt")
+	else
+	killspell = utils.inputbox ("Input name of skill/spell", "Attack", killspell, "Courier", 9)
+	end -- ends update
+
+end --end setkill
+
+function OnPluginInstall ()
+	allskills = {}
+	allspells = {}
+	EnableTrigger("upattack",true)
+	SendSpecial("slist noprompt")
+	
+	assert (loadstring (GetVariable ("allskills") or "")) ()
+	assert (loadstring (GetVariable ("allspells") or "")) ()
+	assert (loadstring (GetVariable ("killspell") or "")) ()
+end --no more plugin install
+
+function OnPluginSaveState ()
+	SetVariable ("allskills", serialize.save ("allskills"))
+	SetVariable ("allspells", serialize.save ("allspells"))
+	SetVariable ("killspell", serialize.save ("killspell"))
+end -- nomore savestate
+
+function Trogdor(name, line, wildcards)
+local v = Trim(wildcards[1])
+	
+	if v~=nil then
+		killtarget=v
+	else 
+		killtarget=" "
+	end
+	
+	if ismember(killspell,allspells) then
+		Send("cast '"..killspell.."' "..killtarget)
+	elseif ismember(killspell,allskills) then
+		Send(killspell.." "..killtarget)
+	else
+		Send("kill "..killtarget)
+	end
+end
+
+function SlistUpdate(name, line, wildcards)
+	local sn = tonumber(wildcards[1])
+	local nm = wildcards[2]
+	local tg = tonumber(wildcards[3])
+	local du = tonumber(wildcards[4])
+	local pc = tonumber(wildcards[5])
+	local rc = tonumber(wildcards[6])
+	local ty = tonumber(wildcards[7])
+	
+		if tg==1 or tg==0 then
+			if ty==2 then
+				allskills[nm] = true
+			end
+			if ty==1 then
+				allspells[nm] = true
+			end
+		end
+		
+		SaveState()
+end--end update
+
+function SlistDone()
+	EnableTrigger("upattack",false)
+	print("skills and spells updated")
+end--no more slist parsing (hopefully)
+
+
+]]>
+</script> 
+
+</muclient>
