@@ -8477,11 +8477,11 @@ if b==nil or b=="" then
 	b = 0
 end
 
-if c==nil or b=="" then 
+if c==nil or c=="" then 
 	c = 0
 end
 
-if d==nil or b=="" then
+if d==nil or d=="" then
 	d = 0
 end
 
