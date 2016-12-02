@@ -68,12 +68,12 @@ Not sure what to put here yet, give me a bit and ill make it
    match="cpr"
    enabled="y"
    send_to="12"
-   sequence="100"
+   sequence="50"
    script="CampaignRequest"
   >
   </alias>
     <alias
-   match="^cp ?(set room|request|quit|info|today|check|quit)?"
+   match="^cp ?(set room|room set|request|quit|info|today|check|quit)?"
    enabled="y"
    send_to="12"
    regexp="y"
@@ -82,12 +82,12 @@ Not sure what to put here yet, give me a bit and ill make it
   >
   </alias>
    <alias
-   match="^q last( .*)?"
+   match="^q ?(last|set room|room set|r|re|req|requ|reque|request|points|info|time|c|co|com|comp|compl|comple|complet|complete|list|buy|sell|appraise|fail)?( .*)?"
    enabled="y"
    send_to="12"
    sequence="100"
    regexp="y"
-   script="Report"
+   script="QuestSettings"
   >
   </alias>
   <alias
@@ -173,9 +173,9 @@ local arg = string.lower(wildcards[1])
 
 	if wildcards[1] == "" then
 		Send ("cp")
-	elseif arg == "set room" then
+	elseif arg == "set room" or arg == "room set" then
 		local _,room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
-		cproom = utils.inputbox ("Input the number of the room your cp master is in", "cproom", tonumber(room), "Courier", 9)
+		cproom = utils.inputbox ("Input the number of the room your quest master is in", "cproom", tonumber(room), "Courier", 9)
 		SaveState()
 	elseif arg == "request" then
 		Execute("cpr")
@@ -379,14 +379,65 @@ function StartTime(arg)
 	Hadarsqpstrackers.time=0--work around maybe
 end--End StartTime
 
-function Report(name, line, wildcards)
- local chan
- if Trim(wildcards[1]) ~= "" then
-	chan = wildcards[1]
- else
-	chan = "gt"
- end
-	SendSpecial(chan.." "..MakeOutput("q"))
+function QuestSettings(name, line, wildcards)
+ 
+	args = Trim(string.lower(wildcards[1]))
+	param = Trim(string.lower(wildcards[2]))
+
+	if args == "last" then
+		local chan
+		if param ~= "" then
+			chan = param
+			SendSpecial(chan.." "..MakeOutput("q"))
+		else
+			chan = "gt"
+			SendSpecial(chan.." "..MakeOutput("q"))
+		end
+	
+	elseif args == "set room" or args == "room set" then
+		local _,room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
+		cproom = utils.inputbox ("Input the number of the room your quest master is in", "quest", tonumber(room), "Courier", 9)
+		SaveState()
+	elseif args == "r" or args == "re" or args == "req" or args == "requ" or args == "reque" or args == "reques" or args == "request" then
+		if room == 0 then 
+	
+		elseif room ~= current_room then
+			Execute("mapper goto "..room)
+		end
+	Send("Quest request")
+	elseif args == "points" then
+		Send("quest points")
+	elseif args == "info" then
+		Send("quest info")
+	elseif args == "time" then
+		Send("quest time")
+	elseif args == "c" or args == "co" or args == "com" or args == "comp" or args == "compl" or args == "ccomple" or args == "complet" or args == "complete" then
+		Send("quest complete")
+	elseif args == "list" then
+		Send("quest list")
+	elseif args == "buy" then
+		if param == "" then
+			Send("quest buy")
+		else
+			Send("quest buy "..param)
+		end
+	elseif args == "sell" then
+		if param == "" then
+			Send("quest sell")
+		else
+			Send("qust sell "..param)
+		end
+	elseif args == "appraise" then
+		if param == "" then
+			Send("quest appraise")
+		else
+			Send("qust appraise "..param)
+		end
+	elseif args == "fail" then
+		Send("quest fail")
+	elseif args == "" then
+		Send("q")
+	end--end if/elseif
 end
 
 function StopTime(arg)
