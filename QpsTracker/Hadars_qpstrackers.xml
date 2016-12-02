@@ -73,7 +73,7 @@ Not sure what to put here yet, give me a bit and ill make it
   >
   </alias>
     <alias
-   match="^cp ?(set room|room set|request|quit|info|today|check|quit)?"
+   match="^cp ?(set room|room set|request|quit|info|today|check|quit|level)?"
    enabled="y"
    send_to="12"
    regexp="y"
@@ -97,14 +97,6 @@ Not sure what to put here yet, give me a bit and ill make it
    sequence="100"
    regexp="y"
    script="faux"
-  >
-  </alias>
-  <alias
-   match="cplevel"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-   script="SetCampaignLeveling"
   >
   </alias>
   <alias
@@ -187,6 +179,8 @@ local arg = string.lower(wildcards[1])
 		Send("cp today")
 	elseif arg == "check" then
 		Send("cp ch")
+	elseif arg == "level" then
+		SetCampaignLeveling()
 	end -- end if checks for cp
 	
 end--End CampaignSettings
