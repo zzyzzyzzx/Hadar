@@ -72,6 +72,15 @@ Not sure what to put here yet, give me a bit and ill make it
    script="CampaignRequest"
   >
   </alias>
+    <alias
+   match="^cp ?(set room|request|quit|info|today|check|quit)?"
+   enabled="y"
+   send_to="12"
+   regexp="y"
+   sequence="100"
+   script="CampaignSettings"
+  >
+  </alias>
    <alias
    match="^q last( .*)?"
    enabled="y"
@@ -116,6 +125,7 @@ Not sure what to put here yet, give me a bit and ill make it
 
 <script>
 <![CDATA[
+
 require "serialize"
 require "gmcphelper"
 require "HadarLuaCommon"
@@ -157,11 +167,37 @@ function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
 end
 
-function CampaignRequest()
-local room = 23211 --put the number of your questmaster here
-local current_room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
+function CampaignSettings(name, line, wildcards)
 
-	if room ~= current_room then
+local arg = string.lower(wildcards[1])
+
+	if wildcards[1] == "" then
+		Send ("cp")
+	elseif arg == "set room" then
+		local _,room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
+		cproom = utils.inputbox ("Input the number of the room your cp master is in", "cproom", tonumber(room), "Courier", 9)
+		SaveState()
+	elseif arg == "request" then
+		Execute("cpr")
+	elseif arg == "quit" then
+		Send("cp quit")
+	elseif arg == "info" then
+		Send("cp info")
+	elseif arg == "today" then
+		Send("cp today")
+	elseif arg == "check" then
+		Send("cp ch")
+	end -- end if checks for cp
+	
+end--End CampaignSettings
+
+function CampaignRequest()
+local room = cproom --put the number of your questmaster here
+local _,current_room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
+
+	if room == 0 then 
+		
+	elseif room ~= current_room then
 		Execute("mapper goto "..room)
 	end
 	SendSpecial("campaign request")
@@ -201,6 +237,7 @@ function SetCampaignLeveling()
 end
 
 function OnPluginSaveState ()
+	SetVariable ("cproom", serialize.save ("cproom"))
 	SetVariable ("Hadarsqpstrackers", serialize.save ("Hadarsqpstrackers"))
 	SetVariable ("Hadarsqpstrackerstotal", serialize.save ("Hadarsqpstrackerstotal"))
 	SetVariable ("Hadarsqpstrackersqtime", serialize.save ("Hadarsqpstrackersqtime"))
@@ -208,10 +245,12 @@ function OnPluginSaveState ()
 end -- function OnPluginSaveState
 
 function OnPluginInstall ()
+	cproom=0
 	Hadarsqpstrackers = {}
 	Hadarsqpstrackersqtime = {}
 	Hadarsqpstrackerstotal = {}
 	Hadarsqpstrackerslastreset = {}
+	assert (loadstring (GetVariable ("cproom") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackers") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackersqtime") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerstotal") or "")) ()
