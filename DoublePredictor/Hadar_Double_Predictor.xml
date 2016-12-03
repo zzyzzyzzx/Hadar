@@ -96,6 +96,7 @@ Send("realtime")</send>
 
 <script>
 <![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
 require "HadarLuaCommon"
 
 function OnHelp ()
