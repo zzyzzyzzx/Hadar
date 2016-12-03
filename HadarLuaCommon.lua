@@ -13,6 +13,17 @@ function timeDiff(t2,t1,script)
 	return diff
 end
 
+function centerText(text, width)
+	-- Wraps text into the center of the specified width.
+
+	local length = width - #text
+	if length > 0 then
+		text = string.rep(" ", math.floor(length / 2)) .. text .. string.rep(" ", math.floor(length / 2))
+	end
+	
+	return #text == width and text or text .. " "
+end
+
 function comma_value(n) -- credit http://richard.warburton.it
 	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
 	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
