@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadar_potion_Tracker"
+   author="Hadar"
+   id="8b614de57c14606ab6f4d4f6"
+   language="Lua"
+   purpose="Track potions display to window, with autoquaffing"
+   date_written="2016-11-30"
+   requires="4.98"
+   version="1.0"
+   save_state="y"
+   >
+<description trim="y">
+<![CDATA[
+
+I liked abelinc/lunks version so i kept the qff alias - rest of code is mine
+
+Install this plugin to automatically quaff a potion when your health falls 
+below a preset limit.
+
+aqff                     ---> Displays the current values of variables
+
+aqff bag *               ---> Sets the container to get potions from to *
+
+aqff hp pot *            ---> Sets hp potion to *
+
+aqff mn pot *            ---> Sets mn potion to *
+
+aqff mv pot *            ---> Sets mv potion to *
+
+aqff hp per *            ---> Sets the HP percent you must fall below to quaff to *
+
+aqff mn per *            ---> Sets the MN percent you must fall below to quaff to *
+
+aqff mv per *            ---> Sets what MV percent you must fall below to quaff to *
+							   
+aqff on/off              ---> Turns the actions of the plugin on or off
+
+aqff add hp pot          ---> Add a heal pot to the database
+
+aqff add mn pot          ---> Add a mana pot to the database
+
+aqff add mv pot          ---> Add a move pot to the database
+
+]]>
+</description>
+
+</plugin>
+
+<include name="constants.lua"/>
+
+<triggers>
+  <trigger
+   enabled="y"
+   match="^Auction: (.*) is auctioning (.*) \(Level .*, Num .*\)\. Current bid is .*\.$"
+   regexp="y"
+   send_to="12"
+   script="addpot"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^Auction: (.*) SOLD to (.*) for .* gold\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You buy (\d+) \* (.*) from .* for ([+-]?[0-9,]+) gold\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You buy (.*) from .* for ([+-]?[0-9,]+) gold\."
+   regexp="y"
+   send_to="12"
+   script="potionaddsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You drop (\d+) \* (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You drop (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You eat (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="potionQuaff"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You get (\d+) \* (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You get (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You give (\d+) \* (.*) to .*\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You give (.*) to .*\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You quaff (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="potionQuaff"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You receive (\d+) \* (.*) from .*\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You receive (.*) from .*\.$"
+   regexp="y"
+   send_to="12"
+   script="potionaddsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You recite (.*)\.$"
+   regexp="y"
+   send_to="12"
+   script="potionQuaff"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You sell (\d+) \* (.*) to .* for .* gold\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionmultiple"
+   sequence="99"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^You sell (.*) to .* for .* gold\.$"
+   regexp="y"
+   send_to="12"
+   script="losepotionsingle"
+   sequence="100"
+  >
+  </trigger>
+    <trigger
+   enabled="y"
+   match="^\((?: )?(\d+)\) (?:\(M\))(?:\(G\))?(?:\(H\))? (.*) \(\d+\)$"
+   regexp="y"
+   send_to="12"
+   script="addpot"
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+
+<aliases>
+
+  <alias
+   name="autoquaff"
+   script="qff_settings"
+   match="^aqff ?(hp per|mn per|mv per|hp pot|mn pot|mv pot|bag|on|off|help|debug|add mv pot|add hp pot|add mn pot)?( [a-z0-9]+)?"
+   enabled="y"
+   regexp="y"
+   ignore_case="y"
+   sequence="100"
+  >
+  </alias>
+  
+  <alias
+	match="^MajorHadarTest$"
+	regexp="y"
+	enabled="y"
+	echo_alias="n"
+	send_to="12"
+	sequence="95">
+	<send>
+		print(countDatabase())
+	</send>
+	</alias>
+   
+</aliases>
+
+<script>
+<![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
+
+require "checkplugin"
+require "serialize"
+require "gmcphelper"
+require "HadarLuaCommon"
+databasename = GetPluginInfo(GetPluginID (), 20) .. "HadarPotions.db"
+db = "Potions"
+
+--[[ +-------------------------------------------------------+
+	 |	    	Initilization stuff                          |
+	 +-------------------------------------------------------+ ]]
+
+function OnPluginInstall ()
+	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+  
+	prepareDatabase()
+	OnPluginEnable ()
+
+end -- endinstall
+
+function OnPluginEnable ()
+end -- endenable
+
+function OnPluginSaveState ()
+--nothing to save
+end --end save state
+
+
+
+--[[ +-------------------------------------------------------+
+	 |	    	MMMM MiniWindow Stuff                        |
+	 +-------------------------------------------------------+ ]]
+	 
+
+
+
+--[[ +-------------------------------------------------------+
+	 |	    	MMMM Actual Potion Stuff                     |
+	 +-------------------------------------------------------+ ]]
+
+local _,pname = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char.base.name")
+
+function OnPluginBroadcast(msg, id, name, text)
+  if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+    if (text == "char.vitals") then
+		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+		luastmt = "gmcpdata = " .. gmcparg
+        assert (loadstring (luastmt or "")) ()
+	end --end text viatals
+  end -- end gmcp handler
+end --end pluginbroadcast
+
+function potionaddsingle(name, line, wildcards)
+
+	local item = lookupDatabase(wildcards[1])
+	local ammt = 1
+	
+	if item == "heal" or item == "mana" or item == "move" then
+		AddToDatabase(item,ammt)
+	end
+	
+end -- end potaddsingle
+
+
+function potionaddmultiple(name, line, wildcards)
+
+	local item = lookupDatabase(wildcards[2])
+	local ammt = wildcards[1]
+	
+	if item == "heal" or item == "mana" or item == "move" then
+		AddToDatabase(item,ammt)
+	end
+	
+end -- end potaddmultiple
+
+function losepotionsingle(name, line, wildcards)
+
+	local item = lookupDatabase(wildcards[1])
+	local ammt = 1
+	
+	if item == "heal" or item == "mana" or item == "move" then
+		RemoveFromDatabase(item,1,"drop")
+	end
+	
+end -- end losepotionsingle
+
+function losepotionmultiple(name, line, wildcards)
+
+	local item = lookupDatabase(wildcards[2])
+	local ammt = wildcards[1]
+	
+	if item == "heal" or item == "mana" or item == "move" then
+		RemoveFromDatabase(item,ammt,"drop")
+	end
+	
+end -- end losepotionmultiple
+
+function potionQuaff(name, line, wildcards)
+	local item = lookupDatabase(wildcards[1])
+	local ammt = 1
+	RemoveFromDatabase(item,1,"quaff")
+end
+
+function addpot()
+end -- addpot
+
+function delpot()
+end -- delpot
+
+function qff_settings (name, line, wildcards)
+			if wildcards [1] == "add mv pot" then
+				movepotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+				if movepotion ~= nil then
+					putDatabase("move",movepotion)
+				end
+			elseif wildcards [1] == "add hp pot" then
+				healpotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+				if movepotion ~= nil then
+					putDatabase("heal",healpotion)
+				end
+			elseif wildcards [1] == "add mn pot" then
+				manapotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+				if manapotion ~= nil then
+					putDatabase("mana",manapotion)
+				end
+			end
+			
+	--SaveState()
+end -- autoquaff_settings
+
+--[[ +-------------------------------------------------------+
+	 |	    	MMMM Database                                |
+	 +-------------------------------------------------------+ ]]
+	 
+function lookupDatabase(name)
+	DatabaseOpen(db, databasename, 6)
+	
+	local status = DatabasePrepare(db, "SELECT * FROM potions WHERE name='"..name.."'")
+	
+	if status == 0 then
+		local cookie = DatabaseStep(db)
+		if cookie == 100 then
+			result = DatabaseColumnValues(db)[2]
+		elseif cookie == 101 then
+			result = false
+		end
+	end
+	
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+	
+	return result;
+end
+
+function AddToDatabase(type,amt)
+
+	local math1
+
+	DatabaseOpen(db, databasename, 6)
+	
+	local status = DatabasePrepare(db, "SELECT * FROM potionstats WHERE type='"..type.."'")
+	if status == 0 then
+		cycle = DatabaseStep(db)
+		
+		while cycle == 100 do
+			math1 = DatabaseColumnValues(db)[2]
+			cycle = DatabaseStep(db)
+		end
+	end
+	
+	math1=math1+amt
+	DatabaseFinalize(db)
+	
+	local update = DatabaseExec(db, "UPDATE potionstats SET ammountLeft='"..math1.."' WHERE type = '"..type.."'")
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+	
+	Info (print(countDatabase()))
+end
+
+function RemoveFromDatabase(type,amt,action)
+
+	local math1
+	local math2
+	local math3
+
+	DatabaseOpen(db, databasename, 6)
+	
+	local status = DatabasePrepare(db, "SELECT * FROM potionstats WHERE type='"..type.."'")
+	if status == 0 then
+		cycle = DatabaseStep(db)
+		
+		while cycle == 100 do
+			math1 = DatabaseColumnValues(db)[2]
+			math2 = DatabaseColumnValues(db)[3]
+			math3 = DatabaseColumnValues(db)[4]
+			cycle = DatabaseStep(db)
+		end
+	end
+	
+	math1=math1-amt
+	if action=="quaff" then
+		math2 = math2+1
+		math3 = math3+1
+	end
+	DatabaseFinalize(db)
+	
+	local update = DatabaseExec(db, "UPDATE potionstats SET ammountLeft='"..math1.."', quaffed='"..math2.."', quaffedTotal='"..math3.."' WHERE type = '"..type.."'")
+	
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+	
+	Info (print(countDatabase()))
+end
+	 
+function putDatabase(type,name)
+	DatabaseOpen(db, databasename, 6)
+	status = DatabaseExec(db, "INSERT INTO potions (type,name) VALUES ( '"..type.."', '"..name.."')")
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+	ColourNote("Cyan","","We put ","Red","",name,"Cyan",""," into ","Red","",type)
+end
+
+function countDatabase()
+	DatabaseOpen(db, databasename, 6)
+	local status = DatabasePrepare(db, "SELECT * FROM potionstats")
+	potstats=nil
+	
+	if status == 0 then
+		cycle = DatabaseStep(db)
+		while cycle == 100 do
+		if potstats==nil then
+			potstats = DatabaseColumnValues(db)[1]..":"..DatabaseColumnValues(db)[2]
+		else
+			potstats = potstats.." "..DatabaseColumnValues(db)[1]..":"..DatabaseColumnValues(db)[2]
+		end
+			cycle = DatabaseStep(db)
+		end
+	end
+	
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+	
+	return potstats;
+end
+
+function prepareDatabase()
+	-- Create database if its not already present
+	
+	DatabaseOpen(db, databasename, 6)
+	
+	status = DatabaseExec(db, [[
+			CREATE TABLE IF NOT EXISTS potions(
+				ID					INTEGER PRIMARY KEY AUTOINCREMENT,
+				type				TEXT DEFAULT 'empty',
+				name				TEXT DEFAULT 'empty',
+				
+				unique(ID)
+			);
+			
+			CREATE TABLE IF NOT EXISTS potionstats(
+				type				TEXT PRIMARY KEY,
+				ammountLeft			INTEGER DEFAULT 0,
+				quaffed				INTEGER DEFAULT 0,
+				quaffedTotal		INTEGER DEFAULT 0,
+				
+				unique(type)
+			);
+			
+		]])
+		
+		
+	if status ~= 0 then
+		ColourNote("white", "red", centerText("Error creating potion database : " .. DatabaseError(db), 60))
+	end
+	
+	DatabaseFinalize(db)
+	DatabaseClose(db)
+end
+
+]]>
+</script>
+
+</muclient>
