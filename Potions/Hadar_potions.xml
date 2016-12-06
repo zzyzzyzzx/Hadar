@@ -222,25 +222,13 @@ aqff add mv pot          ---> Add a move pot to the database
   <alias
    name="autoquaff"
    script="qff_settings"
-   match="^aqff ?(hp per|mn per|mv per|hp pot|mn pot|mv pot|bag|on|off|help|debug|add mv pot|add hp pot|add mn pot)?( [a-z0-9]+)?"
+   match="^aqff ?(hp per|mn per|mv per|hp pot|mn pot|mv pot|bag|on|off|help|win|add mv pot|add hp pot|add mn pot)?( [a-z0-9]+)?"
    enabled="y"
    regexp="y"
    ignore_case="y"
    sequence="100"
   >
   </alias>
-  
-  <alias
-	match="^MajorHadarTest$"
-	regexp="y"
-	enabled="y"
-	echo_alias="n"
-	send_to="12"
-	sequence="95">
-	<send>
-		print(countDatabase())
-	</send>
-	</alias>
    
 </aliases>
 
@@ -258,6 +246,17 @@ db = "Potions"
 --[[ +-------------------------------------------------------+
 	 |	    	Initilization stuff                          |
 	 +-------------------------------------------------------+ ]]
+	 
+function OnPluginBroadcast(msg, id, name, text)
+  if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+    if (text == "char.vitals") then
+		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+		luastmt = "gmcpdata = " .. gmcparg
+        assert (loadstring (luastmt or "")) ()
+		do_autoquaff()
+	end --end text viatals
+  end -- end gmcp handler
+end --end pluginbroadcast
 
 function OnPluginInstall ()
 	if GetVariable ("enabled") == "false" then
@@ -272,18 +271,210 @@ function OnPluginInstall ()
 end -- endinstall
 
 function OnPluginEnable ()
+	qvar={}
+	phelper:OnPluginEnable()
+	
+	qvar.quaffHpLimit = 30
+	qvar.quaffMnLimit = 30
+	qvar.quaffMvLimit = 30
+	qvar.bag = "bag"
+	qvar.hppot = "heal"
+	qvar.mnpot = "mana"
+	qvar.mvpot = "move"
+	qvar.hpfired = os.time()
+	qvar.mnfired = os.time()
+	qvar.mvfired = os.time()
+	qvar.enabled = "yes"
+	
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("qvar") or "")) ()
+	end
 end -- endenable
 
 function OnPluginSaveState ()
---nothing to save
+    phelper:OnPluginSaveState()
+	SetVariable ("qvar", serialize.save ("qvar"))
+	SetVariable ("pastfirstinstall", "true")
 end --end save state
+
+function qff_settings (name, line, wildcards) -- settings are now initializer script, because i said so!
+	if wildcards[1] == "" then
+	
+	elseif wildcards[1] == "on" then
+		qvar.enabled="yes"
+		ColourNote("Cyan","","AutoQuaff is now ","Green","","Enabled")
+	elseif wildcards[1] == "off" then
+		qvar.enabled="no"
+		ColourNote("Cyan","","AutoQuaff is now ","Green","","Disabled")
+	elseif wildcards [1] == "add mv pot" then
+		movepotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+		if movepotion ~= nil then
+			putDatabase("move",movepotion)
+		end
+	elseif wildcards [1] == "add hp pot" then
+		healpotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+		if movepotion ~= nil then
+			putDatabase("heal",healpotion)
+		end
+	elseif wildcards [1] == "add mn pot" then
+		manapotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
+		if manapotion ~= nil then
+			putDatabase("mana",manapotion)
+		end
+	elseif wildcards[1] == "hp pot" then
+		qvar.hppot = wildcards[2]
+		ColourNote("Cyan","","Set autoquaff heal potion to:"..qvar.hppot)
+	elseif wildcards[1] == "mn pot" then
+		qvar.mnpot = wildcards[2]
+		ColourNote("Cyan","","Set autoquaff mana potion to:"..qvar.mnpot)
+	elseif wildcards[1] == "hp pot" then
+		qvar.hppot = wildcards[2]
+		ColourNote("Cyan","","Set autoquaff move potion to:"..qvar.mvpot)	
+	elseif wildcards[1] == "bag" then
+		qvar.bag = wildcards[2]
+	elseif wildcards[1] == "hp per" and tonumber(wildcards[2]) > 99 then
+		qvar.quaffHpLimit = tonumber(wildcards[2])
+		ColourNote("Cyan","","Set autoquaff heal percent to:"..qvar.quaffHpLimit)
+	elseif wildcards[1] == "mn per" and tonumber(wildcards[2]) > 99 then
+		qvar.quaffMnLimit = tonumber(wildcards[2])
+		ColourNote("Cyan","","Set autoquaff mana percent to:"..qvar.quaffMnLimit)
+	elseif wildcards[1] == "mv per" and tonumber(wildcards[2]) > 99 then
+		qvar.quaffMvLimit = tonumber(wildcards[2])
+		ColourNote("Cyan","","Set autoquaff move percent to:"..qvar.quaffMvLimit)
+	elseif wildcards[1] == "win" then
+		show_potwin()
+	end -- this is to end the if/elseif
+			
+	SaveState()
+end -- autoquaff_settings
 
 
 
 --[[ +-------------------------------------------------------+
 	 |	    	MMMM MiniWindow Stuff                        |
 	 +-------------------------------------------------------+ ]]
+	require 'miniwin'
+	require 'pluginhelper'
+	potwin = Miniwin:new{name="HP"}
+	potwin:set_default('windowpos', 1) -- if it breaks this used to be 7
+	potwin:add_setting("purpleIThink", {help="the colour for the time", type="colour", default=verify_colour(0xD670DA), sortlev=1})
+	potwin:add_setting("darkGreen", {help="the colour for when a mob is not in kill table db", type="colour", default=verify_colour("green"), sortlev=1})
+	showpotwin = false
+	
+	function set_show()
+		showpotwin = true
+	end
+ 
+	function show_potwin ()
+ 
+		local texttable = {}
+		local header = {}
+		local style = {}
+ 
+		style = {}
+		style.text = "Potions:     "
+		table.insert (header, {style})
+		words = {}
+		for word in countDatabase():gmatch("%S+") do table.insert(words, word) end
+		for i, v in pairs (words) do
+			print(v)
+			style = {}
+ 
+			style.text = v
+   
+			style.textcolour = "darkGreen"
+			-- if v[2] == "???" then
+			--   style.textcolour = "mobdead_colour"
+			-- end
+			
+			table.insert (texttable, {style})
+ 
+		end -- for
+ 
+ 
+		potwin:enable()
+		potwin:addtab('default', texttable, header, true)
+ 
+		potwin:show(true)
+   
+ 
+		potwin:changetotab('default')
+ 
+		style = {}
+		style.text = " Pots: "
+		potwin:tabbroadcast(true, {style})
+ 
+	end
+
+function OnPluginClose()
+ 
+  phelper:OnPluginClose()
+end -- OnPluginClose
+ 
+ 
+function OnPluginDisable ()
+ 
+  phelper:OnPluginDisable()
+end -- OnPluginDisable
+ 
+function OnPluginConnect ()
+ 
+  phelper:OnPluginConnect()
+end -- OnPluginConnect
+ 
+function OnPluginDisconnect ()
+ 
+  phelper:OnPluginDisconnect()
+end -- function OnPluginConnect
+ 
+phelper:set_default('cmd', 'mcp')
+phelper:set_default('plugin_colour', 'steelblue')
+ 
+phelper:add_pobject('win', potwin)
+ 
+phelper:enable()
+
+
+
+--[[ +-------------------------------------------------------+
+	 |	    	Lets do some autoquaff stuff                 |
+	 +-------------------------------------------------------+ ]]
 	 
+	function do_autoquaff()
+		if os.time() - qvar.hpfired > 3 then --stealing from abe
+			if qvar.enabled == "yes" then
+				if (tonumber(gmcpval("vitals.hp"))/tonumber(gmcpval("maxstats.maxhp"))*100) <= tonumber(qvar.quaffHpLimit) then
+					Send("get "..qvar.hppot.." "..qvar.bag)
+					Send("quaff "..qvar.hppot)
+					qvar.hpfired = os.time()
+				end
+			end
+		end
+		
+		if os.time() - qvar.mnfired > 3 then
+			if qvar.enabled == "yes" then
+				if (tonumber(gmcpval("vitals.mana"))/tonumber(gmcpval("maxstats.maxmana"))*100) <= tonumber(qvar.quaffMnLimit) then
+					Send("get "..qvar.mnpot.." "..qvar.bag)
+					Send("quaff "..qvar.mnpot)
+					qvar.mnfired = os.time()
+				end
+			end
+		end
+		
+		if os.time() - qvar.mvfired > 3 then
+			if qvar.enabled == "yes" then
+				if (tonumber(gmcpval("vitals.moves"))/tonumber(gmcpval("maxstats.moves"))*100) <= tonumber(qvar.quaffMvLimit) then
+					Send("get "..qvar.mvpot.." "..qvar.bag)
+					Send("quaff "..qvar.mvpot)
+					qvar.mvfired = os.time()
+				end
+			end
+		end
+		
+		
+	end
+
 
 
 
@@ -292,16 +483,6 @@ end --end save state
 	 +-------------------------------------------------------+ ]]
 
 local _,pname = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char.base.name")
-
-function OnPluginBroadcast(msg, id, name, text)
-  if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
-    if (text == "char.vitals") then
-		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-		luastmt = "gmcpdata = " .. gmcparg
-        assert (loadstring (luastmt or "")) ()
-	end --end text viatals
-  end -- end gmcp handler
-end --end pluginbroadcast
 
 function potionaddsingle(name, line, wildcards)
 
@@ -360,27 +541,6 @@ end -- addpot
 function delpot()
 end -- delpot
 
-function qff_settings (name, line, wildcards)
-			if wildcards [1] == "add mv pot" then
-				movepotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
-				if movepotion ~= nil then
-					putDatabase("move",movepotion)
-				end
-			elseif wildcards [1] == "add hp pot" then
-				healpotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
-				if movepotion ~= nil then
-					putDatabase("heal",healpotion)
-				end
-			elseif wildcards [1] == "add mn pot" then
-				manapotion = utils.inputbox ("Copy/Paste name of move potion", "Add Potion", "nil", "Courier", 9)
-				if manapotion ~= nil then
-					putDatabase("mana",manapotion)
-				end
-			end
-			
-	--SaveState()
-end -- autoquaff_settings
-
 --[[ +-------------------------------------------------------+
 	 |	    	MMMM Database                                |
 	 +-------------------------------------------------------+ ]]
@@ -427,8 +587,6 @@ function AddToDatabase(type,amt)
 	local update = DatabaseExec(db, "UPDATE potionstats SET ammountLeft='"..math1.."' WHERE type = '"..type.."'")
 	DatabaseFinalize(db)
 	DatabaseClose(db)
-	
-	Info (print(countDatabase()))
 end
 
 function RemoveFromDatabase(type,amt,action)
@@ -462,8 +620,6 @@ function RemoveFromDatabase(type,amt,action)
 	
 	DatabaseFinalize(db)
 	DatabaseClose(db)
-	
-	Info (print(countDatabase()))
 end
 	 
 function putDatabase(type,name)
