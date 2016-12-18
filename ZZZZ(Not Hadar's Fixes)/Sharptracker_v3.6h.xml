@@ -2406,7 +2406,7 @@ EnableGroup ("strack_masteries_active", false)
    custom_colour="12"
    enabled="y"
    group="strack_level"
-   match="*You gain * hit points, * mana, * moves, * practices and * trains."
+   match="*You gain * hit points, * mana, * moves, * practices, * trains and * instinct trains."
    send_to="12"
    sequence="101"
   >
