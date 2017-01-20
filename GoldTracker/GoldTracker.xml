@@ -95,7 +95,7 @@
 
 <aliases>
   <alias
-   match="GoldTracked"
+   match="goldtracked"
    enabled="y"
    send_to="12"
    sequence="50"
