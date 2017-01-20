@@ -216,6 +216,10 @@ GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
 SaveState()
 end
 
+function GoldVal()
+      return serialize.save_simple(GoldTrack)
+end
+
 ]]>
 </script>
 
