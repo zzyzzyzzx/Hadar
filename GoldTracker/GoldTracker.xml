@@ -191,7 +191,7 @@ end
 function AddGiveGold(name, line, wildcards)
 GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
 GoldTrack.AGiveGold = GoldTrack.AGiveGold+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.AGiveGold+NoMoreComma(wildcards[1])
+GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
 SaveState()
 end
 
