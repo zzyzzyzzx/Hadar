@@ -101,10 +101,12 @@ function goldquit()
 local res, dagmcp = CallPlugin("ff007fc4c4258417ba53eebf", "GoldVal")
 assert(loadstring("LoadInfo = "..dagmcp or "")) ()
 
-math = (810*donateperc)/100
+if tonumber(LoadInfo.Session)>=100 then
+	math = (tonumber(LoadInfo.Session)*tonumber(donateperc))/100
+	Send("Clando "..math)
+end
 
-Send("Clando "..math)
-Send("Quit")
+Send("quit")
 end
 
 
