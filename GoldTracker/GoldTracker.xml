@@ -169,9 +169,9 @@ function NoMoreComma(num)
 end
 
 function AddGoldCrumble(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[2])
-GoldTrack.Crumble = GoldTrack.Crumble+NoMoreComma(wildcards[2])
-GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[2])
+GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
+GoldTrack.Crumble = GoldTrack.Crumble+NoMoreComma(wildcards[1])
+GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
 SaveState()
 end
 
