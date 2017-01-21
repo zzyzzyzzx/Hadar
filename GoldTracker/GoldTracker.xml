@@ -29,7 +29,7 @@
 <triggers>
   <trigger
    enabled="y"
-   match="^(?:A pile of coins) crumbles into ([+-]?[0-9,]+) gold pieces\.$"
+   match="^.* crumbles into ([+-]?[0-9,]+) gold pieces\.$"
    regexp="y"
    send_to="12"
    script="AddGoldCrumble"
@@ -133,7 +133,7 @@ print("Gold Gained from Selling:"..GoldTrack.ABuyGold)
 print("Gold Gained from Gives:"..GoldTrack.AGiveGold)
 print("")
 print("Gold Lost from Gives:"..GoldTrack.LGiveGold)
-print("Gold Lost from buying:"..GoldTrack.ABuyGold)
+print("Gold Lost from buying:"..GoldTrack.LBuyGold)
 print("")
 print("Gold from this Session:"..GoldTrack.Session)
 end
@@ -184,7 +184,6 @@ end
 
 function TaxedGold(name, line, wildcards)
 GoldTrack.TaxedGold = GoldTrack.TaxedGold+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.Session-NoMoreComma(wildcards[1])
 GoldTrack.LostAll = GoldTrack.LostAll+NoMoreComma(wildcards[1])
 SaveState()
 end
