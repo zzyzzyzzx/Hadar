@@ -49,6 +49,17 @@
    script="goldquit"
   >
   </alias>
+  <alias match="^(?:had|clando) help$"
+	enabled="y"
+	sequence="99"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
   
 </aliases>
 
@@ -57,17 +68,17 @@
 require "serialize"
 
 function donateset(name, line, wildcards)
-local donateperc = 1
 	if wildcards[1] == "show" then
 		print("Current percent donated: "..donateperc)
 	elseif wildcards[1] == "set" then
-		if wildcards[2] == "nil" then
+		if wildcards[2] == "" then
 			donateperc = 20
 		else
 			if tonumber(wildcards[2])<=100 then
 				donateperc = tonumber(wildcards[2])
 			end
 		end
+		ColourNote ("Cyan", "", "Current donation set to ","teal","",donateperc)
 	end
 end
 
@@ -107,6 +118,18 @@ if tonumber(LoadInfo.Session)>=1000 then
 end
 
 Send("quit")
+end
+
+function HadarHelp()
+	ColourNote("#159FE5","","+----------------------------------","Green","","[","Cyan","","C","Teal","","lan","Cyan",""," D","Teal","","onation","Green","","]","#159FE5","","-----------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," donatepercent (show) "),"#159FE5","","-","#F1D566","",string.format("%-61s"," Lets you know what current donate percent is at"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," donatepercent <set> <#> "),"#159FE5","","-","#F1D566","",string.format("%-58s"," Will set the percent (if no number is given set to 20)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," clando help "),"#159FE5","","-","#F1D566","",string.format("%-64s"," opens up this helpfile"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
 
 
