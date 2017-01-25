@@ -299,6 +299,10 @@ function OnPluginSaveState ()
 end --end save state
 
 function qff_settings (name, line, wildcards) -- settings are now initializer script, because i said so!
+print("Debug:"..wildcards[1])
+print("Debug:"..wildcards[2])
+
+
 	if wildcards[1] == "" then
 	
 	elseif wildcards[1] == "on" then
@@ -333,15 +337,27 @@ function qff_settings (name, line, wildcards) -- settings are now initializer sc
 		ColourNote("Cyan","","Set autoquaff move potion to:"..qvar.mvpot)	
 	elseif wildcards[1] == "bag" then
 		qvar.bag = wildcards[2]
-	elseif wildcards[1] == "hp per" and tonumber(wildcards[2]) > 99 then
-		qvar.quaffHpLimit = tonumber(wildcards[2])
-		ColourNote("Cyan","","Set autoquaff heal percent to:"..qvar.quaffHpLimit)
-	elseif wildcards[1] == "mn per" and tonumber(wildcards[2]) > 99 then
-		qvar.quaffMnLimit = tonumber(wildcards[2])
-		ColourNote("Cyan","","Set autoquaff mana percent to:"..qvar.quaffMnLimit)
-	elseif wildcards[1] == "mv per" and tonumber(wildcards[2]) > 99 then
-		qvar.quaffMvLimit = tonumber(wildcards[2])
-		ColourNote("Cyan","","Set autoquaff move percent to:"..qvar.quaffMvLimit)
+	elseif wildcards[1] == "hp per" then
+		if tonumber(wildcards[2]) < 99 then
+			qvar.quaffHpLimit = tonumber(wildcards[2])
+			ColourNote("Cyan","","Set autoquaff heal percent to:"..qvar.quaffHpLimit)
+		else
+			print("Number should be under 99%")
+		end
+	elseif wildcards[1] == "mn per" then
+		if tonumber(wildcards[2]) < 99 then
+			qvar.quaffMnLimit = tonumber(wildcards[2])
+			ColourNote("Cyan","","Set autoquaff mana percent to:"..qvar.quaffMnLimit)
+		else
+			print("Number should be under 99%")
+		end
+	elseif wildcards[1] == "mv per" then
+		if tonumber(wildcards[2]) < 99 then
+			qvar.quaffMvLimit = tonumber(wildcards[2])
+			ColourNote("Cyan","","Set autoquaff move percent to:"..qvar.quaffMvLimit)
+		else
+			print("Number should be under 99%")
+		end
 	elseif wildcards[1] == "win" then
 		show_potwin()
 	end -- this is to end the if/elseif

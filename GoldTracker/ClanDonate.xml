@@ -57,6 +57,19 @@
 require "serialize"
 
 function donateset(name, line, wildcards)
+local donateperc = 1
+	if wildcards[1] == "show" then
+		print("Current percent donated: "..donateperc)
+	elseif wildcards[1] == "set" then
+		if wildcards[2] == "nil" then
+			donateperc = 20
+		else
+			if tonumber(wildcards[2])<=100 then
+				donateperc = tonumber(wildcards[2])
+			end
+		end
+	end
+end
 
 function OnPluginInstall()
    print("Donations!")
@@ -83,19 +96,6 @@ function OnPluginSaveState ()
 	SetVariable ("pastfirstinstall", "true")
 end --end save state
 
-local donateperc = 1
-	if wildcards[1] == "show" then
-		print("Current percent donated: "..donateperc)
-	elseif wildcards[1] == "set" then
-		if wildcards[2] == "nil" then
-			donateperc = 20
-		else
-			if wildcards[2]<=100 then
-				donateperc = tonumber(wildcards[2])
-			end
-		end
-	end
-end
 
 function goldquit()
 local res, dagmcp = CallPlugin("ff007fc4c4258417ba53eebf", "GoldVal")

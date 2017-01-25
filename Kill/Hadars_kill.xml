@@ -17,7 +17,7 @@
    >
 <description trim="y">
 <![CDATA[
-Not sure what to put here yet, give me a bit and ill make it
+Can see all my help files with had help or just this one with killer help
 ]]>
 </description>
 
@@ -54,6 +54,17 @@ Not sure what to put here yet, give me a bit and ill make it
 <!--  Plugin help  -->
 
 <aliases>
+  <alias match="^(?:had|killer) help$"
+	enabled="y"
+	sequence="99"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
   <alias
    match="^kill( (.*))?"
    enabled="y"
@@ -76,6 +87,7 @@ Not sure what to put here yet, give me a bit and ill make it
 
 <script>
 <![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
 
 require "HadarLuaCommon"
 require "serialize"
@@ -97,20 +109,37 @@ local v1 = Trim(string.lower(wildcards[1]))
 end --end setkill
 
 function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+  
+	OnPluginEnable ()
+end --no more plugin install
+
+function OnPluginEnable ()
+	
 	allskills = {}
 	allspells = {}
+	killspell = nil
+	
 	EnableTrigger("upattack",true)
 	SendSpecial("slist noprompt")
 	
-	assert (loadstring (GetVariable ("allskills") or "")) ()
-	assert (loadstring (GetVariable ("allspells") or "")) ()
-	assert (loadstring (GetVariable ("killspell") or "")) ()
-end --no more plugin install
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("allskills") or "")) ()
+		assert (loadstring (GetVariable ("allspells") or "")) ()
+		killspell = GetVariable ("killspell")
+	end
+end
 
 function OnPluginSaveState ()
 	SetVariable ("allskills", serialize.save ("allskills"))
 	SetVariable ("allspells", serialize.save ("allspells"))
-	SetVariable ("killspell", serialize.save ("killspell"))
+	SetVariable ("killspell", killspell)
+	SetVariable ("pastfirstinstall", "true")
 end -- nomore savestate
 
 function Trogdor(name, line, wildcards)
@@ -156,6 +185,19 @@ function SlistDone()
 	EnableTrigger("upattack",false)
 	print("skills and spells updated")
 end--no more slist parsing (hopefully)
+
+
+function HadarHelp()
+	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","K","Teal","","ill","Green","","]","#159FE5","","---------------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Setkill <update>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will update the spell used on 'kill'"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," kill <name>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Will use the kill spell/skill (with optional name)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+end
 
 
 ]]>

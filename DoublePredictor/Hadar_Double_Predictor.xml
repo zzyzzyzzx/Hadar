@@ -81,18 +81,20 @@ HadarDouble.VI="no"
 Send("gamestat 5")
 Send("realtime")</send>
   </alias>
+  
+  <alias match="^(?:had|double) help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
 </aliases>
 
-<!--  Plugin help  -->P
-
-<aliases>
-  <alias
-   script="OnHelp"
-   match="Hadar_Double_Predictor:help"
-   enabled="y"
-  >
-  </alias>
-</aliases>
 
 <script>
 <![CDATA[
@@ -155,6 +157,17 @@ local quickmath = HadarDouble.HoursLeft*60
 HadarDouble.MinutesLeft=HadarDouble.LeftoverMinutes-quickmath
 
 SendSpecial(HadarDouble.Player.." @G\\}@R "..HadarDouble.KillsNeeded.."@w Kills Left @G{/ @w(Avg @R"..HadarDouble.MobsKilledPerMinute.." @wkpm) @G\\}@w Hour of Double in about: @R"..HadarDouble.DaysLeft.."@wd @R"..HadarDouble.HoursLeft.."@wh @R"..HadarDouble.MinutesLeft.."@wm @G{/@w")
+end
+
+
+
+
+function HadarHelp()
+	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","D","Teal","","ouble ","Cyan","","P","Teal","","redictor","Green","","]","#159FE5","","---------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Predict <Channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Outputs an estimate to a channel when double might happen"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
 
 
