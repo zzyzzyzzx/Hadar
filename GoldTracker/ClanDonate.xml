@@ -82,6 +82,10 @@ function donateset(name, line, wildcards)
 	end
 end
 
+function roundup(num)
+	return math.floor(num+0.5)
+end
+
 function OnPluginInstall()
    print("Donations!")
    
@@ -113,7 +117,7 @@ local res, dagmcp = CallPlugin("ff007fc4c4258417ba53eebf", "GoldVal")
 assert(loadstring("LoadInfo = "..dagmcp or "")) ()
 
 if tonumber(LoadInfo.Session)>=1000 then
-	math = (tonumber(LoadInfo.Session)*tonumber(donateperc))/100
+	math = roundup((tonumber(LoadInfo.Session)*tonumber(donateperc))/100)
 	Send("Clando "..math)
 end
 
