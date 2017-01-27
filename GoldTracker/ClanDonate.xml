@@ -117,8 +117,8 @@ local res, dagmcp = CallPlugin("ff007fc4c4258417ba53eebf", "GoldVal")
 assert(loadstring("LoadInfo = "..dagmcp or "")) ()
 
 if tonumber(LoadInfo.Session)>=1000 then
-	math = roundup((tonumber(LoadInfo.Session)*tonumber(donateperc))/100)
-	Send("Clando "..math)
+	doamt = roundup((tonumber(LoadInfo.Session)*tonumber(donateperc))/100)
+	Send("Clando "..doamt)
 end
 
 Send("quit")
