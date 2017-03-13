@@ -8461,6 +8461,22 @@ SetVariable ("st_counter_levelhour", "0")</send>
 
 <script>
 <![CDATA[
+function OnPluginInstall()
+   Execute("st_reset")
+   
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+  
+	OnPluginEnable ()
+end
+
+OnPluginEnable ()
+	Execute("st_help")
+end
+
 function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
 end
