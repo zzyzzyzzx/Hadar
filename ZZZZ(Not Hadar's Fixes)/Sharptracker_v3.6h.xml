@@ -8151,33 +8151,8 @@ end -- function commas
    send_to="12"
    sequence="100"
   >
-  <send>ColourNote("black", "Orange", "Sharptracker " .. GetVariable("st_main_version") .. " Commands                      ")
-ColourNote("Orange", "black", " st_reset: clear everything start fresh")
-ColourNote("Orange", "black", " st_session: reset session variables (similar to reconnecting to Aard")
-ColourNote("Orange", "black", " st_colours: &lt;@normal&gt; &lt;@high&gt; &lt;@brackets&gt; - eg st_colours @D @W @M")
-ColourNote("Orange", "black", " st_toggles: view/change status of display flags")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
-ColourNote("Orange", "black", " st_report &lt;where&gt;: sharptracker output eg st_report spouse, default is GT")
-ColourNote("Orange", "black", " st_summary &lt;where&gt;: display current session data")
-ColourNote("Orange", "black", " st_totals &lt;where&gt;: display all data since st_reset was activated")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
-ColourNote("Orange", "black", " st_attack &lt;where&gt;: display successful weapon damage")
-ColourNote("Orange", "black", " st_poison &lt;where&gt;: display successful poison damage")
-ColourNote("Orange", "black", " st_dodge &lt;where&gt;: disply successful dodges")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
-ColourNote("Orange", "black", " st_wealth &lt;where&gt;")
-ColourNote("Orange", "black", " st_attrib &lt;where&gt;: eg st_attrib spouse I need more hit points")
-ColourNote("Orange", "black", " st_masteries &lt;where&gt;")
-ColourNote("Orange", "black", " st_equip &lt;where&gt;")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
-ColourNote("Orange", "black", " lastquest &lt;where&gt;: eg lastquest ft questors being generous today")
-ColourNote("Orange", "black", " lastdouble &lt;where&gt;")
-ColourNote("Orange", "black", " lasthour &lt;where&gt;")
-ColourNote("Orange", "black", " lastlevel &lt;where&gt;")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
-ColourNote("Orange", "black", " sps &lt;mob or player&gt;: eg sps on its own casts spellups on yourself")
-ColourNote("Orange", "black", " cmp &lt;item&gt;: compare item in your inventory eg cmp sword")
-ColourNote("Orange", "black", "----------------------------------------------------------------------")
+  <send>
+  dosthelp()
 </send>
   </alias>
   <alias
@@ -8462,20 +8437,22 @@ SetVariable ("st_counter_levelhour", "0")</send>
 <script>
 <![CDATA[
 function OnPluginInstall()
-   Execute("st_reset")
-   
+
+Execute("st_reset")
+
    	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
 		check (EnablePlugin(GetPluginID (), false))
 		return
 	end -- they didn't enable us last time
-  
+	
 	OnPluginEnable ()
+	
 end
 
-OnPluginEnable ()
-	Execute("st_help")
-end
+function OnPluginEnable ()
+	dosthelp()
+end -- endenable
 
 function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
@@ -8507,6 +8484,36 @@ if xy then
   SetVariable ("st_counter_mobexphour", (GetVariable "st_counter_mobexphour") + xy)
   SetVariable ("st_counter_mobexpdouble", (GetVariable "st_counter_mobexpdouble") + xy)
 end
+end
+
+function dosthelp()
+	ColourNote("black", "Orange", "Sharptracker Commands                      ")
+	ColourNote("Orange", "black", " st_reset: clear everything start fresh")
+	ColourNote("Orange", "black", " st_session: reset session variables (similar to reconnecting to Aard")
+	ColourNote("Orange", "black", " st_colours: &lt;@normal&gt; &lt;@high&gt; &lt;@brackets&gt; - eg st_colours @D @W @M")
+	ColourNote("Orange", "black", " st_toggles: view/change status of display flags")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
+	ColourNote("Orange", "black", " st_report &lt;where&gt;: sharptracker output eg st_report spouse, default is GT")
+	ColourNote("Orange", "black", " st_summary &lt;where&gt;: display current session data")
+	ColourNote("Orange", "black", " st_totals &lt;where&gt;: display all data since st_reset was activated")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
+	ColourNote("Orange", "black", " st_attack &lt;where&gt;: display successful weapon damage")
+	ColourNote("Orange", "black", " st_poison &lt;where&gt;: display successful poison damage")
+	ColourNote("Orange", "black", " st_dodge &lt;where&gt;: disply successful dodges")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
+	ColourNote("Orange", "black", " st_wealth &lt;where&gt;")
+	ColourNote("Orange", "black", " st_attrib &lt;where&gt;: eg st_attrib spouse I need more hit points")
+	ColourNote("Orange", "black", " st_masteries &lt;where&gt;")
+	ColourNote("Orange", "black", " st_equip &lt;where&gt;")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
+	ColourNote("Orange", "black", " lastquest &lt;where&gt;: eg lastquest ft questors being generous today")
+	ColourNote("Orange", "black", " lastdouble &lt;where&gt;")
+	ColourNote("Orange", "black", " lasthour &lt;where&gt;")
+	ColourNote("Orange", "black", " lastlevel &lt;where&gt;")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
+	ColourNote("Orange", "black", " sps &lt;mob or player&gt;: eg sps on its own casts spellups on yourself")
+	ColourNote("Orange", "black", " cmp &lt;item&gt;: compare item in your inventory eg cmp sword")
+	ColourNote("Orange", "black", "----------------------------------------------------------------------")
 end
 
 ]]>
