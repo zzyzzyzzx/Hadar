@@ -61,23 +61,8 @@ function levelskill(skill)
 --
 end
 
-function pupreport(channel)
+function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
 --
------------------------------------------------------------------------------
--- please only edit the following variables to change the look
--- of the level report
------------------------------------------------------------------------------
-	local color1 	= "@G" -- this is the first letter of the word
-	local color2	= "@g" -- this is the rest of the word after color1
-	local brac	    = "@R" -- this is the color of all the parenthesis
-	local colornum	= "@w" -- this is all the numbers except time
-	local colortim 	= "@W" -- this is the color for time
-	local brac2	    = "@w" -- color for the [] around the time
-	local colorplus	= "@W" -- color of the + sign on bonus trains
-	local colorstat	= "@w" -- what color you want stats to be
------------------------------------------------------------------------------
--- This is the end of variable editing
------------------------------------------------------------------------------
 	local endcolor	= "@w"
 
 	if channel == nil then
@@ -122,23 +107,8 @@ function pupreport(channel)
 		
 --
 end
-function levelreport(level,channel)
+function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
 --
------------------------------------------------------------------------------
--- please only edit the following variables to change the look
--- of the level report
------------------------------------------------------------------------------
-	local color1 	= "@G" -- this is the first letter of the word
-	local color2	= "@g" -- this is the rest of the word after color1
-	local brac	= "@R" -- this is the color of all the parenthesis
-	local colornum	= "@w" -- this is all the numbers except time
-	local colortim 	= "@W" -- this is the color for time
-	local brac2	= "@w" -- color for the [] around the time
-	local colorplus	= "@W" -- color of the + sign on bonus trains
-	local colorstat	= "@w" -- what color you want stats to be
------------------------------------------------------------------------------
--- This is the end of variable editing
------------------------------------------------------------------------------
 	local endcolor	= "@w"
 
 	if channel == nil then
