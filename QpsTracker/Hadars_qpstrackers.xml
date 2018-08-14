@@ -15,11 +15,11 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.0"
+   version="1.5"
    >
 <description trim="y">
 <![CDATA[
-Not sure what to put here yet, give me a bit and ill make it
+reports quests (working on cps/gqs)
 ]]>
 </description>
 
@@ -82,7 +82,7 @@ Not sure what to put here yet, give me a bit and ill make it
   >
   </alias>
    <alias
-   match="^q ?(last|set room|room set|r|re|req|requ|reque|request|points|info|time|c|co|com|comp|compl|comple|complet|complete|list|buy|sell|appraise|fail)?( .*)?"
+   match="^q (last|set room|room set|r|re|req|requ|reque|request|points|info|time|c|co|com|comp|compl|comple|complet|complete|list|buy|sell|appraise|fail)?( .*)?"
    enabled="y"
    send_to="12"
    sequence="100"
@@ -107,16 +107,22 @@ Not sure what to put here yet, give me a bit and ill make it
    script="ResetTrackerData"
   >
   </alias>
-  <alias
-   script="OnHelp"
-   match="Hadars_qpstrackers:help"
-   enabled="y"
-  >
-  </alias>
+  <alias match="^(?:had|qpstrack) help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
 </aliases>
 
 <script>
 <![CDATA[
+dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
 
 require "serialize"
 require "gmcphelper"
@@ -250,6 +256,8 @@ function OnPluginInstall ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerstotal") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerslastreset") or "")) ()
 	print("What is qps tracker going to do today brain? Same thing we do everynight, try and take over the world!")
+	InfoBackground ("white")
+	SetStatus("")
 end
 
 function NowLeveled()
@@ -298,11 +306,28 @@ function OnPluginBroadcast(msg, id, name, text)
 			
 			if i=="action" and v=="comp" then
 				Hadarsqpstrackers.time=1
+				InfoBackground ("white")
 			end -- End completed quest
 			
 			if i=="action" and v=="start" then
 				Hadarsqpstrackers.time=2
 			end -- End start of quest
+			
+			if i=="action" and v=="killed" then
+				InfoBackground ("orange")
+			end
+			
+			if i=="action" and v=="ready" then
+				InfoBackground ("red")
+			end
+			
+			if i=="action" and v=="fail" then
+				InfoBackground ("white")
+			end
+			
+			if i=="action" and v=="timeout" then
+				InfoBackground ("white")
+			end
 		end
 		
 		if Hadarsqpstrackers.time==1 then 
@@ -372,6 +397,7 @@ function StartTime(arg)
 	end
 	Hadarsqpstrackers.time=0--work around maybe
 end--End StartTime
+
 
 function QuestSettings(name, line, wildcards)
  
@@ -473,6 +499,22 @@ if Hadarsqpstrackerstotal.averagetime == nil then Hadarsqpstrackerstotal.average
 
 
 end--amazing hadar will never end!
+
+function HadarHelp()
+	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","Q","Teal","","uest Point ","Cyan","","T","Teal","","racker","Green","","]","#159FE5","","---------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," cp set room"),"#159FE5","","-","#F1D566","",string.format("%-64s"," lets you set the room for your cp master"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," cpr"),"#159FE5","","-","#F1D566","",string.format("%-64s"," go to the cp masters room and request a cp"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," cp level"),"#159FE5","","-","#F1D566","",string.format("%-64s"," turn cp leveling on or off (toggles noexp at less then 1k tnl after a level)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," cpr"),"#159FE5","","-","#F1D566","",string.format("%-64s"," go to the cp masters room and request a cp"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," q set room"),"#159FE5","","-","#F1D566","",string.format("%-64s"," sets quest master room"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+end
 
 ]]>
 </script> 
