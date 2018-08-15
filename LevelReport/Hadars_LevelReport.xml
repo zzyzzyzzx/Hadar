@@ -34,7 +34,6 @@
    omit_from_output="y"
    regexp="y"
    script="SkillGain"
-   send_to="12"
    sequence="100"
   >
   </trigger>
@@ -263,11 +262,15 @@ function OnPluginBroadcast(msg, id, name, text)
 
   if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
     if (text == "char.status") then
-		local res, dagmcp = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char.status")
+		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
 		
-				luastmt = "gmcpval = " .. dagmcp
+		
+			print(gmcpval)
+
+				luastmt = "gmcpdata = " .. gmcparg
 				assert (loadstring (luastmt or "")) ()
 				currentState = tonumber(gmcpval("status.state"))
+				print("char.status.state : " ..currentState)
 
 				BuildSkillz()
 		
@@ -308,16 +311,14 @@ function OnPluginInstall ()
 	
 	if (currentState == -1) then
 		currentState = 0 -- sent request
-		Send_GMCP_Packet("request char")
 	end
 	
-	LevelReportVariables = {}
-	leveltable = {}
+	
 	LevelReportVariables.initilized = 0
 	assert (loadstring (GetVariable ("LevelReportVariables") or "")) ()
 	assert (loadstring (GetVariable ("leveltable") or "")) ()
 	
-	if LevelReportVariables[initilized] == 0 then
+	if LevelReportVariables.initilized == 0 then
 		buildInitialColors()
 	end
 	
@@ -339,9 +340,9 @@ function SkillGain(name, line, wildcards)
 	
 		if two == 1 then
 			levelskill(skill)
-		elseif  == 100 && showskillgain==1 then
+		elseif two == 100 and showskillgain==1 then
 			msg = "@x125I have @x023M@x041astered "..skill
-		elseif two > 85 && showskillgain==1 then
+		elseif two > 85 and showskillgain==1 then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
 	send(channel..msg)
@@ -408,8 +409,8 @@ local channel
 	local report = "L"..LevelReportVariables[level]
 	levelreport(LevelReportVariables[level],channel,LevelReportVariables[levelColorFirst],LevelReportVariables[levelColorSecond],LevelReportVariables[levelBrac],LevelReportVariables[levelColorNum],LevelReportVariables[levelColorTime],LevelReportVariables[levelColorBracSecond],LevelReportVariables[levelColorPlus],LevelReportVariables[levelColorStat])
 	leveltable[report] = LevelReportVariables.message
-	zs.cmd.send(LevelReportVariables.channel.." "..LevelReportVariables.message)
-	zs.var.leveltable              = leveltable</value>
+--	zs.cmd.send(LevelReportVariables.channel.." "..LevelReportVariables.message)
+--	zs.var.leveltable              = leveltable</value>
 end
 
 function level_Stat_Add(name, line, wildcards)
@@ -513,9 +514,11 @@ end
 				DebugNote("BuildSkillz...")
 								--ensure tags are enabled
 				DebugNote("Setting spell/skill tags.")
-				SendPkt (string.char (IAC, SB, TELOPT, GLOBAL_TAG_MUTE, 2, IAC, SE))
+				--SendPkt (string.char (IAC, SB, TELOPT, GLOBAL_TAG_MUTE, 2, IAC, SE))
 				SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
 				Send_GMCP_Packet("request char")
+				
+				Send("echo we made it to buildskillz")
 
 				SendSlistCommand()
 			end
