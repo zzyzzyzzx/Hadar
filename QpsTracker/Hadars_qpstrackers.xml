@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.5"
+   version="1.52"
    >
 <description trim="y">
 <![CDATA[
@@ -242,6 +242,7 @@ function OnPluginSaveState ()
 	SetVariable ("Hadarsqpstrackerstotal", serialize.save ("Hadarsqpstrackerstotal"))
 	SetVariable ("Hadarsqpstrackersqtime", serialize.save ("Hadarsqpstrackersqtime"))
 	SetVariable ("Hadarsqpstrackerslastreset", serialize.save ("Hadarsqpstrackerslastreset"))
+	ShowInfoBar (true)
 end -- function OnPluginSaveState
 
 function OnPluginInstall ()
@@ -256,6 +257,7 @@ function OnPluginInstall ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerstotal") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerslastreset") or "")) ()
 	print("What is qps tracker going to do today brain? Same thing we do everynight, try and take over the world!")
+	ShowInfoBar (true)
 	InfoBackground ("white")
 	SetStatus("")
 end
@@ -307,6 +309,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			if i=="action" and v=="comp" then
 				Hadarsqpstrackers.time=1
 				InfoBackground ("white")
+				SetStatus("")
 			end -- End completed quest
 			
 			if i=="action" and v=="start" then
@@ -315,18 +318,22 @@ function OnPluginBroadcast(msg, id, name, text)
 			
 			if i=="action" and v=="killed" then
 				InfoBackground ("orange")
+				SetStatus("Return To Questor")
 			end
 			
 			if i=="action" and v=="ready" then
 				InfoBackground ("red")
+				SetStatus("Quest Time!!!")
 			end
 			
 			if i=="action" and v=="fail" then
 				InfoBackground ("white")
+				SetStatus("")
 			end
 			
 			if i=="action" and v=="timeout" then
 				InfoBackground ("white")
+				SetStatus("")
 			end
 		end
 		
