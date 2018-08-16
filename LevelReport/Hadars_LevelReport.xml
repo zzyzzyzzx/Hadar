@@ -30,64 +30,13 @@
 <triggers>
   <trigger
    enabled="y"
-   match="^\{skillgain\}(\d+),(\d+)"
+   match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
    omit_from_output="y"
    regexp="y"
    script="SkillGain"
    sequence="100"
   >
   </trigger>
-  	<trigger
-		name="SListStart"
-		group="SpellupCapture"
-		script="slist_start"
-		enabled="n"
-		match="\{spellheaders( learned)?\}$"
-		regexp="y"
-		omit_from_output="y"
-		sequence="100"
-	>
-	</trigger>
-
-	<trigger
-		name="SListEnd"
-		group="SpellupCapture"
-		script="slist_end"
-		enabled="n"
-		match="^{\/spellheaders\}$"
-		regexp="y"
-		omit_from_output="y"
-		sequence="100"
-	>
-	</trigger>
-	<!--
-     SN, Name, target, duration, Pct, recovery, type
-
-     SN         : Spell number as seen in 'showskill'
-     Name       : Name of the skill or spell.
-     Target     : 0 - Special. Target decided in spell (gate etc)
-                  1 - Attack.
-                  2 - Spellup.
-                  3 - Self only.
-                  4 - Object
-     Duration   : If you are affected by the spell, duration in seconds.
-                  0 if not affected.
-     Pct        : Percent practiced.
-     Recovery   : If the skill/spell relies on a recovery to be useable,
-                  the recovery number is here.
-     Type       : 1 = Spell, 2 = Skill
-	-->
-	<trigger
-		name="SListCapture"
-		group="SpellupCapture"
-		enabled="n"
-		match="^(?<sn>[0-9]+),(?<name>[^,]+),(?<target>[0-9]),(?<duration>[0-9]+),(?<percent>[0-9]+),(?<recovery>\-?[0-9]+),(?<type>[0-9]+)$"
-		regexp="y"
-		omit_from_output="y"
-		sequence="100"
-		script="slist_capture"
-	>
-	</trigger>
 	<trigger
 		group="PupTriggers"
 		enabled="n"
@@ -170,6 +119,85 @@
 	</trigger>
 	
 	
+		<!-- Recovery Capture -->
+	<trigger
+		name="RecoveriesStart"
+		enabled="n"
+		match="^\{recoveries\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		send_to="12"
+	>
+	<send>
+		EnableTrigger("RecoveriesStart", false)
+		EnableTrigger("RecoveriesCapture", true)
+		EnableTrigger("RecoveriesEnd", true)
+	</send>
+	</trigger>
+
+	<trigger
+		name="RecoveriesCapture"
+		enabled="n"
+		match="^[0-9]+,[^,]+,[0-9]+$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+
+	<trigger
+		name="RecoveriesEnd"
+		enabled="n"
+		match="^\{\/recoveries\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		send_to="12"
+	>
+	<send>
+		EnableTrigger("RecoveriesStart", false)
+		EnableTrigger("RecoveriesCapture", false)
+		EnableTrigger("RecoveriesEnd", false)
+	</send>
+	</trigger>
+	
+		<!-- slist Capture -->
+	<trigger
+		name="SListStart"
+		group="SpellupCapture"
+		script="begin_sList"
+		enabled="n"
+		match="\{spellheaders( learned)?\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+
+	<trigger
+		name="SListEnd"
+		group="SpellupCapture"
+		script="stop_sList"
+		enabled="n"
+		match="^{\/spellheaders\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+	<trigger
+		name="SListCapture"
+		group="SpellupCapture"
+		enabled="n"
+		match="^(?<sn>[0-9]+),(?<name>[^,]+),(?<target>[0-9]),(?<duration>[0-9]+),(?<percent>[0-9]+),(?<recovery>\-?[0-9]+),(?<type>[0-9]+)$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		script="slist_capture"
+	>
+	</trigger>
+	
 </triggers>
 
 <!--  Aliases  -->
@@ -216,7 +244,7 @@ require "HadarLevelReport"
 
 	local LevelReportVariables = {}
 	local leveltable = {}
-	local sList = -1
+	local slist = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
 	local IAC = 255
@@ -255,27 +283,14 @@ end
 
 function OnPluginBroadcast(msg, id, name, text)
 
-		if (currentState == -1) then
-			currentState = 0 -- sent request
-			Send_GMCP_Packet("request char")
-		end
-
   if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
     if (text == "char.status") then
-		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char.status")
 		
+				assert(loadstring("LoadInfo = "..gmcparg or "")) ()
+				currentState = tonumber(gmcp("char.status.state"))
 		
-			print(gmcpval)
-
-				luastmt = "gmcpdata = " .. gmcparg
-				assert (loadstring (luastmt or "")) ()
-				currentState = tonumber(gmcpval("status.state"))
-				print("char.status.state : " ..currentState)
-
-				BuildSkillz()
-		
-		
-		for i,v in pairs(luastmt) do
+		for i,v in pairs(LoadInfo) do
 		
 			if i == "level" then LevelReportVariables.level=v end
 			if i == "level" then 
@@ -307,11 +322,18 @@ function OnPluginSaveState ()
 	SetVariable ("leveltable", serialize.save ("leveltable"))
 end -- function OnPluginSaveState
 
+
 function OnPluginInstall ()
+
+	sList[initilized] = 0
+	
+	print(sList)
 	
 	if (currentState == -1) then
 		currentState = 0 -- sent request
 	end
+	
+	SendNoEcho("protocol gmcp sendchar")
 	
 	
 	LevelReportVariables.initilized = 0
@@ -323,6 +345,7 @@ function OnPluginInstall ()
 	end
 	
 	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
+--buildSlist()
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -332,20 +355,21 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function SkillGain(name, line, wildcards)
-	local one = wildcards[1]
-	local two = wildcards[2]
-	local skill = sList[tonumber(one)].name
-	local showskillgain
-	local skill = "some sort of probe"
+	local one = wildcards.sn
+	local two = wildcards.perc
+	local msg
+
 	
-		if two == 1 then
+	local showskillgain = "true"
+	
+		if tonumber(two) == 1 then
 			levelskill(skill)
-		elseif two == 100 and showskillgain==1 then
+		elseif tonumber(two) == 100 and showskillgain=="true" then
 			msg = "@x125I have @x023M@x041astered "..skill
-		elseif two > 85 and showskillgain==1 then
+		elseif tonumber(two) < 100 and showskillgain=="true" then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
-	send(channel..msg)
+	send(LevelReportVariables.channel..msg)
 end
 
 function Pup_level()
@@ -366,24 +390,25 @@ function Pup_train_add(name, line, wildcards)
 end
 
 function buildInitialColors()
-LevelReportVariables.pupColorFirst = "@G"
-LevelReportVariables.pupColorSecond = "@g"
-LevelReportVariables.pupBrac = "@R"
-LevelReportVariables.pupColorNum = "@w"
-LevelReportVariables.pupColorTime = "@W"
-LevelReportVariables.pupColorBracSecond = "@w" 
-LevelReportVariables.pupColorPlus = "@W"
-LevelReportVariables.pupColorStat = "@w"
+	LevelReportVariables.pupColorFirst = "@G"
+	LevelReportVariables.pupColorSecond = "@g"
+	LevelReportVariables.pupBrac = "@R"
+	LevelReportVariables.pupColorNum = "@w"
+	LevelReportVariables.pupColorTime = "@W"
+	LevelReportVariables.pupColorBracSecond = "@w" 
+	LevelReportVariables.pupColorPlus = "@W"
+	LevelReportVariables.pupColorStat = "@w"
 
-LevelReportVariables.levelColorFirst = "@G"
-LevelReportVariables.levelColorSecond = "@g"
-LevelReportVariables.levelBrac = "@R"
-LevelReportVariables.levelColorNum = "@w"
-LevelReportVariables.levelColorTime = "@W"
-LevelReportVariables.levelColorBracSecond = "@w" 
-LevelReportVariables.levelColorPlus = "@W"
-LevelReportVariables.levelColorStat = "@w"
-LevelReportVariables.initilized = 1
+	LevelReportVariables.levelColorFirst = "@G"
+	LevelReportVariables.levelColorSecond = "@g"
+	LevelReportVariables.levelBrac = "@R"
+	LevelReportVariables.levelColorNum = "@w"
+	LevelReportVariables.levelColorTime = "@W"
+	LevelReportVariables.levelColorBracSecond = "@w" 
+	LevelReportVariables.levelColorPlus = "@W"
+	LevelReportVariables.levelColorStat = "@w"
+	LevelReportVariables.channel = "gt"
+	LevelReportVariables.initilized = 1
 end
 
 function Pup_report_build(name, line, wildcards)
@@ -453,85 +478,47 @@ end
 
 
 
-
-
-
-
-function slist_start(name, line, wildcards)
-	sList = {}
-	EnableTrigger("SListCapture", true)
-	EnableTrigger("SListEnd", true)
-	ColourNote("darkorange", "", "*** Indexing skills/spells...")
+function begin_sList()
+		EnableTriggerGroup("SListCapture", true)
+		EnableTrigger("RecoveriesStart", true)
+		ColourNote("darkorange", "", "*** Getting Skills/Spells")
 end
 
-function slist_capture(name, line, wildcards)
+function stop_sList()
+		EnableTriggerGroup("SListCapture", false)
 
-	local textType
-	local sn = tonumber(wildcards.sn)
-	local addItem = false
-	if (tonumber(wildcards.type) == 2) then
-		textType = "skill"
-	else
-		textType = "spell"
-	end
-
-	local value = { name = wildcards.name, target = tonumber(wildcards.target), recovery = tonumber(wildcards.recovery), percent = tonumber(wildcards.percent), type = textType }
-
-	-- validate
-	-- bug: need to make inertial barrier work!
-	if (value.target == 0) then
-		if (sn == inertial_barrier_sn or sn == tonumber(USER_v2_clan_sn)) then
-			addItem = true
-		else
-			DebugNote(" *** not indexed - category-validation " .. line)
-		end
-	elseif (value.target == 2 or value.target == 3) then
-		addItem = true
-	else
-		DebugNote(" *** not indexed - target-validation " .. line)
-	end
-
-	if (value.recovery ~= -1) then
-		addItem = false
-		DebugNote(" *** not indexed - recovery-validation " .. line)
-	end
-
-	if (addItem) then
-		-- add to list
-		sList[tonumber(sn)] = value
-		DebugNote(sList[tonumber(sn)].name .. " added")
-	end
+		ColourNote("darkorange", "", "*** Got the Skills/Spells.")
 end
 
-function slist_end(name, line, wildcards)
-	EnableTriggerGroup("SpellupCapture", false)
-	ColourNote("darkorange", "", "*** Skills/spells indexed.")
-end
-
-	function BuildSkillz() --took from winkle because why remake the wheel
-		if (sList == -1) then
-			if (currentState == 3) then
-				DebugNote("BuildSkillz...")
-								--ensure tags are enabled
-				DebugNote("Setting spell/skill tags.")
-				--SendPkt (string.char (IAC, SB, TELOPT, GLOBAL_TAG_MUTE, 2, IAC, SE))
-				SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
-				Send_GMCP_Packet("request char")
-				
-				Send("echo we made it to buildskillz")
-
-				SendSlistCommand()
-			end
-		end
-	end
-	
 function SendSlistCommand()
 	if (slistCommandSent == false) then
 		slistCommandSent = true
-		EnableTrigger("SListStart", true)
+		begin_sList()
 		SendNoEcho("slist")
 	end
 end
+	
+function buildSlist()
+	if (sList.initilized == 0) then
+		if (currentState == 3) then
+			SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
+
+			SendSlistCommand()
+			sList.initilized = 1
+		end
+	end
+end
+
+function slist_capture(name, line, wildcards)
+	local textType
+	local sn = tonumber(wildcards.sn)
+	local value = { name = wildcards.name, target = tonumber(wildcards.target), recovery = tonumber(wildcards.recovery), percent = tonumber(wildcards.percent), type = textType }
+
+	sList[tonumber(sn)] = value
+
+end
+
+
 
 
 
