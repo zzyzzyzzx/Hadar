@@ -71,19 +71,19 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 	mylevelreport.channel = channel
 	end
 	
-	if levelinfo.year > 0 then -- this if deals with spent over 1 year leveling colors the number red
+	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
 		mylevelreport.time = color1.."Y:@R"..levelinfo.year..","
 	else
 		mylevelreport.time = ""
 	end
 
-	if levelinfo.month > 0 then -- this if deals with spent over 1 month leveling colors the number red
+	if tonumber(levelinfo.month) > 0 then -- this if deals with spent over 1 month leveling colors the number red
 		mylevelreport.time = mylevelreport.time .. color1 .."M:@R"..levelinfo.month.." "
 	else
 		mylevelreport.time = ""
 	end
 
-	if levelinfo.day > 0 then -- this if deals with spent over 1 day leveling colors the number red
+	if tonumber(levelinfo.day) > 0 then -- this if deals with spent over 1 day leveling colors the number red
 		mylevelreport.time = mylevelreport.time .. color1 .. "D:@R" .. levelinfo.day .. " "
 	else
 		mylevelreport.time = ""
@@ -93,7 +93,7 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
 		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
 
-		if levelinfo.bonustraintwo>0 then
+		if tonumber(levelinfo.bonustraintwo)>0 then
 		local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 		mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
 		else
@@ -117,19 +117,19 @@ function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,co
 	mylevelreport.channel = channel
 	end
 
-	if levelinfo.year > 0 then -- this if deals with spent over 1 year leveling colors the number red
+	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
 		mylevelreport.time = color1.."Y:@R"..levelinfo.year..","
 	else
 		mylevelreport.time = ""
 	end
 
-	if levelinfo.month > 0 then -- this if deals with spent over 1 month leveling colors the number red
+	if tonumber(levelinfo.month) > 0 then -- this if deals with spent over 1 month leveling colors the number red
 		mylevelreport.time = mylevelreport.time .. color1 .."M:@R"..levelinfo.month.." "
 	else
 		mylevelreport.time = ""
 	end
 
-	if levelinfo.day > 0 then -- this if deals with spent over 1 day leveling colors the number red
+	if tonumber(levelinfo.day) > 0 then -- this if deals with spent over 1 day leveling colors the number red
 		mylevelreport.time = mylevelreport.time .. color1 .. "D:@R" .. levelinfo.day .. " "
 	else
 		mylevelreport.time = ""
@@ -143,12 +143,12 @@ function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,co
 		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "n" .. brac .. "(" ..colornum ..levelinfo.mana .. brac .. ")"
 		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "v" .. brac .. "(" ..colornum ..levelinfo.moves .. brac .. ")"
 
-	if levelinfo.prac > 0 then
+	if tonumber(levelinfo.prac) > 0 then
 		mylevelreport.gains = mylevelreport.gains .. color1 .. "P" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.prac .. brac .. ")"
 	end
 
-	if levelinfo.train > 0 then
-		if levelinfo.bonustrain > 0 then
+	if tonumber(levelinfo.train) > 0 then
+		if tonumber(levelinfo.bonustrain) > 0 then
 			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. colorplus .. "+" .. colornum .. levelinfo.bonustrain .. brac ..")"
 		else
 			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. brac .. ")"

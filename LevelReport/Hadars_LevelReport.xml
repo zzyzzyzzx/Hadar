@@ -29,7 +29,7 @@
 
 <triggers>
   <trigger
-   enabled="y"
+   enabled="n"
    match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
    omit_from_output="y"
    regexp="y"
@@ -79,7 +79,7 @@
 	</trigger>
 	<trigger
 		group="LevelTriggers"
-		enabled="n"
+		enabled="y"
 		match="^You gain a bonus (.*) point!$"
 		regexp="y"
 		omit_from_output="y"
@@ -89,8 +89,8 @@
 	</trigger>
 	<trigger
 		group="LevelTriggers"
-		enabled="n"
-		match="^You gain (\d+) hit points, (\d+) mana, (\d+) moves, (\d+) practices and (\d+) trains\."
+		enabled="y"
+		match="^You gain ([0-9]{1,3}) hit points, ([0-9]{1,3}) mana, ([0-9]{1,3}) moves, ([0-9]{1,3}) practices and ([0-9]{1,3}) trains\."
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
@@ -99,7 +99,7 @@
 	</trigger>
 	<trigger
 		group="LevelTriggers"
-		enabled="n"
+		enabled="y"
 		match="^You gain (\d+) extra train.? daily blessing bonus"
 		regexp="y"
 		omit_from_output="y"
@@ -109,7 +109,7 @@
 	</trigger>
 	<trigger
 		group="LevelTriggers"
-		enabled="n"
+		enabled="y"
 		match="^Lucky! You gain an extra (\d+) training session(?s)!$"
 		regexp="y"
 		omit_from_output="y"
@@ -244,7 +244,7 @@ require "HadarLevelReport"
 
 	local LevelReportVariables = {}
 	local leveltable = {}
-	local slist = {}
+	slist = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
 	local IAC = 255
@@ -253,6 +253,10 @@ require "HadarLevelReport"
 	local SE  = 240
 	local SKILLGAINS = 8
 	local GLOBAL_TAG_MUTE = 50
+	levelinfo = {}
+	mylevelreport = {}
+	
+	levelinfo.oldtimestamp = os.time()
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
@@ -292,9 +296,12 @@ function OnPluginBroadcast(msg, id, name, text)
 		
 		for i,v in pairs(LoadInfo) do
 		
-			if i == "level" then LevelReportVariables.level=v end
+			if i == "level" then
+			LevelReportVariables.level=v 
+			print(LevelReportVariables.level)
+			end
 			if i == "level" then 
-				if v >= "200" then
+				if tonumber(v) > 199 then
 					EnableTrigger("PupTriggers", true)
 					EnableTrigger("LevelTriggers", false)
 				else
@@ -320,14 +327,14 @@ end
 function OnPluginSaveState ()
 	SetVariable ("LevelReportVariables", serialize.save ("LevelReportVariables"))
 	SetVariable ("leveltable", serialize.save ("leveltable"))
+	
 end -- function OnPluginSaveState
 
 
 function OnPluginInstall ()
 
-	sList[initilized] = 0
+	--sList[initilized] = 0
 	
-	print(sList)
 	
 	if (currentState == -1) then
 		currentState = 0 -- sent request
@@ -339,6 +346,7 @@ function OnPluginInstall ()
 	LevelReportVariables.initilized = 0
 	assert (loadstring (GetVariable ("LevelReportVariables") or "")) ()
 	assert (loadstring (GetVariable ("leveltable") or "")) ()
+	assert (loadstring (GetVariable ("levelinfo") or "")) ()
 	
 	if LevelReportVariables.initilized == 0 then
 		buildInitialColors()
@@ -346,47 +354,6 @@ function OnPluginInstall ()
 	
 	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
 --buildSlist()
-end
-
-----------------------------------------------------------------------------------------------------
---										  End Standard Stuff									  --
---																								  --
---									    Begin Custom Function									  --
-----------------------------------------------------------------------------------------------------
-
-function SkillGain(name, line, wildcards)
-	local one = wildcards.sn
-	local two = wildcards.perc
-	local msg
-
-	
-	local showskillgain = "true"
-	
-		if tonumber(two) == 1 then
-			levelskill(skill)
-		elseif tonumber(two) == 100 and showskillgain=="true" then
-			msg = "@x125I have @x023M@x041astered "..skill
-		elseif tonumber(two) < 100 and showskillgain=="true" then
-			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
-		end
-	send(LevelReportVariables.channel..msg)
-end
-
-function Pup_level()
-	mylevelconvert()
-	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
-	mylevelepoch()
-	levelinfo.bonustrain = 0
-	levelinfo.bonustraintwo = 0
-	DoAfterSpecial(0.5, 'Execute("pupreport echo")', sendto.script)
-end
-
-function Pup_train_bonus(name, line, wildcards)
-	puptrainbonus(wildcards[1])
-end
-
-function Pup_train_add(name, line, wildcards)
-	puptrainadd(wildcards[1])
 end
 
 function buildInitialColors()
@@ -407,35 +374,67 @@ function buildInitialColors()
 	LevelReportVariables.levelColorBracSecond = "@w" 
 	LevelReportVariables.levelColorPlus = "@W"
 	LevelReportVariables.levelColorStat = "@w"
-	LevelReportVariables.channel = "gt"
 	LevelReportVariables.initilized = 1
 end
+
+----------------------------------------------------------------------------------------------------
+--										  End Standard Stuff									  --
+--																								  --
+--									    Begin Level/PUP Functions								  --
+----------------------------------------------------------------------------------------------------
 
 function Pup_report_build(name, line, wildcards)
 local channel
 	if wildcards[1] == nil then
-		channel = LevelReportVariables[channel]
+		channel = LevelReportVariables.channel
 	else
 		channel = wildcards[1]
 	end
 	
 	
-	pupreport(channel,LevelReportVariables[pupColorFirst],LevelReportVariables[pupColorSecond],LevelReportVariables[pupBrac],LevelReportVariables[pupColorNum],LevelReportVariables[pupColorTime],LevelReportVariables[pupColorBracSecond],LevelReportVariables[pupColorPlus],LevelReportVariables[pupColorStat])
+	pupreport(channel,LevelReportVariables.pupColorFirst,LevelReportVariables.pupColorSecond,LevelReportVariables.pupBrac,LevelReportVariables.pupColorNum,LevelReportVariables.pupColorTime,LevelReportVariables.pupColorBracSecond,LevelReportVariables.pupColorPlus,LevelReportVariables.pupColorStat)
+end
+
+function Pup_level()
+	mylevelconvert()
+	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
+	mylevelepoch()
+	levelinfo.bonustrain = 0
+	levelinfo.bonustraintwo = 0
+	DoAfterSpecial(0.5, 'Execute("pupreport echo")', sendto.script)
+end
+
+function Pup_train_bonus(name, line, wildcards)
+	puptrainbonus(wildcards[1])
+end
+
+function Pup_train_add(name, line, wildcards)
+	puptrainadd(wildcards[1])
 end
 
 function level_Report_Build(name, line, wildcards)
 local channel
+
+LevelReportVariables.channel = "gt"
+
 	if wildcards[1] == nil then
-		channel = LevelReportVariables[channel]
+		channel = LevelReportVariables.channel
 	else
 		channel = wildcards[1]
 	end
 	
-	local report = "L"..LevelReportVariables[level]
-	levelreport(LevelReportVariables[level],channel,LevelReportVariables[levelColorFirst],LevelReportVariables[levelColorSecond],LevelReportVariables[levelBrac],LevelReportVariables[levelColorNum],LevelReportVariables[levelColorTime],LevelReportVariables[levelColorBracSecond],LevelReportVariables[levelColorPlus],LevelReportVariables[levelColorStat])
-	leveltable[report] = LevelReportVariables.message
---	zs.cmd.send(LevelReportVariables.channel.." "..LevelReportVariables.message)
---	zs.var.leveltable              = leveltable</value>
+	
+	local report = "L"..LevelReportVariables.level
+	
+	
+	
+	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
+	leveltable.report = mylevelreport.message
+	
+	print("channel?"..LevelReportVariables.channel)
+	print("report?"..leveltable.report)
+	
+	SendNoEcho(LevelReportVariables.channel.." "..leveltable.report)
 end
 
 function level_Stat_Add(name, line, wildcards)
@@ -461,7 +460,8 @@ function gain_Level(name, line, wildcards)
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	statadd(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5])
-	DoAfterSpecial(0.5, 'Execute("levelreport")', sendto.script)
+	
+	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
 end
 
 function level_bonus_train(name, line, wildcards)
@@ -469,14 +469,29 @@ function level_bonus_train(name, line, wildcards)
 end
 
 
+----------------------------------------------------------------------------------------------------
+--									  End Level/PUP Functions	   							      --
+--																								  --
+--									    Begin Slist Stuff										  --
+----------------------------------------------------------------------------------------------------
 
+function SkillGain(name, line, wildcards)
+	local one = wildcards.sn
+	local two = wildcards.perc
+	local msg
 
-
-
-
-
-
-
+	
+	local showskillgain = "true"
+	
+		if tonumber(two) == 1 then
+			levelskill(skill)
+		elseif tonumber(two) == 100 and showskillgain=="true" then
+			msg = "@x125I have @x023M@x041astered "..skill
+		elseif tonumber(two) < 100 and showskillgain=="true" then
+			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
+		end
+	send(LevelReportVariables.channel..msg)
+end
 
 function begin_sList()
 		EnableTriggerGroup("SListCapture", true)
@@ -518,8 +533,11 @@ function slist_capture(name, line, wildcards)
 
 end
 
-
-
+----------------------------------------------------------------------------------------------------
+--									     End slist stuff 	   							          --
+--																								  --
+--									    Begin help Stuff										  --
+----------------------------------------------------------------------------------------------------
 
 
 function HadarHelp()
