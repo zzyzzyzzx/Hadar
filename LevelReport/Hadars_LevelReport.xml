@@ -242,7 +242,7 @@ require "HadarLuaCommon"
 require "serialize"
 require "HadarLevelReport"
 
-	local LevelReportVariables = {}
+	LevelReportVariables = {}
 	local leveltable = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
@@ -354,12 +354,13 @@ end
 
 function OnPluginEnable ()
 	
+	DeleteVariable("LevelReportVariables")
+	DeleteVariable("pastfirstinstall")
+	
 	LevelReportVariables = {}
 	levelSkillSpells = {}
 	leveltable = {}
 	levelinfo = {}
-	
-	SendSpecial("slist")
 	
 	
 	if GetVariable ("pastfirstinstall") == "true" then
@@ -371,6 +372,7 @@ function OnPluginEnable ()
 		buildInitialColors()
 		buildFirstSpellList()
 	end
+
 end
 
 function buildInitialColors()
@@ -392,6 +394,7 @@ function buildInitialColors()
 	LevelReportVariables.levelColorPlus = "@W"
 	LevelReportVariables.levelColorStat = "@w"
 	LevelReportVariables.initilized = 1
+	LevelReportVariables.channel = "gt"
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -448,6 +451,9 @@ LevelReportVariables.channel = "gt"
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
 	leveltable.report = mylevelreport.message
 	
+	print("channel?"..LevelReportVariables.channel)
+	print("report?"..leveltable.report)
+	
 	SendNoEcho(LevelReportVariables.channel.." "..leveltable.report)
 end
 
@@ -490,10 +496,18 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function SkillGain(name, line, wildcards)
-	local one = wildcards.sn
-	local two = wildcards.perc
+	local one = tonumber(wildcards.sn)
+	local two = tonumber(wildcards.perc)
 	local msg
+	local skill
 
+	print("skillgain fired")
+	
+	for i,v in pairs(levelSkillSpells) do
+		if one == i then
+			skill = v
+		end
+	end
 	
 	local showskillgain = "true"
 	
@@ -504,7 +518,10 @@ function SkillGain(name, line, wildcards)
 		elseif tonumber(two) < 100 and showskillgain=="true" then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
-	send(LevelReportVariables.channel..msg)
+		
+		if two > 1 then
+			SendNoEcho(LevelReportVariables.channel.." "..msg)
+		end
 end
 
 function begin_sList()
@@ -515,6 +532,7 @@ end
 
 function stop_sList()
 		EnableTriggerGroup("SListCapture", false)
+		SaveState()
 
 		ColourNote("darkorange", "", "*** Got the Skills/Spells.")
 end
@@ -523,7 +541,7 @@ function SendSlistCommand()
 	if (slistCommandSent == false) then
 		slistCommandSent = true
 		begin_sList()
-		SendNoEcho("slist")
+		SendNoEcho("slist noprompt")
 	end
 end
 	
@@ -547,16 +565,15 @@ function SlistUpdate(name, line, wildcards)
 	local rc = tonumber(wildcards[6])
 	local ty = tonumber(wildcards[7])
 	
-		levelSkillSpells.sn = nm
+		levelSkillSpells[sn] = nm
 		
-		SaveState()
 end--end update
 
 function buildFirstSpellList()
 	levelSkillSpells = {}
 	
 	EnableTrigger("SListCapture",true)
-	SendSpecial("slist")
+	SendNoEcho("slist noprompt")
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -577,6 +594,7 @@ function HadarHelp()
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
+
 
 
 ]]>
