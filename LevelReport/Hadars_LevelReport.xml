@@ -29,7 +29,7 @@
 
 <triggers>
   <trigger
-   enabled="n"
+   enabled="y"
    match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
    omit_from_output="y"
    regexp="y"
@@ -190,11 +190,11 @@
 		name="SListCapture"
 		group="SpellupCapture"
 		enabled="n"
-		match="^(?<sn>[0-9]+),(?<name>[^,]+),(?<target>[0-9]),(?<duration>[0-9]+),(?<percent>[0-9]+),(?<recovery>\-?[0-9]+),(?<type>[0-9]+)$"
+		match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
-		script="slist_capture"
+		script="SlistUpdate"
 	>
 	</trigger>
 	
@@ -244,7 +244,6 @@ require "HadarLevelReport"
 
 	local LevelReportVariables = {}
 	local leveltable = {}
-	slist = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
 	local IAC = 255
@@ -253,6 +252,8 @@ require "HadarLevelReport"
 	local SE  = 240
 	local SKILLGAINS = 8
 	local GLOBAL_TAG_MUTE = 50
+	
+	levelSkillSpells = {}
 	levelinfo = {}
 	mylevelreport = {}
 	
@@ -298,7 +299,6 @@ function OnPluginBroadcast(msg, id, name, text)
 		
 			if i == "level" then
 			LevelReportVariables.level=v 
-			print(LevelReportVariables.level)
 			end
 			if i == "level" then 
 				if tonumber(v) > 199 then
@@ -326,15 +326,20 @@ end
 
 function OnPluginSaveState ()
 	SetVariable ("LevelReportVariables", serialize.save ("LevelReportVariables"))
+	SetVariable ("levelSkillSpells", serialize.save ("levelSkillSpells"))
 	SetVariable ("leveltable", serialize.save ("leveltable"))
+	SetVariable ("levelinfo", serialize.save ("levelinfo"))
+	SetVariable ("pastfirstinstall", "true")
 	
 end -- function OnPluginSaveState
 
 
 function OnPluginInstall ()
-
-	--sList[initilized] = 0
-	
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
 	
 	if (currentState == -1) then
 		currentState = 0 -- sent request
@@ -342,18 +347,30 @@ function OnPluginInstall ()
 	
 	SendNoEcho("protocol gmcp sendchar")
 	
-	
-	LevelReportVariables.initilized = 0
-	assert (loadstring (GetVariable ("LevelReportVariables") or "")) ()
-	assert (loadstring (GetVariable ("leveltable") or "")) ()
-	assert (loadstring (GetVariable ("levelinfo") or "")) ()
-	
-	if LevelReportVariables.initilized == 0 then
-		buildInitialColors()
-	end
-	
 	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
---buildSlist()
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+	
+	LevelReportVariables = {}
+	levelSkillSpells = {}
+	leveltable = {}
+	levelinfo = {}
+	
+	SendSpecial("slist")
+	
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("LevelReportVariables") or "")) ()
+		assert (loadstring (GetVariable ("levelSkillSpells") or "")) ()
+		assert (loadstring (GetVariable ("leveltable") or "")) ()
+		assert (loadstring (GetVariable ("levelinfo") or "")) ()
+	else
+		buildInitialColors()
+		buildFirstSpellList()
+	end
 end
 
 function buildInitialColors()
@@ -375,6 +392,7 @@ function buildInitialColors()
 	LevelReportVariables.levelColorPlus = "@W"
 	LevelReportVariables.levelColorStat = "@w"
 	LevelReportVariables.initilized = 1
+	LevelReportVariables.channel = "gt"
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -476,10 +494,18 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function SkillGain(name, line, wildcards)
-	local one = wildcards.sn
-	local two = wildcards.perc
+	local one = tonumber(wildcards.sn)
+	local two = tonumber(wildcards.perc)
 	local msg
+	local skill
 
+	print("skillgain fired")
+	
+	for i,v in pairs(levelSkillSpells) do
+		if one == i then
+			skill = v
+		end
+	end
 	
 	local showskillgain = "true"
 	
@@ -490,7 +516,7 @@ function SkillGain(name, line, wildcards)
 		elseif tonumber(two) < 100 and showskillgain=="true" then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
-	send(LevelReportVariables.channel..msg)
+	SendNoEcho(LevelReportVariables.channel.." "..msg)
 end
 
 function begin_sList()
@@ -524,13 +550,25 @@ function buildSlist()
 	end
 end
 
-function slist_capture(name, line, wildcards)
-	local textType
-	local sn = tonumber(wildcards.sn)
-	local value = { name = wildcards.name, target = tonumber(wildcards.target), recovery = tonumber(wildcards.recovery), percent = tonumber(wildcards.percent), type = textType }
+function SlistUpdate(name, line, wildcards)
+	local sn = tonumber(wildcards[1])
+	local nm = wildcards[2]
+	local tg = tonumber(wildcards[3])
+	local du = tonumber(wildcards[4])
+	local pc = tonumber(wildcards[5])
+	local rc = tonumber(wildcards[6])
+	local ty = tonumber(wildcards[7])
+	
+		levelSkillSpells[sn] = nm
+		
+		SaveState()
+end--end update
 
-	sList[tonumber(sn)] = value
-
+function buildFirstSpellList()
+	levelSkillSpells = {}
+	
+	EnableTrigger("SListCapture",true)
+	SendSpecial("slist")
 end
 
 ----------------------------------------------------------------------------------------------------
