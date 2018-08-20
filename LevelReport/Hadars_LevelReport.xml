@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="1.0"
+   version="1.90"
    >
 
 </plugin>
@@ -331,10 +331,10 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function OnPluginSaveState ()
-	SetVariable ("LevelReportVariables", serialize.save ("LevelReportVariables"))
-	SetVariable ("levelSkillSpells", serialize.save ("levelSkillSpells"))
-	SetVariable ("leveltable", serialize.save ("leveltable"))
-	SetVariable ("levelinfo", serialize.save ("levelinfo"))
+	SetVariable ("LevelReportVariables", "LevelReportVariables = " .. serialize.save_simple (LevelReportVariables))
+	SetVariable ("levelSkillSpells", "levelSkillSpells = " .. serialize.save_simple (levelSkillSpells))
+	SetVariable ("leveltable", "leveltable = " .. serialize.save_simple (leveltable))
+	SetVariable ("levelinfo", "levelinfo = " .. serialize.save_simple (levelinfo))
 	SetVariable ("pastfirstinstall", "true")
 	
 end -- function OnPluginSaveState
@@ -359,9 +359,6 @@ function OnPluginInstall ()
 end
 
 function OnPluginEnable ()
-	
-	DeleteVariable("LevelReportVariables")
-	DeleteVariable("pastfirstinstall")
 	
 	LevelReportVariables = {}
 	levelSkillSpells = {}
@@ -455,7 +452,7 @@ local channel
 	
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
-	leveltable.report = mylevelreport.message
+	leveltable[report] = mylevelreport.message
 	
 	
 	SendNoEcho(channel.." "..leveltable.report)
@@ -505,7 +502,7 @@ function Level_show(name, line, wildcards)
 	if level=="all" then
 		if leveltable~=nil then
 			for k,v in pairs(leveltable) do
-				print(v)
+				print(k.." "..v)
 			end
 		else
 			print("You have not leveled yet, go out and level!")
