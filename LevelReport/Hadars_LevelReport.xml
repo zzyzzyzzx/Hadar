@@ -221,6 +221,14 @@
    script="Pup_report_build"
   >
   </alias>
+  <alias
+   match="^levelshow (?:(\d+|all))?(?:\s(.*))?$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="Level_show"
+  >
+  </alias>
     <alias match="^(?:had|level) help$"
 	enabled="y"
 	sequence="100"
@@ -243,7 +251,6 @@ require "serialize"
 require "HadarLevelReport"
 
 	LevelReportVariables = {}
-	local leveltable = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
 	local IAC = 255
@@ -256,8 +263,7 @@ require "HadarLevelReport"
 	levelSkillSpells = {}
 	levelinfo = {}
 	mylevelreport = {}
-	
-	levelinfo.oldtimestamp = os.time()
+	leveltable = {}
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
@@ -395,6 +401,8 @@ function buildInitialColors()
 	LevelReportVariables.levelColorStat = "@w"
 	LevelReportVariables.initilized = 1
 	LevelReportVariables.channel = "gt"
+	mylevelepoch()
+	mylevelconvert()
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -435,8 +443,6 @@ end
 function level_Report_Build(name, line, wildcards)
 local channel
 
-LevelReportVariables.channel = "gt"
-
 	if wildcards[1] == nil then
 		channel = LevelReportVariables.channel
 	else
@@ -444,17 +450,15 @@ LevelReportVariables.channel = "gt"
 	end
 	
 	
-	local report = "L"..LevelReportVariables.level
+	local report = tonumber(LevelReportVariables.level)
 	
 	
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
 	leveltable.report = mylevelreport.message
 	
-	print("channel?"..LevelReportVariables.channel)
-	print("report?"..leveltable.report)
 	
-	SendNoEcho(LevelReportVariables.channel.." "..leveltable.report)
+	SendNoEcho(channel.." "..leveltable.report)
 end
 
 function level_Stat_Add(name, line, wildcards)
@@ -488,6 +492,30 @@ function level_bonus_train(name, line, wildcards)
 	trainadd(wildcards[1])
 end
 
+function Level_show(name, line, wildcards)
+	local level = wildcards[1]
+	local report = tonumber(level)
+	local channel
+	if wildcards[2]=="" then
+		channel = "gt"
+	else
+		channel = wildcards[2]
+	end
+	
+	if level=="all" then
+		if leveltable~=nil then
+			for k,v in pairs(leveltable) do
+				print(v)
+			end
+		else
+			print("You have not leveled yet, go out and level!")
+		end
+	else
+		SendNoEcho(channel.." "..leveltable.report)
+		--zs.cmd.send(channel.." "..leveltable[report])
+	end
+end
+
 
 ----------------------------------------------------------------------------------------------------
 --									  End Level/PUP Functions	   							      --
@@ -501,7 +529,6 @@ function SkillGain(name, line, wildcards)
 	local msg
 	local skill
 
-	print("skillgain fired")
 	
 	for i,v in pairs(levelSkillSpells) do
 		if one == i then
