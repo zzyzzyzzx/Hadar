@@ -502,14 +502,13 @@ function Level_show(name, line, wildcards)
 	if level=="all" then
 		if leveltable~=nil then
 			for k,v in pairs(leveltable) do
-				print(k.." "..v)
+				print(v)
 			end
 		else
 			print("You have not leveled yet, go out and level!")
 		end
 	else
 		SendNoEcho(channel.." "..leveltable.report)
-		--zs.cmd.send(channel.." "..leveltable[report])
 	end
 end
 
