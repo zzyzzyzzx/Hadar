@@ -857,6 +857,11 @@ if timeonly == "false" then
 	if levelinfo.levelskill ~= nil then 
 	   mylevelreport.message=mylevelreport.message .. color1 .. "+" .. color2 .. "Skills/Spells:" .. colorstat .. levelinfo.levelskill .. endcolor
 	end
+	
+	else
+	mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] "
+	
+	
 end
 	
 return mylevelreport.channel .. " " .. mylevelreport.message
