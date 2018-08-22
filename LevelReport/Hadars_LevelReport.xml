@@ -29,7 +29,7 @@
 
 <triggers>
   <trigger
-   enabled="n"
+   enabled="y"
    match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
    omit_from_output="y"
    regexp="y"
@@ -229,6 +229,14 @@
    script="Level_show"
   >
   </alias>
+  <alias
+   match="^levelreport (.*)$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="set_Level_Report"
+  >
+  </alias>
     <alias match="^(?:had|level) help$"
 	enabled="y"
 	sequence="100"
@@ -332,7 +340,7 @@ end
 
 function OnPluginSaveState ()
 	SetVariable ("LevelReportVariables", "LevelReportVariables = " .. serialize.save_simple (LevelReportVariables))
-	SetVariable ("levelSkillSpells", "levelSkillSpells = " .. serialize.save_simple (levelSkillSpells))
+	SetVariable ("levelSkillSpells", serialize.save ("levelSkillSpells"))
 	SetVariable ("leveltable", "leveltable = " .. serialize.save_simple (leveltable))
 	SetVariable ("levelinfo", "levelinfo = " .. serialize.save_simple (levelinfo))
 	SetVariable ("pastfirstinstall", "true")
@@ -401,6 +409,14 @@ function buildInitialColors()
 	mylevelepoch()
 	mylevelconvert()
 end
+
+function set_Level_Report(name, line, wildcards)
+	if wildcards[1] ~= nil then
+		LevelReportVariables.channel = wildcards[1]
+	end
+end
+
+function set_Level_Colors
 
 ----------------------------------------------------------------------------------------------------
 --										  End Standard Stuff									  --
@@ -508,7 +524,7 @@ function Level_show(name, line, wildcards)
 			print("You have not leveled yet, go out and level!")
 		end
 	else
-		SendNoEcho(channel.." "..leveltable.report)
+		SendNoEcho(channel.." "..leveltable[report])
 	end
 end
 
@@ -534,7 +550,7 @@ function SkillGain(name, line, wildcards)
 	
 	local showskillgain = "true"
 	
-		if tonumber(two) == 1 then
+		if tonumber(two) == 1 or tonumber(two) == 85 then
 			levelskill(skill)
 		elseif tonumber(two) == 100 and showskillgain=="true" then
 			msg = "@x125I have @x023M@x041astered "..skill
@@ -607,12 +623,12 @@ end
 
 
 function HadarHelp()
-	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","L","evel","","","Cyan","","R","Teal","","eport","Green","","]","#159FE5","","---------------------------------+")
+	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","L","Teal","evel","","Cyan","","R","Teal","","eport","Green","","]","#159FE5","","---------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Setkill <update>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will update the spell used on 'kill'"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelreport <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," kill <name>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Will use the kill spell/skill (with optional name)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," showlevel <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
