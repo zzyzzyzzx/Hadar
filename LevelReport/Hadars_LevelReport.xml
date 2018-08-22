@@ -441,7 +441,7 @@ end
 function set_Level_Report(name, line, wildcards)
 	if wildcards[1] ~= nil then
 		LevelReportVariables.channel = wildcards[1]
-		ColourNote("Teal","","Level Report channel set to wildcards[1]")
+		ColourNote("Teal","","Level Report channel set to "..LevelReportVariables.channel)
 	end
 end
 
