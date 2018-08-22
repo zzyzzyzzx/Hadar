@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="1.90"
+   version="1.92"
    >
 
 </plugin>
@@ -213,6 +213,30 @@
   >
   </alias>
   <alias
+   script="set_SkillGain_Reports"
+   match="^skillgain ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
+  <alias
+   script="set_StatGain_Reports"
+   match="^statgain ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
+    <alias
+   script="set_TimeOnly_Reports"
+   match="^leveltimeonly ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
+  <alias
    match="^pupreport ?(.*)?$"
    enabled="y"
    regexp="y"
@@ -252,11 +276,7 @@
 
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
-
-require "HadarLuaCommon"
 require "serialize"
-require "HadarLevelReport"
 
 	LevelReportVariables = {}
 	local currentState = -1 -- uninitialized
@@ -344,7 +364,9 @@ function OnPluginSaveState ()
 	SetVariable ("leveltable", "leveltable = " .. serialize.save_simple (leveltable))
 	SetVariable ("levelinfo", "levelinfo = " .. serialize.save_simple (levelinfo))
 	SetVariable ("pastfirstinstall", "true")
-	
+	SetVariable ("showstatgain", serialize.save("showstatgain"))
+	SetVariable ("showskillgain", serialize.save("showskillgain"))
+	SetVariable ("timeonly", serialize.save("timeonly"))
 end -- function OnPluginSaveState
 
 
@@ -379,6 +401,9 @@ function OnPluginEnable ()
 		assert (loadstring (GetVariable ("levelSkillSpells") or "")) ()
 		assert (loadstring (GetVariable ("leveltable") or "")) ()
 		assert (loadstring (GetVariable ("levelinfo") or "")) ()
+		assert (loadstring (GetVariable ("showstatgain") or "")) ()
+		assert (loadstring (GetVariable ("showskillgain") or "")) ()
+		assert (loadstring (GetVariable ("timeonly") or "")) ()
 	else
 		buildInitialColors()
 		buildFirstSpellList()
@@ -406,6 +431,8 @@ function buildInitialColors()
 	LevelReportVariables.levelColorStat = "@w"
 	LevelReportVariables.initilized = 1
 	LevelReportVariables.channel = "gt"
+	showstatgain = "true"
+	showskillgain = "true"
 	mylevelepoch()
 	mylevelconvert()
 end
@@ -413,10 +440,45 @@ end
 function set_Level_Report(name, line, wildcards)
 	if wildcards[1] ~= nil then
 		LevelReportVariables.channel = wildcards[1]
+		ColourNote("Teal","","Level Report channel set to wildcards[1]")
 	end
 end
 
-function set_Level_Colors
+function set_SkillGain_Reports(name,line,wildcards)
+	if wildcards[1] == "on" then
+		showskillgain = "true"
+		ColourNote("Green","","Showing SkillGain is now active")
+	elseif wildcards[1] == "off" then
+		showskillgain = "false"
+		ColourNote("Red","","Showing SkillGain is now De-active")
+	else
+		ColourNote("Cyan","","proper syntax is skillgain on or skillgain off")
+	end
+end
+
+function set_StatGain_Reports(name,line,wildcards)
+	if wildcards[1] == "on" then
+		showstatgain = "true"
+		ColourNote("Green","","Showing Stat Gain is now active")
+	elseif wildcards[1] == "off" then
+		showstatgain = "false"
+		ColourNote("Red","","Showing Stat Gain is now De-active")
+	else
+		ColourNote("Cyan","","proper syntax is statgain on or statgain off")
+	end
+end
+
+function set_TimeOnly_Reports(name,line,wildcards)
+	if wildcards[1] == "on" then
+		timeonly = "true"
+		ColourNote("Green","","only showing time taken to level")
+	elseif wildcards[1] == "off" then
+		timeonly = "false"
+		ColourNote("Red","","showing all info when leveling")
+	else
+		ColourNote("Cyan","","proper syntax is leveltimeonly on or leveltimeonly off")
+	end
+end
 
 ----------------------------------------------------------------------------------------------------
 --										  End Standard Stuff									  --
@@ -548,9 +610,7 @@ function SkillGain(name, line, wildcards)
 		end
 	end
 	
-	local showskillgain = "true"
-	
-		if tonumber(two) == 1 or tonumber(two) == 85 then
+		if tonumber(two) == 1 or tonumber(two) == 85 and showskillgain=="true" then
 			levelskill(skill)
 		elseif tonumber(two) == 100 and showskillgain=="true" then
 			msg = "@x125I have @x023M@x041astered "..skill
@@ -558,7 +618,7 @@ function SkillGain(name, line, wildcards)
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
 		
-		if two > 1 then
+		if two > 1 and showskillgain=="true" then
 			SendNoEcho(LevelReportVariables.channel.." "..msg)
 		end
 end
@@ -618,9 +678,196 @@ end
 ----------------------------------------------------------------------------------------------------
 --									     End slist stuff 	   							          --
 --																								  --
---									    Begin help Stuff										  --
+--									    Begin hadarlua Stuff									  --
 ----------------------------------------------------------------------------------------------------
 
+function mylevelconvert()
+--
+		levelinfo.oldtimestamp	 = levelinfo.newtimestamp
+--
+end
+
+function mylevelepoch()
+--
+		levelinfo.newtimestamp = os.time()
+--
+end
+
+function statadd(hp,mana,moves,prac,train)
+--
+		levelinfo.hp		 = hp
+		levelinfo.mana		 = mana
+		levelinfo.moves		 = moves
+		levelinfo.prac		 = prac
+		levelinfo.train 	 = train
+		levelinfo.bonusstat	 = nil
+		levelinfo.bonustrain = 0
+		levelinfo.levelskill = nil
+--
+end
+
+function trainadd(mybonustrain)
+--
+		levelinfo.bonustrain = levelinfo.bonustrain+mybonustrain
+--
+end
+
+function puptrainadd(mybonustrain)
+--
+		levelinfo.bonustrain = mybonustrain
+--
+end
+
+function puptrainbonus(mybonustrain)
+--
+		levelinfo.bonustraintwo = mybonustrain
+--
+end
+
+function bonusstatadd(stat)
+--
+	if showstatgain=="true" then
+		if levelinfo.bonusstat ~= nil then
+			levelinfo.bonusstat = levelinfo.bonusstat..","..stat
+		else
+			levelinfo.bonusstat = stat
+		end
+	end
+--
+end
+
+function levelskill(skill)
+--
+	if levelinfo["levelskill"]==nil then
+		levelinfo.levelskill=skill
+	else
+		levelinfo.levelskill=levelinfo["levelskill"]..","..skill
+	end
+--
+end
+
+function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
+--
+	local endcolor	= "@w"
+
+	if channel == nil then
+	mylevelreport.channel = "gt"
+	else
+	mylevelreport.channel = channel
+	end
+	
+	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
+		mylevelreport.time = color1.."Y:@R"..levelinfo.year..","
+	else
+		mylevelreport.time = ""
+	end
+
+	if tonumber(levelinfo.month) > 0 then -- this if deals with spent over 1 month leveling colors the number red
+		mylevelreport.time = mylevelreport.time .. color1 .."M:@R"..levelinfo.month.." "
+	else
+		mylevelreport.time = ""
+	end
+
+	if tonumber(levelinfo.day) > 0 then -- this if deals with spent over 1 day leveling colors the number red
+		mylevelreport.time = mylevelreport.time .. color1 .. "D:@R" .. levelinfo.day .. " "
+	else
+		mylevelreport.time = ""
+	end
+
+		mylevelreport.time = mylevelreport.time .. color1 .. "H:".. colortim .. levelinfo.hour .. " "
+		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
+		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
+
+		if timeonly == "false" then
+		if tonumber(levelinfo.bonustraintwo)>0 then
+		local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
+		mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
+		else
+		mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustrain
+		end
+		levelinfo.bonustrain = mybonustrain
+		levelinfo.bonustraintwo = mybonustrain
+		
+		
+		mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
+		else
+		mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
+		end
+		
+--
+end
+function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
+--
+	local endcolor	= "@w"
+
+	if channel == nil then
+	mylevelreport.channel = "gt"
+	else
+	mylevelreport.channel = channel
+	end
+
+	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
+		mylevelreport.time = color1.."Y:@R"..levelinfo.year..","
+	else
+		mylevelreport.time = ""
+	end
+
+	if tonumber(levelinfo.month) > 0 then -- this if deals with spent over 1 month leveling colors the number red
+		mylevelreport.time = mylevelreport.time .. color1 .."M:@R"..levelinfo.month.." "
+	else
+		mylevelreport.time = ""
+	end
+
+	if tonumber(levelinfo.day) > 0 then -- this if deals with spent over 1 day leveling colors the number red
+		mylevelreport.time = mylevelreport.time .. color1 .. "D:@R" .. levelinfo.day .. " "
+	else
+		mylevelreport.time = ""
+	end
+
+		mylevelreport.time = mylevelreport.time .. color1 .. "H:".. colortim .. levelinfo.hour .. " "
+		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
+		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
+		
+if timeonly == "false" then
+
+		mylevelreport.gains = color1 .. "H" .. color2 .. "P" .. brac .. "(" .. colornum .. levelinfo.hp .. brac .. ")"
+		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "n" .. brac .. "(" ..colornum ..levelinfo.mana .. brac .. ")"
+		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "v" .. brac .. "(" ..colornum ..levelinfo.moves .. brac .. ")"
+
+	if tonumber(levelinfo.prac) > 0 then
+		mylevelreport.gains = mylevelreport.gains .. color1 .. "P" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.prac .. brac .. ")"
+	end
+
+	if tonumber(levelinfo.train) > 0 then
+		if tonumber(levelinfo.bonustrain) > 0 then
+			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. colorplus .. "+" .. colornum .. levelinfo.bonustrain .. brac ..")"
+		else
+			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. brac .. ")"
+		end
+
+	end
+
+	if levelinfo.bonusstat ~= nil then
+		mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. color1 .. " +" .. color2 .. "Stats:" .. colorstat .. levelinfo.bonusstat .. endcolor
+	else
+		mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
+	end
+	
+	if levelinfo.levelskill ~= nil then 
+	   mylevelreport.message=mylevelreport.message .. color1 .. "+" .. color2 .. "Skills/Spells:" .. colorstat .. levelinfo.levelskill .. endcolor
+	end
+end
+	
+return mylevelreport.channel .. " " .. mylevelreport.message
+--
+end
+
+
+----------------------------------------------------------------------------------------------------
+--									     End hadarlua stuff 	   							      --
+--																								  --
+--									    Begin help Stuff										  --
+----------------------------------------------------------------------------------------------------
 
 function HadarHelp()
 	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","L","Teal","evel","","Cyan","","R","Teal","","eport","Green","","]","#159FE5","","---------------------------------+")
@@ -630,12 +877,18 @@ function HadarHelp()
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," showlevel <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows stats on level"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," skillgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows skills gained on level"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," leveltimeonly <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows only level time"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
 
 
-
+--leveltimeonly
 ]]>
 </script> 
 
