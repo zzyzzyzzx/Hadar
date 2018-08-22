@@ -254,7 +254,7 @@
   >
   </alias>
   <alias
-   match="^levelreport (.*)$"
+   match="^levelchannel (.*)$"
    enabled="y"
    regexp="y"
    sequence="100"
@@ -873,7 +873,7 @@ end
 function HadarHelp()
 	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","L","Teal","","evel","Cyan","","R","Teal","","eport","Green","","]","#159FE5","","---------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelreport <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," showlevel <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
