@@ -364,9 +364,6 @@ function OnPluginSaveState ()
 	SetVariable ("leveltable", "leveltable = " .. serialize.save_simple (leveltable))
 	SetVariable ("levelinfo", "levelinfo = " .. serialize.save_simple (levelinfo))
 	SetVariable ("pastfirstinstall", "true")
-	SetVariable ("showstatgain", serialize.save("showstatgain"))
-	SetVariable ("showskillgain", serialize.save("showskillgain"))
-	SetVariable ("timeonly", serialize.save("timeonly"))
 end -- function OnPluginSaveState
 
 
@@ -401,9 +398,6 @@ function OnPluginEnable ()
 		assert (loadstring (GetVariable ("levelSkillSpells") or "")) ()
 		assert (loadstring (GetVariable ("leveltable") or "")) ()
 		assert (loadstring (GetVariable ("levelinfo") or "")) ()
-		assert (loadstring (GetVariable ("showstatgain") or "")) ()
-		assert (loadstring (GetVariable ("showskillgain") or "")) ()
-		assert (loadstring (GetVariable ("timeonly") or "")) ()
 	else
 		buildInitialColors()
 		buildFirstSpellList()
@@ -431,9 +425,9 @@ function buildInitialColors()
 	LevelReportVariables.levelColorStat = "@w"
 	LevelReportVariables.initilized = 1
 	LevelReportVariables.channel = "gt"
-	showstatgain = "true"
-	showskillgain = "true"
-	timeonly = "false"
+	LevelReportVariables.showstatgain = "true"
+	LevelReportVariables.showskillgain = "true"
+	LevelReportVariables.timeonly = "false"
 	mylevelepoch()
 	mylevelconvert()
 end
@@ -447,10 +441,11 @@ end
 
 function set_SkillGain_Reports(name,line,wildcards)
 	if wildcards[1] == "on" then
-		showskillgain = "true"
+		LevelReportVariables.showskillgain = "true"
+		LevelReportVariables.timeonly = "false"
 		ColourNote("Green","","Showing SkillGain is now active")
 	elseif wildcards[1] == "off" then
-		showskillgain = "false"
+		LevelReportVariables.showskillgain = "false"
 		ColourNote("Red","","Showing SkillGain is now De-active")
 	else
 		ColourNote("Cyan","","proper syntax is skillgain on or skillgain off")
@@ -459,10 +454,11 @@ end
 
 function set_StatGain_Reports(name,line,wildcards)
 	if wildcards[1] == "on" then
-		showstatgain = "true"
+		LevelReportVariables.showstatgain = "true"
+		LevelReportVariables.timeonly = "false"
 		ColourNote("Green","","Showing Stat Gain is now active")
 	elseif wildcards[1] == "off" then
-		showstatgain = "false"
+		LevelReportVariables.showstatgain = "false"
 		ColourNote("Red","","Showing Stat Gain is now De-active")
 	else
 		ColourNote("Cyan","","proper syntax is statgain on or statgain off")
@@ -471,10 +467,10 @@ end
 
 function set_TimeOnly_Reports(name,line,wildcards)
 	if wildcards[1] == "on" then
-		timeonly = "true"
+		LevelReportVariables.timeonly = "true"
 		ColourNote("Green","","only showing time taken to level")
 	elseif wildcards[1] == "off" then
-		timeonly = "false"
+		LevelReportVariables.timeonly = "false"
 		ColourNote("Red","","showing all info when leveling")
 	else
 		ColourNote("Cyan","","proper syntax is leveltimeonly on or leveltimeonly off")
