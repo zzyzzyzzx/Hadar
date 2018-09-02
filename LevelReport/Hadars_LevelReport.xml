@@ -583,7 +583,13 @@ function Level_show(name, line, wildcards)
 			print("You have not leveled yet, go out and level!")
 		end
 	else
-		SendNoEcho(channel.." "..leveltable[report])
+		if channel == nil then
+			print("Could not find a channel to concat")
+		elseif leveltable[report] == nil then
+			print("Could not find any level data for that level")
+		else
+			SendNoEcho(channel.." "..leveltable[report])
+		end
 	end
 end
 
@@ -607,15 +613,15 @@ function SkillGain(name, line, wildcards)
 		end
 	end
 	
-		if tonumber(two) == 1 or tonumber(two) == 85 and showskillgain=="true" then
+		if tonumber(two) == 1 or tonumber(two) == 85 and LevelReportVariables.showskillgain=="true" then
 			levelskill(skill)
-		elseif tonumber(two) == 100 and showskillgain=="true" then
+		elseif tonumber(two) == 100 and LevelReportVariables.showskillgain=="true" then
 			msg = "@x125I have @x023M@x041astered "..skill
-		elseif tonumber(two) < 100 and showskillgain=="true" then
+		elseif tonumber(two) < 100 and LevelReportVariables.showskillgain=="true" then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
 		
-		if two > 1 and showskillgain=="true" then
+		if two > 1 and LevelReportVariables.showskillgain=="true" then
 			SendNoEcho(LevelReportVariables.channel.." "..msg)
 		end
 end
@@ -723,7 +729,7 @@ end
 
 function bonusstatadd(stat)
 --
-	if showstatgain=="true" then
+	if LevelReportVariables.showstatgain=="true" then
 		if levelinfo.bonusstat ~= nil then
 			levelinfo.bonusstat = levelinfo.bonusstat..","..stat
 		else
@@ -775,7 +781,7 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
 		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
 
-		if timeonly == "false" then
+		if LevelReportVariables.timeonly == "false" then
 		if tonumber(levelinfo.bonustraintwo)>0 then
 		local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 		mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
@@ -825,7 +831,7 @@ function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,co
 		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
 		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
 		
-if timeonly == "false" then
+if LevelReportVariables.timeonly == "false" then
 
 		mylevelreport.gains = color1 .. "H" .. color2 .. "P" .. brac .. "(" .. colornum .. levelinfo.hp .. brac .. ")"
 		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "n" .. brac .. "(" ..colornum ..levelinfo.mana .. brac .. ")"
@@ -872,7 +878,7 @@ end
 ----------------------------------------------------------------------------------------------------
 
 function HadarHelp()
-	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","L","Teal","","evel","Cyan","","R","Teal","","eport","Green","","]","#159FE5","","---------------------------------+")
+	ColourNote("#159FE5","","+-----------------------------------","Green","","[","Cyan","","L","Teal","","evel","Cyan",""," R","Teal","","eport","Green","","]","#159FE5","","-----------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
