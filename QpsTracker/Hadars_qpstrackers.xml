@@ -59,6 +59,40 @@ reports quests (working on cps/gqs)
    sequence="100"
   >
   </trigger>
+    <trigger
+   enabled="y"
+   match="* tells you 'Type 'campaign info' to see what you must kill.'"
+   sequence="100"
+   send_to="12"
+  >
+  <send>StartTime("cp")</send>
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^CONGRATULATIONS! You have completed your campaign.$"
+   sequence="100"
+   regexp="y"
+   send_to="12"
+  >
+  <send>EnableTriggerGroup("campaignRewards", true)</send>
+  </trigger>
+  <trigger
+   enabled="n"
+   match="^(\s*)Reward of (?&lt;amount&gt;\d+) (?&lt;type&gt;.+) (.+) added.$"
+   sequence="100"
+   script="campaign_rewards"
+   group="campaignRewards"
+   regexp="y"
+  >
+  </trigger>
+  	 <trigger
+   enabled="n"
+   match="--------------------------------------------------------------"
+   sequence="100"
+   script="cp_done"
+   group="cpdone"
+  >
+  </trigger>
 </triggers>
 
 <!--  Plugin help  -->
@@ -122,11 +156,7 @@ reports quests (working on cps/gqs)
 
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
-
 require "serialize"
-require "gmcphelper"
-require "HadarLuaCommon"
 
 local curlevel
 
@@ -143,7 +173,7 @@ function QPStimeDiff(t2,t1,script)
 		if script=="q" then
 			Hadarsqpstrackersqtime[i]=v
 		elseif script=="cp" then
-			Hadarsqpstrackers["cptime"][i]=v
+			Hadarsqpstrackerscptime[i]=v
 		end
 	end
 	return diff
@@ -170,7 +200,7 @@ function CampaignSettings(name, line, wildcards)
 local arg = string.lower(wildcards[1])
 
 	if wildcards[1] == "" then
-		Send ("cp")
+		--Send ("cp")
 	elseif arg == "set room" or arg == "room set" then
 		local _,room = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","room.info.num")
 		cproom = utils.inputbox ("Input the number of the room your quest master is in", "cproom", tonumber(room), "Courier", 9)
@@ -236,6 +266,22 @@ function SetCampaignLeveling()
 	SaveState()
 end
 
+function campaign_rewards(name,line,wildcards)
+	local type = wildcards.type
+	local amount = wildcards.amount
+	
+	type = "endcp" .. type
+	
+	Hadarsqpstrackers[type] = amount
+	EnableTriggerGroup("cpdone", true)
+end
+
+function cp_done()
+	StopTime("cp")
+	EnableTriggerGroup("cpdone", false)
+	EnableTriggerGroup("campaignRewards", false)
+end
+
 function OnPluginSaveState ()
 	SetVariable ("cproom", serialize.save ("cproom"))
 	SetVariable ("Hadarsqpstrackers", serialize.save ("Hadarsqpstrackers"))
@@ -250,12 +296,20 @@ function OnPluginInstall ()
 	Hadarsqpstrackers = {}
 	Hadarsqpstrackersqtime = {}
 	Hadarsqpstrackerstotal = {}
+	Hadarsqpstrackerscptime = {}
 	Hadarsqpstrackerslastreset = {}
 	assert (loadstring (GetVariable ("cproom") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackers") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackersqtime") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerstotal") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackerslastreset") or "")) ()
+	
+	Hadarsqpstrackers["endcpquest"]=0
+	Hadarsqpstrackers["endcptraining"]=0
+	Hadarsqpstrackers["endcptrivia"]=0
+	Hadarsqpstrackers["endcppractice"]=0
+	Hadarsqpstrackers["endcpgold"]=0
+	
 	print("What is qps tracker going to do today brain? Same thing we do everynight, try and take over the world!")
 	ShowInfoBar (true)
 	InfoBackground ("white")
@@ -366,45 +420,56 @@ function OnPluginBroadcast(msg, id, name, text)
 end
 
 function MakeOutput(where)
+
 local output = "@CL@cast "..string.upper(where)
 	if where=="q" then
-	output = output.." @W(@R"..Hadarsqpstrackersqtime.hour.."@Wh @R"..Hadarsqpstrackersqtime.min.."@Wm @R"..Hadarsqpstrackersqtime.sec.."@Ws)@w @CT@cotal @CQ@cps@W: @R"..Hadarsqpstrackers.totqp.." @W/ @CB@creakdown@W: @R"..Hadarsqpstrackers.qp.."@C @Cb@case"
-	if tonumber(Hadarsqpstrackers.mccp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.mccp.." @Cm@cccp@W" end
-	if tonumber(Hadarsqpstrackers.lucky) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.lucky.." @Cl@cucky" end
-	if tonumber(Hadarsqpstrackers.tier) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tierqp.." @Ct@cier" end
-	if tonumber(Hadarsqpstrackers.opk) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.opk.." @Co@cpk" end
+		output = output.." @W(@R"..Hadarsqpstrackersqtime.hour.."@Wh @R"..Hadarsqpstrackersqtime.min.."@Wm @R"..Hadarsqpstrackersqtime.sec.."@Ws)@w @CT@cotal @CQ@cps@W: @R"..Hadarsqpstrackers.totqp.." @W/ @CB@creakdown@W: @R"..Hadarsqpstrackers.qp.."@C @Cb@case"
+		if tonumber(Hadarsqpstrackers.mccp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.mccp.." @Cm@cccp@W" end
+		if tonumber(Hadarsqpstrackers.lucky) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.lucky.." @Cl@cucky" end
+		if tonumber(Hadarsqpstrackers.tier) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tierqp.." @Ct@cier" end
+		if tonumber(Hadarsqpstrackers.opk) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.opk.." @Co@cpk" end
 	
-	if tonumber(Hadarsqpstrackers.double) ~= 0 and tonumber(Hadarsqpstrackers.daily) ~= 0 then
-		output = output.."@W, @GX3"
-	elseif tonumber(Hadarsqpstrackers.double) ~= 0 and tonumber(Hadarsqpstrackers.daily) == 0 then
-		output = output.."@W, @GX2"
-	elseif tonumber(Hadarsqpstrackers.double) == 0 and tonumber(Hadarsqpstrackers.daily) ~= 0 then
-		output = output.."@W, @GX2"
-	end -- end the stupid figuring out if 2x or 3x exp
+		if tonumber(Hadarsqpstrackers.double) ~= 0 and tonumber(Hadarsqpstrackers.daily) ~= 0 then
+			output = output.."@W, @GX3"
+		elseif tonumber(Hadarsqpstrackers.double) ~= 0 and tonumber(Hadarsqpstrackers.daily) == 0 then
+			output = output.."@W, @GX2"
+		elseif tonumber(Hadarsqpstrackers.double) == 0 and tonumber(Hadarsqpstrackers.daily) ~= 0 then
+			output = output.."@W, @GX2"
+		end -- end the stupid figuring out if 2x or 3x exp
 	
-	output = output.."@W / @CB@conus@W: @R"..Hadarsqpstrackers.gold.." @CG@cold"
-	if tonumber(Hadarsqpstrackers.pracs) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.pracs.." @CP@cracs" end
-	if tonumber(Hadarsqpstrackers.trains) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.trains.." @CT@crains" end
-	if tonumber(Hadarsqpstrackers.tp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tp.." @CT@cps" end
+		output = output.."@W / @CB@conus@W: @R"..Hadarsqpstrackers.gold.." @CG@cold"
+		if tonumber(Hadarsqpstrackers.pracs) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.pracs.." @CP@cracs" end
+		if tonumber(Hadarsqpstrackers.trains) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.trains.." @CT@crains" end
+		if tonumber(Hadarsqpstrackers.tp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tp.." @CT@cps" end
+		
+	elseif string.lower(where) == "cp" then
+		output = output .. " @W(@R"..Hadarsqpstrackerscptime["hour"].."@Wh @R"..Hadarsqpstrackerscptime["min"].."@Wm @R"..Hadarsqpstrackerscptime["sec"].."@Ws)@w @CQ@cPs@W: @R".. Hadarsqpstrackers["endcpquest"].." @CG@cold@W: @R" .. Hadarsqpstrackers["endcpgold"]
+		
+		if Hadarsqpstrackers["endcptrivia"]~=0 then
+			output = output .. " @G!!!@CT@crivia @Cp@coint@G!!!"
+			Hadarsqpstrackers["endcptrivia"]=0
+		end
+		if Hadarsqpstrackers["endcptraining"]~=0 then
+			output = output .. "@W, @CT@crains @W: @R" .. Hadarsqpstrackers["endcptraining"]
+			Hadarsqpstrackers["endcptraining"]=0
+		end
+		if Hadarsqpstrackers["endcppractice"]~=0 then
+			output = output .. "@W, @CP@cracs @W: @R" .. Hadarsqpstrackers["endcppractice"]
+			Hadarsqpstrackers["endcppractice"]=0
+		end
+		
 	end -- end quest output
+
+	output = output .. "@w"
 	
 	if tonumber(Hadarsqpstrackers.daily)==1 then
 	Hadarsqpstrackers.dailyqps=Hadarsqpstrackers.qp+Hadarsqpstrackers.mccp+Hadarsqpstrackers.tierqp
+	
 	end
 	
 	
 	return output
 end--end makeoutput
-
-function StartTime(arg)
-	if arg == "q" then
-		Hadarsqpstrackers.QstartTime=os.time()
-	elseif arg == "cp" then
-		Hadarsqpstrackers.CPstartTime=os.time()
-	end
-	Hadarsqpstrackers.time=0--work around maybe
-end--End StartTime
-
 
 function QuestSettings(name, line, wildcards)
  
@@ -467,6 +532,15 @@ function QuestSettings(name, line, wildcards)
 	end--end if/elseif
 end
 
+function StartTime(arg)
+	if arg == "q" then
+		Hadarsqpstrackers["QstartTime"]=os.time()
+	elseif arg == "cp" then
+		Hadarsqpstrackers["CPstartTime"]=os.time()
+	end
+	Hadarsqpstrackers.time=0--work around maybe
+end--End StartTime
+
 function StopTime(arg)
 Hadarsqpstrackers.reportchan="gt"
 	if arg == "q" then
@@ -477,6 +551,10 @@ Hadarsqpstrackers.reportchan="gt"
 		SendSpecial(Hadarsqpstrackers.reportchan.." "..MakeOutput("q"))
 	elseif arg == "cp" then
 		Hadarsqpstrackers.CPstopTime=os.time()
+		QPStimeDiff(os.time(),Hadarsqpstrackers["CPstartTime"],"cp")
+		Hadarsqpstrackers.CPstopTime=os.time()
+		
+		SendSpecial(Hadarsqpstrackers.reportchan.." "..MakeOutput("cp"))
 	end
 	Hadarsqpstrackers.time=0--work around maybe
 end--End StartTime
@@ -506,6 +584,14 @@ if Hadarsqpstrackerstotal.averagetime == nil then Hadarsqpstrackerstotal.average
 
 
 end--amazing hadar will never end!
+
+function cp_start_tracking()
+	Hadarsqpstrackers["CPstartTime"] = os.time()
+end
+
+function cp_end_tracking()
+	QPStimeDiff(os.time(),Hadarsqpstrackers["CPstartTime"],"cp")
+end
 
 function HadarHelp()
 	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","Q","Teal","","uest Point ","Cyan","","T","Teal","","racker","Green","","]","#159FE5","","---------------------------------+")
