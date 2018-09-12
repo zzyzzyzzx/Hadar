@@ -327,11 +327,11 @@ function OnPluginBroadcast(msg, id, name, text)
 			if i == "level" then
 				LevelReportVariables.level=v  
 				if tonumber(v) >= 200 then
-					EnableTrigger("PupTriggers", true)
-					EnableTrigger("LevelTriggers", false)
+					EnableTriggerGroup("PupTriggers", true)
+					EnableTriggerGroup("LevelTriggers", false)
 				else
-					EnableTrigger("PupTriggers", false)
-					EnableTrigger("LevelTriggers", true)
+					EnableTriggerGroup("PupTriggers", false)
+					EnableTriggerGroup("LevelTriggers", true)
 				end
 			end
 			
@@ -396,11 +396,11 @@ function OnPluginEnable ()
 	end
 	
 	if tonumber(LevelReportVariables.level) >= 200 then
-		EnableTrigger("PupTriggers", true)
-		EnableTrigger("LevelTriggers", false)
+		EnableTriggerGroup("PupTriggers", true)
+		EnableTriggerGroup("LevelTriggers", false)
 	else
-		EnableTrigger("PupTriggers", false)
-		EnableTrigger("LevelTriggers", true)
+		EnableTriggerGroup("PupTriggers", false)
+		EnableTriggerGroup("LevelTriggers", true)
 	end
 
 end
