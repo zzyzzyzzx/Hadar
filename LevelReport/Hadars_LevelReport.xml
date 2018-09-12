@@ -332,10 +332,8 @@ function OnPluginBroadcast(msg, id, name, text)
 		for i,v in pairs(LoadInfo) do
 		
 			if i == "level" then
-			LevelReportVariables.level=v 
-			end
-			if i == "level" then 
-				if tonumber(v) > 199 then
+				LevelReportVariables.level=v  
+				if tonumber(v) >= 200 then
 					EnableTrigger("PupTriggers", true)
 					EnableTrigger("LevelTriggers", false)
 				else
@@ -786,7 +784,7 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 		mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
 		else
-		mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustrain
+		mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustraintwo
 		end
 		levelinfo.bonustrain = mybonustrain
 		levelinfo.bonustraintwo = mybonustrain
@@ -883,7 +881,7 @@ function HadarHelp()
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," showlevel <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelshow <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows stats on level"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
