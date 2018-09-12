@@ -493,7 +493,7 @@ function Pup_level()
 	mylevelepoch()
 	levelinfo.bonustrain = 0
 	levelinfo.bonustraintwo = 0
-	DoAfterSpecial(0.5, 'Execute("pupreport "..mylevelreport.channel)', sendto.script)
+	DoAfterSpecial(0.5, 'Execute("pupreport "..LevelReportVariables.channel)', sendto.script)
 end
 
 function Pup_train_bonus(name, line, wildcards)
