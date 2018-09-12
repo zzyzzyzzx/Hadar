@@ -488,12 +488,18 @@ local channel
 end
 
 function Pup_level()
+	if wildcards[1] == nil then
+		channel = LevelReportVariables.channel
+	else
+		channel = wildcards[1]
+	end
+
 	mylevelconvert()
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	levelinfo.bonustrain = 0
 	levelinfo.bonustraintwo = 0
-	DoAfterSpecial(0.5, 'Execute("pupreport echo")', sendto.script)
+	DoAfterSpecial(0.5, 'Execute("pupreport "..LevelReportVariables.channel)', sendto.script)
 end
 
 function Pup_train_bonus(name, line, wildcards)
