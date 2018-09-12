@@ -377,6 +377,7 @@ function OnPluginInstall ()
 	end
 	
 	SendNoEcho("protocol gmcp sendchar")
+	SendNoEcho("protocol gmcp sendstatus")
 	
 	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
   
@@ -399,6 +400,14 @@ function OnPluginEnable ()
 	else
 		buildInitialColors()
 		buildFirstSpellList()
+	end
+	
+	if tonumber(LevelReportVariables.level) >= 200 then
+		EnableTrigger("PupTriggers", true)
+		EnableTrigger("LevelTriggers", false)
+	else
+		EnableTrigger("PupTriggers", false)
+		EnableTrigger("LevelTriggers", true)
 	end
 
 end
