@@ -327,11 +327,9 @@ function OnPluginBroadcast(msg, id, name, text)
 			if i == "level" then
 				LevelReportVariables.level=v  
 				if tonumber(v) >= 200 then
-				print("Debug: now using pup triggers")
 					EnableTriggerGroup("PupTriggers", true)
 					EnableTriggerGroup("LevelTriggers", false)
 				else
-				print("Debug: now using level triggers")
 					EnableTriggerGroup("PupTriggers", false)
 					EnableTriggerGroup("LevelTriggers", true)
 				end
