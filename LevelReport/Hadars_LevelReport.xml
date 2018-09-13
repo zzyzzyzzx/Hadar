@@ -484,7 +484,9 @@ local channel
 	end
 	
 	
-	pupreport(channel,LevelReportVariables.pupColorFirst,LevelReportVariables.pupColorSecond,LevelReportVariables.pupBrac,LevelReportVariables.pupColorNum,LevelReportVariables.pupColorTime,LevelReportVariables.pupColorBracSecond,LevelReportVariables.pupColorPlus,LevelReportVariables.pupColorStat)
+	local test = pupreport(channel,LevelReportVariables.pupColorFirst,LevelReportVariables.pupColorSecond,LevelReportVariables.pupBrac,LevelReportVariables.pupColorNum,LevelReportVariables.pupColorTime,LevelReportVariables.pupColorBracSecond,LevelReportVariables.pupColorPlus,LevelReportVariables.pupColorStat)
+	
+	SendNoEcho(channel.." "..test)
 end
 
 function Pup_level()
@@ -784,9 +786,9 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		levelinfo.bonustraintwo = mybonustrain
 		
 		
-		mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
+		return mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
 		else
-		mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
+		return mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
 		end
 		
 --
