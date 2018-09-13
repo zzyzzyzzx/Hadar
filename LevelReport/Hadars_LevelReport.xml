@@ -748,9 +748,9 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 	local endcolor	= "@w"
 
 	if channel == nil then
-	mylevelreport.channel = "gt"
+		mylevelreport.channel = "gt"
 	else
-	mylevelreport.channel = channel
+		mylevelreport.channel = channel
 	end
 	
 	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
@@ -776,21 +776,22 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
 
 		if LevelReportVariables.timeonly == "false" then
-		if tonumber(levelinfo.bonustraintwo)>0 then
-		local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
-		mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
+			if tonumber(levelinfo.bonustraintwo)>0 then
+				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
+				mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
+			else
+				mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustraintwo
+			end
+			levelinfo.bonustrain = mybonustrain
+			levelinfo.bonustraintwo = mybonustrain
+		
+		
+			mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
 		else
-		mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustraintwo
-		end
-		levelinfo.bonustrain = mybonustrain
-		levelinfo.bonustraintwo = mybonustrain
-		
-		
-		return mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
-		else
-		return mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
+			mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
 		end
 		
+		return mylevelreport.message
 --
 end
 function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
