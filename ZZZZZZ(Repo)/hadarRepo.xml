@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+ <pluginsListing>
+  <plugin>
+    <name>Leveltimes</name>
+    <author>Hadar</author>
+    <description>Reports level/pup times</description>
+    <id>1a36da4e764254b16bd1e33f</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/LevelReport/Hadars_LevelReport.zip</download>
+    <installpath>0</installpath>
+  </plugin>
+
+ </pluginsListing>
