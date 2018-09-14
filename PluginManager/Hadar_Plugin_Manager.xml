@@ -244,8 +244,8 @@ function async_head_plugin(retval, page, status, headers, full_status, request_u
             print("\r\n\r\n")
          end
       end
-      ColourTell("LightSkyBlue", "", "** Pwar write plugins for fun, and to share with others.\r\n** If you find them useful and would like to donate, I do accept paypals at: ")
-      Hyperlink("http://paypal.me/hudmond", "http://paypal.me/hudmond", "Click to donate via paypal", "yellowgreen", "", 1)
+      --ColourTell("LightSkyBlue", "", "** Pwar write plugins for fun, and to share with others.\r\n** If you find them useful and would like to donate, I do accept paypals at: ")
+      --Hyperlink("http://paypal.me/hudmond", "http://paypal.me/hudmond", "Click to donate via paypal", "yellowgreen", "", 1)
       print("")
       --printmsg("End of plugin list, " .. #pluginList .. " plugins indexed.")
    end
