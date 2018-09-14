@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Hadar_Plugin_Manager"
+   author="Pwar"
+   id="20996ee9a35cf83ead6bd781"
+   language="Lua"
+   purpose="Manages updates for Hadar's plugins"
+   date_written="2017-12-21 01:08:25"
+   requires="4.76"
+   version="1.33"
+   save_state="y"
+   >
+<description trim="y">
+<![CDATA[
+this code was jacked from pwars
+>    ppm
+        - display summary of all plugins
+
+>    ppm install [number]
+        - downloads and installs/updates the plugin
+
+>    ppm update
+        - checks for update for ppm itself
+
+>    ppm update [number]
+        - this functions the same as "ppm install"
+
+>    ppm reload [number]
+        - reloads all xml files related to the plugin
+
+>    ppm reset
+        - resets all retained information about previous updates
+
+>    ppm help
+        - displays this help file :)
+
+]]>
+</description>
+</plugin>
+<aliases>
+   <alias
+		match="^test$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script=""
+	>
+	</alias>
+   <alias
+		match="^hadarinstall$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_main"
+	>
+   </alias>
+   <alias
+		match="^hadarinstall help$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_help"
+	>
+   </alias>
+   <alias
+		match="^hadarinstall reset$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_reset"
+	>
+   </alias>
+   <alias
+		match="^hadarinstall update ?(?<index>[0-9]+)?$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_update"
+	>
+   </alias>
+   <alias
+		match="^hadarinstall install (?<index>[0-9]+)$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_install"
+	>
+	</alias>
+   <alias
+		match="^hadarinstall reload (?<index>[0-9]+)$"
+		regexp="y"
+		enabled="y"
+		sequence="100"
+		script="ppm_reload"
+	>
+	</alias>
+</aliases>
+<script>
+<![CDATA[
+local async = require "async"
+local last_update
+require "zip"
+require "serialize"
+local installedPlugins = {}
+local lastListHash
+local currentPlugin = {}
+local pluginList = {}
+local updatePlugin = {}
+local pListNum = 0
+local pluginListUrl = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ZZZZZZ(Repo)/hadarRepo.xml"
+local lastPluginList
+
+function ppm_main(name, line, wc)
+   printmsg("*** Requesting plugin/update list from server.. Please wait.\r\n\r\n")
+   async.HEAD(pluginListUrl, async_head_plist, "HTTPS", 120)
+end
+
+function ppm_install(name, line, wc)
+   for p = 1, #pluginList do
+      if pluginList[p] ~= nil and tonumber(wc.index) == p then
+         printmsg("Attempting to install plugin #" .. wc.index .. " (" .. pluginList[p].name .. ")")
+         install_plugin(pluginList[p])
+      end
+   end
+   if #pluginList == 0 then
+      printmsg("Error: Unable to read plugin index. Have you typed ppm yet?")
+   end
+end
+
+function ppm_reset(name, line, wc)
+   installedPlugins = {}
+   SaveState()
+   printmsg("All information about previous updates have been cleared.")
+end
+
+function ppm_reload(name, line, wc)
+   for p = 1, #pluginList do
+      if p == tonumber(wc.index) then
+         printmsg("Attempting to reload plugin #" .. wc.index .. " (" .. pluginList[p].name .. ")")
+         for i = 1, #pluginList[p].ids do
+            ReloadPlugin(pluginList[p].ids[i])
+         end
+      end
+   end
+end
+
+function ppm_update(name, line, wc)
+   if wc.index == "" then
+      printmsg("*** Checking if update is available for Pwar's Plugin Manager.. Please wait.\r\n\r\n")
+      local url = "https://raw.githubusercontent.com/hudmond/ppm/master/Pwars_Plugin_Manager.xml"
+      async.doAsyncRemoteRequest(url, async_ppm_download_complete, "HTTPS", 120)
+   else
+      Execute("ppm install " .. wc.index)
+   end
+end
+
+function ppm_help(name, line, wc)
+   print("")
+	NoteStyle(2)			        
+	ColourNote("MediumSeaGreen", "", "Pwar's Plugin Manager")
+	NoteStyle(0)
+	print("")
+	ColourNote("SteelBlue", "", GetPluginInfo (GetPluginID (), 3))
+	print("")
+end
+
+function async_head_plist(retval, page, status, headers, full_status, request_url)
+   if (lastListHash ~= nil and lastListHash ~= headers["etag"]) or lastPluginList == nil then
+      --print("No list hash yet or different one, storing " .. headers["etag"] .. " and beginning download")
+      async.doAsyncRemoteRequest(pluginListUrl, async_xml_download_complete, "HTTPS", 120)
+   else
+      for p = 1, #lastPluginList do
+         local thisPlugin = lastPluginList[p]
+         thisPlugin.installed = true
+         for i = 1, #thisPlugin.ids do
+            if not (IsPluginInstalled(thisPlugin.ids[i]) and GetPluginInfo(thisPlugin.ids[i], 17)) then
+               thisPlugin.installed = false
+               --print("Plugin not installed and enabled!!" .. thisPlugin.ids[i])
+            end
+         end
+         get_plugin_info(thisPlugin)
+      end
+   end
+end
+
+function async_head_plugin(retval, page, status, headers, full_status, request_url)
+   local thisPlugin
+   pListNum = pListNum + 1
+   --if status == 200 then
+      if #pluginList == 0  and #lastPluginList > 0 then
+         pluginList = lastPluginList
+      end
+      for i = 1, #pluginList do
+         if pluginList[i].download == request_url then
+            thisPlugin = pluginList[i]
+         end
+      end
+      if thisPlugin == nil then return end
+      thisPlugin.lastModified = headers["etag"] or "Unknown"
+   if pListNum == #pluginList then
+      pListNum = 0
+      for i = 1, #pluginList do
+         thisPlugin = pluginList[i]
+         thisPlugin.updated = false
+         ColourTell("CornFlowerBlue", "", "[" .. i .. "] ", "LightSkyBlue", "", thisPlugin.name .. " ")
+         if thisPlugin.installed then
+            Hyperlink("ppm reload " .. i, "[Reload Plugin] ", "Reload Plugin #" .. pListNum, "LimeGreen", "black", 0, 1)
+            for k, v in pairs(installedPlugins) do
+               if thisPlugin.ids[1] == k then
+                  if thisPlugin.lastModified == v then
+                     thisPlugin.updated = true
+                     ColourTell("LimeGreen", "", "*up-to-date*")
+                     print("")
+                  end
+               end
+            end
+            if not thisPlugin.updated then
+               Hyperlink("ppm install " .. i, "[Update Plugin]", "Download and Update Plugin #" .. i, "DarkOrange", "black", 0, 1)
+               print("")
+               --if thisPlugin.lastModified ~= "Unknown" then
+               --   ColourTell("LightSkyBlue", "", "     Update available since: " .. thisPlugin.lastModified)
+               --   print("")
+               --end
+            end
+            ColourTell("CadetBlue", "", "     " .. thisPlugin.description)
+            print("\r\n\r\n")
+         else
+            Hyperlink("ppm install " .. i, "[Install Plugin]", "Download and Install Plugin #" .. pListNum, "DarkOrange", "black", 0, 1)
+            --ColourTell("LightSkyBlue", "", thisPlugin.lastModified)
+            for k, v in pairs(installedPlugins) do
+               --print(k, thisPlugin.ids[1])
+               if thisPlugin.ids[1] == k then
+                  if thisPlugin.lastModified == v then
+                     --print("Same version as installed!")
+                  else
+                     --print("UPDATE AVAIL!!")
+                  end
+               end
+            end
+            print("")
+            ColourTell("CadetBlue", "", "     " .. thisPlugin.description)
+            print("\r\n\r\n")
+         end
+      end
+      ColourTell("LightSkyBlue", "", "** Pwar write plugins for fun, and to share with others.\r\n** If you find them useful and would like to donate, I do accept paypals at: ")
+      Hyperlink("http://paypal.me/hudmond", "http://paypal.me/hudmond", "Click to donate via paypal", "yellowgreen", "", 1)
+      print("")
+      --printmsg("End of plugin list, " .. #pluginList .. " plugins indexed.")
+   end
+end
+
+function async_ppm_download_complete(retval, page, status, headers, full_status, request_url)
+  if status == 200 then
+    local version = tonumber(string.match(page, '%s%s+version="([0-9%.]+)"'))
+    local installedVer = GetPluginInfo(GetPluginID(), 19)
+    if version > installedVer then
+      printmsg("Updating from version " .. installedVer .. " to version " .. version)
+      local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
+      page = string.gsub(page, "\r", "")
+      file:write(page)
+      file:close()
+      if GetAlphaOption("script_prefix") == "" then SetAlphaOption("script_prefix", "\\\\\\") end
+      Execute(GetAlphaOption("script_prefix").."DoAfterSpecial(1, \"ReloadPlugin('"..GetPluginID().."')\", sendto.script)")
+    else
+      printmsg("You already have the latest version of Pwar's Plugin Manager installed.")
+    end
+  else
+      printmsg("Plugin update check failed...Error " .. tostring(status))
+  end
+end
+
+function async_plugin_download_complete(retval, page, status, headers, full_status, request_url)
+   local folder
+   local xmlFiles = {}
+   local xmlFile = {}
+   if updatePlugin.installpath == "1" then
+      folder = GetInfo(66)
+   else
+      folder = GetPluginInfo(GetPluginID(), 20)
+   end
+   --print("FOLDER IS " .. folder)
+   if status == 200 then -- download successful
+      printmsg("----------------------------------------------")
+      printmsg("*** " .. updatePlugin.name .. " download successful.")
+      f = assert(io.open (folder .. "temp_update.zip", "wb"))
+      f:write(page)
+      f:close()
+      local zfile, err = zip.open(folder .. "temp_update.zip")
+      printmsg("Extracting files from zip:")
+      for file in zfile:files() do
+         local currFile, err = zfile:open(file.filename)
+         local currFileContents = currFile:read("*a") -- read entire contents of current file
+         local hBinaryOutput = io.open(folder .. file.filename, "wb")
+          -- write current file inside zip to a file outside zip
+          if(hBinaryOutput)then
+              hBinaryOutput:write(currFileContents)
+              hBinaryOutput:close()
+          end
+         printmsg("(+) " .. file.filename)
+         local fileExt = string.sub(file.filename, -4)
+         if fileExt == ".xml" then
+            xmlFile.filename = file.filename
+            --print(xmlFile.filename)
+            xmlFile.pluginid = string.match(currFileContents, '%s%s+id="(.-)"')            
+            table.insert(xmlFiles, xmlFile)
+            xmlFile = {}
+         end
+         currFile:close()
+      end
+      os.remove(folder .. "temp_update.zip")
+      printmsg("Update succeeded, loading/reloading plugins.")
+      printmsg("----------------------------------------------")
+      for i = 1, #updatePlugin.ids do
+         --if not IsPluginInstalled(thisPlugin.ids[i]) then
+            --LoadPlugin(folder ..  
+         --end
+         --(IsPluginInstalled(thisPlugin.ids[i]) and GetPluginInfo(thisPlugin.ids[i], 17)) then
+         --ReloadPlugin(updatePlugin.ids[i])
+      end
+      for i = 1, #xmlFiles do
+         --print(xmlFiles[i].filename, xmlFiles[i].pluginid)
+         --local version = tonumber(string.match(page, '%s%s+version="([0-9%.]+)"'))
+         if not (IsPluginInstalled(xmlFiles[i].pluginid) and GetPluginInfo(xmlFiles[i].pluginid, 17)) then
+            LoadPlugin(folder .. xmlFiles[i].filename)
+         else
+            ReloadPlugin(xmlFiles[i].pluginid)
+         end
+         installedPlugins[xmlFiles[i].pluginid] = headers["etag"]
+      end
+      SaveState()
+   else
+      printmsg("Plugin download failed...Error " .. tostring(status))
+      --printmsg(headers["location"])
+   end
+   updatePlugin = {}
+   xmlFiles = {}
+end
+
+function async_xml_download_complete(retval, page, status, headers, full_status, request_url)
+   if status == 200 then
+      --print(page)
+      --print(status)
+      lastListHash = headers["etag"]
+      SaveState()
+      local xml = utils.xmlread(page)
+      local num_plugins = #xml.nodes [2].nodes
+      --print(num_plugins)
+      pluginList = {}
+      for p = 1,num_plugins do
+         num_plugin_nodes = #xml.nodes [2].nodes [p].nodes
+         local thisPlugin = {}
+         thisPlugin.ids = {}
+         for n = 1, num_plugin_nodes do
+            local xmlkey = xml.nodes [2].nodes [p].nodes [n].name
+            local xmlval = xml.nodes [2].nodes [p].nodes [n].content
+            if xmlkey == "name" then thisPlugin.name = xmlval
+            elseif xmlkey == "author" then thisPlugin.author = xmlval
+            elseif xmlkey == "description" then thisPlugin.description = xmlval
+            elseif xmlkey == "id" then table.insert(thisPlugin.ids, xmlval)
+            elseif xmlkey == "download" then thisPlugin.download = xmlval
+            elseif xmlkey == "installpath" then thisPlugin.installpath = xmlval
+            end
+         end
+         require "tprint"
+         pluginList[p] = thisPlugin
+         thisPlugin.installed = true
+         for i = 1, #thisPlugin.ids do
+            if not (IsPluginInstalled(thisPlugin.ids[i]) and GetPluginInfo(thisPlugin.ids[i], 17)) then
+               thisPlugin.installed = false
+               --print("Plugin not installed and enabled!!" .. thisPlugin.ids[i])
+            end
+         end
+      end
+      lastPluginList = pluginList
+      SaveState()
+      for p = 1, #pluginList do
+         get_plugin_info(pluginList[p])
+      end
+   else
+      printmsg("Downloading plugin list failed...Error " .. tostring(status))
+   end
+end
+
+function get_plugin_info(plugin)
+   local http_mode = string.sub(plugin.download, 1, 5)
+   if http_mode == "https" then
+      http_mode = string.upper(http_mode)
+   else
+      http_mode = "HTTP"
+   end
+   async.HEAD(plugin.download, async_head_plugin, http_mode, 120)
+end
+
+function install_plugin(plugin)
+   --print("plugin.ids[1]: " .. plugin.ids[1])
+   url = plugin.download
+   local http_mode = string.sub(url, 1, 5)
+   if http_mode == "https" then
+      http_mode = string.upper(http_mode)
+   else
+      http_mode = "HTTP"
+   end
+   updatePlugin = plugin
+   async.doAsyncRemoteRequest(url, async_plugin_download_complete, http_mode, 120)
+end
+
+function printmsg(msg)
+   ColourNote("cornflowerblue", "", msg)
+end
+
+function OnPluginBroadcast (msg, id, name, text)
+	require "gmcphelper"
+   if (id == '3e7dedbe37e44942dd46d264') then              -- GMCP Handler plugin
+		if text == "char.status" then
+		end
+   end
+end
+
+function OnPluginInstall()
+   local installedStr = GetVariable("installedPlugins")
+   local lastListStr = GetVariable("lastPluginList")
+	if installedStr ~= nil then
+		installedPlugins = load( "return "..installedStr)( ) 
+	end
+   if lastListStr ~= nil then
+		lastPluginList = load( "return "..lastListStr)( ) 
+	end
+   lastListHash = GetVariable("lastListHash")
+   ColourTell("CornFlowerBlue", "", "Pwar's Plugin Manager has been loaded. Type \"", "MediumSeaGreen", "", "ppm", "CornFlowerBlue", "", "\" or \"", "MediumSeaGreen", "", "ppm help", "CornFlowerBlue", "", "\"")
+   print("")
+end
+
+function OnPluginSaveState()
+		-- this will run when SaveState() is called or if mush is closing etc
+   if installedPlugins ~= nil then
+      SetVariable("installedPlugins", serialize.save_simple(installedPlugins))
+   end
+   if lastListHash ~= nil then
+      SetVariable("lastListHash", lastListHash)
+   end
+   if lastPluginList ~= nil then
+      SetVariable("lastPluginList", serialize.save_simple(lastPluginList))
+   end
+end
+
+-- Utils --
+function md5sum(filename)
+	if filename then
+		f = io.open (filename, "rb")
+		if f then
+			print ("File: " .. filename .. " - md5sum =", utils.tohex (utils.md5 (f:read ("*a"))))
+			f:close()
+		end
+	end
+end
+]]>
+</script> 
+</muclient>
