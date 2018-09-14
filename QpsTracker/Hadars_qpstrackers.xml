@@ -93,6 +93,16 @@ reports quests (working on cps/gqs)
    group="cpdone"
   >
   </trigger>
+  <trigger
+   enabled="y"
+   match="^Global Quest: Global quest \# *(?&lt;gqnum&gt;\d+) has been declared for levels (.*) to (.*)\.$"
+   name="gqdeclared"
+   script="gqs_called"
+   sequence="100"
+   regexp="y"
+   omit_from_output="n"
+  >
+  </trigger>
 </triggers>
 
 <!--  Plugin help  -->
@@ -314,6 +324,8 @@ function OnPluginInstall ()
 	ShowInfoBar (true)
 	InfoBackground ("white")
 	SetStatus("")
+	
+	CallPlugin("3e7dedbe37e44942dd46d264","Send_GMCP_Packet","request quest")
 end
 
 function NowLeveled()
@@ -591,6 +603,10 @@ end
 
 function cp_end_tracking()
 	QPStimeDiff(os.time(),Hadarsqpstrackers["CPstartTime"],"cp")
+end
+
+function gqs_called()
+	Sound("ding.wav")
 end
 
 function HadarHelp()
