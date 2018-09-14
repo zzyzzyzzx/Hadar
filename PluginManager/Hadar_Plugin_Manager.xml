@@ -14,26 +14,26 @@
    >
 <description trim="y">
 <![CDATA[
-this code was jacked from pwars
->    ppm
+this code was jacked from pwars(with permission)
+>    hadarinstall
         - display summary of all plugins
 
->    ppm install [number]
+>    hadarinstall install [number]
         - downloads and installs/updates the plugin
 
->    ppm update
-        - checks for update for ppm itself
+>    hadarinstall update
+        - checks for update for hadar install itself
 
->    ppm update [number]
-        - this functions the same as "ppm install"
+>    hadarinstall update [number]
+        - this functions the same as "hadarinstall install"
 
->    ppm reload [number]
+>    hadarinstall reload [number]
         - reloads all xml files related to the plugin
 
->    ppm reset
+>    hadarinstall reset
         - resets all retained information about previous updates
 
->    ppm help
+>    hadarinstall help
         - displays this help file :)
 
 ]]>
@@ -125,7 +125,7 @@ function ppm_install(name, line, wc)
       end
    end
    if #pluginList == 0 then
-      printmsg("Error: Unable to read plugin index. Have you typed ppm yet?")
+      printmsg("Error: Unable to read plugin index. Have you typed hadarinstall yet?")
    end
 end
 
@@ -148,18 +148,18 @@ end
 
 function ppm_update(name, line, wc)
    if wc.index == "" then
-      printmsg("*** Checking if update is available for Pwar's Plugin Manager.. Please wait.\r\n\r\n")
-      local url = "https://raw.githubusercontent.com/hudmond/ppm/master/Pwars_Plugin_Manager.xml"
+      printmsg("*** Checking if update is available for Hadar's Plugin Manager.. Please wait.\r\n\r\n")
+      local url = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/PluginManager/Hadar_Plugin_Manager.xml"
       async.doAsyncRemoteRequest(url, async_ppm_download_complete, "HTTPS", 120)
    else
-      Execute("ppm install " .. wc.index)
+      Execute("hadarinstall install " .. wc.index)
    end
 end
 
 function ppm_help(name, line, wc)
    print("")
 	NoteStyle(2)			        
-	ColourNote("MediumSeaGreen", "", "Pwar's Plugin Manager")
+	ColourNote("MediumSeaGreen", "", "Hadar's Plugin Manager")
 	NoteStyle(0)
 	print("")
 	ColourNote("SteelBlue", "", GetPluginInfo (GetPluginID (), 3))
@@ -206,7 +206,7 @@ function async_head_plugin(retval, page, status, headers, full_status, request_u
          thisPlugin.updated = false
          ColourTell("CornFlowerBlue", "", "[" .. i .. "] ", "LightSkyBlue", "", thisPlugin.name .. " ")
          if thisPlugin.installed then
-            Hyperlink("ppm reload " .. i, "[Reload Plugin] ", "Reload Plugin #" .. pListNum, "LimeGreen", "black", 0, 1)
+            Hyperlink("hadarinstall reload " .. i, "[Reload Plugin] ", "Reload Plugin #" .. pListNum, "LimeGreen", "black", 0, 1)
             for k, v in pairs(installedPlugins) do
                if thisPlugin.ids[1] == k then
                   if thisPlugin.lastModified == v then
@@ -217,7 +217,7 @@ function async_head_plugin(retval, page, status, headers, full_status, request_u
                end
             end
             if not thisPlugin.updated then
-               Hyperlink("ppm install " .. i, "[Update Plugin]", "Download and Update Plugin #" .. i, "DarkOrange", "black", 0, 1)
+               Hyperlink("hadarinstall install " .. i, "[Update Plugin]", "Download and Update Plugin #" .. i, "DarkOrange", "black", 0, 1)
                print("")
                --if thisPlugin.lastModified ~= "Unknown" then
                --   ColourTell("LightSkyBlue", "", "     Update available since: " .. thisPlugin.lastModified)
@@ -227,7 +227,7 @@ function async_head_plugin(retval, page, status, headers, full_status, request_u
             ColourTell("CadetBlue", "", "     " .. thisPlugin.description)
             print("\r\n\r\n")
          else
-            Hyperlink("ppm install " .. i, "[Install Plugin]", "Download and Install Plugin #" .. pListNum, "DarkOrange", "black", 0, 1)
+            Hyperlink("hadarinstall install " .. i, "[Install Plugin]", "Download and Install Plugin #" .. pListNum, "DarkOrange", "black", 0, 1)
             --ColourTell("LightSkyBlue", "", thisPlugin.lastModified)
             for k, v in pairs(installedPlugins) do
                --print(k, thisPlugin.ids[1])
@@ -428,7 +428,7 @@ function OnPluginInstall()
 		lastPluginList = load( "return "..lastListStr)( ) 
 	end
    lastListHash = GetVariable("lastListHash")
-   ColourTell("CornFlowerBlue", "", "Pwar's Plugin Manager has been loaded. Type \"", "MediumSeaGreen", "", "ppm", "CornFlowerBlue", "", "\" or \"", "MediumSeaGreen", "", "ppm help", "CornFlowerBlue", "", "\"")
+   ColourTell("CornFlowerBlue", "", "Pwar's Plugin Manager has been loaded. Type \"", "MediumSeaGreen", "", "hadarinstall", "CornFlowerBlue", "", "\" or \"", "MediumSeaGreen", "", "hadarinstall help", "CornFlowerBlue", "", "\"")
    print("")
 end
 

@@ -8,5 +8,29 @@
     <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/LevelReport/Hadars_LevelReport.zip</download>
     <installpath>0</installpath>
   </plugin>
+  <plugin>
+    <name>doublePredictor</name>
+    <author>Hadar</author>
+    <description>predicts when hour of double will be</description>
+    <id>dbcf98147af347b80d74fc70</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/DoublePredictor/Hadar_Double_Predictor.zip</download>
+    <installpath>0</installpath>
+  </plugin>
+  <plugin>
+    <name>qpstracker</name>
+    <author>Hadar</author>
+    <description>Reports quest time/cp times</description>
+    <id>b19eab63739b58d5252b5132</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/QpsTracker/Hadars_qpstrackers.zip</download>
+    <installpath>0</installpath>
+  </plugin>
+  <plugin>
+    <name>Kill</name>
+    <author>Hadar</author>
+    <description>set kill to a skill or spell</description>
+    <id>def114f15afbaa25a849fc4b</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/Kill/Hadars_kill.zip</download>
+    <installpath>0</installpath>
+  </plugin>
 
  </pluginsListing>
