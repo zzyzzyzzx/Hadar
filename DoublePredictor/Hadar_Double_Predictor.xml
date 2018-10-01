@@ -14,7 +14,7 @@
    purpose="predict double via a command"
    date_written="2016-09-14 11:59:02"
    requires="4.00"
-   version="1.0"
+   version="2.0"
    >
 <description trim="y">
 <![CDATA[
@@ -93,70 +93,140 @@ Send("realtime")</send>
 		HadarHelp()
 	</send>
 	</alias>
+	<alias
+   script="doubleSet"
+   match="^setdouble$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
 </aliases>
 
 
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
-require "HadarLuaCommon"
+require "serialize"
+
+
+function OnPluginSaveState ()
+	SetVariable ("HadarDoubleString", serialize.save ("HadarDoubleString"))
+	SetVariable ("pastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	print("had help (to see all of hadar's plugin helpfiles), or double help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+	
+	HadarDouble = {}
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("HadarDoubleString") or "")) ()
+	else
+		buildInitial()
+	end
+
+end
+
+function buildInitial()
+	HadarDoubleString = "@G\\}@R %s@w Kills Left @G{/ @w(Avg @R%s @wkpm) @G\\}@w Hour of Double in about: @R%s@wd @R%s@wh @R%s@wm @G{/@w"
+end
+
+function doubleSet()
+	HadarDoubleString = utils.inputbox ("Needs a total of 5 %s\n1)kills left\n2)avg kpm\n3)hours\n4)minutes\n5)seconds", "Look of Double Predictor", HadarDoubleString, "Courier", 9)
+	Send("echo double will look like: "..HadarDoubleString)
+end
+
 
 function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
 end
 
+function timeDiff(t2,t1,script)
+	local d1,d2,carry,diff = os.date('*t',t1),os.date('*t',t2),false,{}
+	local colMax = {60,60,24,os.date('*t',os.time{year=d1.year,month=d1.month+1,day=0}).day,12}
+	d2.hour = d2.hour - (d2.isdst and 1 or 0) + (d1.isdst and 1 or 0) -- handle dst
+	for i,v in ipairs({'sec','min','hour','day','month','year'}) do
+		diff[v] = d2[v] - d1[v] + (carry and -1 or 0)
+		carry = diff[v] < 0
+		if carry then diff[v] = diff[v] + colMax[i] end
+	end
+	for i,v in pairs(diff) do
+		script[i] = v
+	end
+	return diff
+end
+
+function round(num, idp)
+    local mult = 10^(idp or 0)
+    if num >= 0 then return math.floor(num * mult + 0.5) / mult
+    else return math.ceil(num * mult - 0.5) / mult end
+end
+
 function MobMath(name, line, wildcards)
-HadarDouble.KillsSinceReboot = string.gsub(wildcards[1],",","")
-HadarDouble.KillsSinceTracked = string.gsub(wildcards[2],",","")
-local number = HadarDouble.KillsSinceTracked/1000000
-local doubround = math.floor(number)
-HadarDouble.ThisMillion = doubround*1000000
-HadarDouble.NextMillion = HadarDouble.ThisMillion+1000000
-HadarDouble.KillsNeeded = HadarDouble.NextMillion-HadarDouble.KillsSinceTracked
-HadarDouble.KillsCompleted = HadarDouble.KillsSinceTracked-HadarDouble.ThisMillion
+	HadarDouble.KillsSinceReboot = string.gsub(wildcards[1],",","")
+	HadarDouble.KillsSinceTracked = string.gsub(wildcards[2],",","")
+	local number = HadarDouble.KillsSinceTracked/1000000
+	local doubround = math.floor(number)
+	HadarDouble.ThisMillion = doubround*1000000
+	HadarDouble.NextMillion = HadarDouble.ThisMillion+1000000
+	HadarDouble.KillsNeeded = HadarDouble.NextMillion-HadarDouble.KillsSinceTracked
+	HadarDouble.KillsCompleted = HadarDouble.KillsSinceTracked-HadarDouble.ThisMillion
 end
 
 function GetTheDate(name, line, wildcards)
-local month=wildcards[5]
-local DoubleAardRebootMonth
+	local month=wildcards[5]
+	local DoubleAardRebootMonth
 
-if month=="Jan" then DoubleAardRebootMonth=1 end
-if month=="Feb" then DoubleAardRebootMonth=2 end
-if month=="Mar" then DoubleAardRebootMonth=3 end
-if month=="Apr" then DoubleAardRebootMonth=4 end
-if month=="May" then DoubleAardRebootMonth=5 end
-if month=="Jun" then DoubleAardRebootMonth=6 end
-if month=="Jul" then DoubleAardRebootMonth=7 end
-if month=="Aug" then DoubleAardRebootMonth=8 end
-if month=="Sep" then DoubleAardRebootMonth=9 end
-if month=="Oct" then DoubleAardRebootMonth=10 end
-if month=="Nov" then DoubleAardRebootMonth=11 end
-if month=="Dec" then DoubleAardRebootMonth=12 end
+	if month=="Jan" then DoubleAardRebootMonth=1 end
+	if month=="Feb" then DoubleAardRebootMonth=2 end
+	if month=="Mar" then DoubleAardRebootMonth=3 end
+	if month=="Apr" then DoubleAardRebootMonth=4 end
+	if month=="May" then DoubleAardRebootMonth=5 end
+	if month=="Jun" then DoubleAardRebootMonth=6 end
+	if month=="Jul" then DoubleAardRebootMonth=7 end
+	if month=="Aug" then DoubleAardRebootMonth=8 end
+	if month=="Sep" then DoubleAardRebootMonth=9 end
+	if month=="Oct" then DoubleAardRebootMonth=10 end
+	if month=="Nov" then DoubleAardRebootMonth=11 end
+	if month=="Dec" then DoubleAardRebootMonth=12 end
 
-local t1 = os.time{year=wildcards[6], month=DoubleAardRebootMonth, day=wildcards[4],hour=wildcards[1],minute=wildcards[2],second=wildcards[3]}
-local changetime = os.time()+10800
-local timemin = (changetime-t1)/60
-local totalmin = round(timemin)
+	local t1 = os.time{year=wildcards[6], month=DoubleAardRebootMonth, day=wildcards[4],hour=wildcards[1],minute=wildcards[2],second=wildcards[3]}
+	local changetime = os.time()+10800
+	local timemin = (changetime-t1)/60
+	local totalmin = round(timemin)
 
-HadarDouble.TotalMin=totalmin
+	HadarDouble.TotalMin=totalmin
 end
 
 function LetItGo(name, line, wildcards)
-if HadarDouble.TotalMin<=0 then
-HadarDouble.MobsKilledPerMinute=200
-else
-HadarDouble.MobsKilledPerMinute=math.floor(HadarDouble.KillsSinceReboot/HadarDouble.TotalMin)
-end
+	if HadarDouble.TotalMin<=0 then
+		HadarDouble.MobsKilledPerMinute=200
+	else
+		HadarDouble.MobsKilledPerMinute=math.floor(HadarDouble.KillsSinceReboot/HadarDouble.TotalMin)
+	end
 
 
-HadarDouble.MinutesLeft=math.floor(HadarDouble.KillsNeeded/HadarDouble.MobsKilledPerMinute)
-HadarDouble.DaysLeft=math.floor(HadarDouble.MinutesLeft/1440)
-HadarDouble.LeftoverMinutes=HadarDouble.MinutesLeft - (HadarDouble.DaysLeft*1440)
-HadarDouble.HoursLeft=math.floor(HadarDouble.LeftoverMinutes/60)
-local quickmath = HadarDouble.HoursLeft*60
-HadarDouble.MinutesLeft=HadarDouble.LeftoverMinutes-quickmath
+	HadarDouble.MinutesLeft=math.floor(HadarDouble.KillsNeeded/HadarDouble.MobsKilledPerMinute)
+	HadarDouble.DaysLeft=math.floor(HadarDouble.MinutesLeft/1440)
+	HadarDouble.LeftoverMinutes=HadarDouble.MinutesLeft - (HadarDouble.DaysLeft*1440)
+	HadarDouble.HoursLeft=math.floor(HadarDouble.LeftoverMinutes/60)
+	local quickmath = HadarDouble.HoursLeft*60
+	HadarDouble.MinutesLeft=HadarDouble.LeftoverMinutes-quickmath
 
-SendSpecial(HadarDouble.Player.." @G\\}@R "..HadarDouble.KillsNeeded.."@w Kills Left @G{/ @w(Avg @R"..HadarDouble.MobsKilledPerMinute.." @wkpm) @G\\}@w Hour of Double in about: @R"..HadarDouble.DaysLeft.."@wd @R"..HadarDouble.HoursLeft.."@wh @R"..HadarDouble.MinutesLeft.."@wm @G{/@w")
+	HadarDouble.Data = string.format(HadarDoubleString,HadarDouble.KillsNeeded,HadarDouble.MobsKilledPerMinute,HadarDouble.DaysLeft,HadarDouble.HoursLeft,HadarDouble.MinutesLeft)
+	SendSpecial(HadarDouble.Player.." "..HadarDouble.Data )
 end
 
 
@@ -166,6 +236,8 @@ function HadarHelp()
 	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","D","Teal","","ouble ","Cyan","","P","Teal","","redictor","Green","","]","#159FE5","","---------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Predict <Channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Outputs an estimate to a channel when double might happen"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setdouble"),"#159FE5","","-","#F1D566","",string.format("%-64s"," lets you change what the output will look like"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
