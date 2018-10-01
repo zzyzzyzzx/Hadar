@@ -131,8 +131,6 @@ function OnPluginEnable ()
 	
 	HadarDouble = {}
 	
-	print(GetVariable ("doublePastFirstInstall"))
-	
 	if GetVariable ("doublePastFirstInstall") == "true" then
 		assert (loadstring (GetVariable ("HadarDoubleString") or "")) ()
 	else
@@ -143,7 +141,6 @@ end
 
 function buildInitial()
 	HadarDoubleString = "@G\\}@R %s@w Kills Left @G{/ @w(Avg @R%s @wkpm) @G\\}@w Hour of Double in about: @R%s@wd @R%s@wh @R%s@wm @G{/@w"
-	print("set default string")
 	SaveState()
 end
 
