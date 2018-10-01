@@ -144,9 +144,12 @@ function buildInitial()
 end
 
 function doubleSet()
+	HadarBackup = HadarDoubleString
 	HadarDoubleString = utils.inputbox ("Needs a total of 5 %s\n1)kills left\n2)avg kpm\n3)hours\n4)minutes\n5)seconds", "Look of Double Predictor", HadarDoubleString, "Courier", 9)
 	if HadarDoubleString ~= nil then
 		SendNoEcho("echo double will look like: "..HadarDoubleString)
+	else
+		HadarDoubleString = HadarBackup
 	end
 end
 
