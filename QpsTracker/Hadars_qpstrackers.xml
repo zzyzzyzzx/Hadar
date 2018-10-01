@@ -217,6 +217,8 @@ local arg = string.lower(wildcards[1])
 		SaveState()
 	elseif arg == "request" then
 		Execute("cpr")
+	elseif arg == "r" then
+		Execute("cpr")
 	elseif arg == "quit" then
 		Send("cp quit")
 	elseif arg == "info" then
@@ -227,6 +229,8 @@ local arg = string.lower(wildcards[1])
 		Send("cp ch")
 	elseif arg == "level" then
 		SetCampaignLeveling()
+	else
+		SendSpecial("cp ".. args)
 	end -- end if checks for cp
 	
 end--End CampaignSettings
