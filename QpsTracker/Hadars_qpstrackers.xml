@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.52"
+   version="1.53"
    >
 <description trim="y">
 <![CDATA[
@@ -117,7 +117,7 @@ reports quests (working on cps/gqs)
   >
   </alias>
     <alias
-   match="^cp ?(set room|room set|request|quit|info|today|check|quit|level)?"
+   match="^cp ?(set room|room set|r|request|quit|info|today|check|quit|level)?"
    enabled="y"
    send_to="12"
    regexp="y"
@@ -607,6 +607,7 @@ end
 
 function gqs_called()
 	Sound("ding.wav")
+	FlashIcon()
 end
 
 function HadarHelp()
