@@ -117,7 +117,7 @@ reports quests (working on cps/gqs)
   >
   </alias>
     <alias
-   match="^cp ?(set room|room set|r|request|quit|info|today|check|quit|level)?"
+   match="^cp ?(set room|room set|r|request|quit|i|info|today|check|quit|level)?"
    enabled="y"
    send_to="12"
    regexp="y"
@@ -221,7 +221,7 @@ local arg = string.lower(wildcards[1])
 		Execute("cpr")
 	elseif arg == "quit" then
 		Send("cp quit")
-	elseif arg == "info" then
+	elseif arg == "info" or arg == "i" then
 		Send("cp info")
 	elseif arg == "today" then
 		Send("cp today")
