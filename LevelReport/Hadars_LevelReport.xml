@@ -369,15 +369,15 @@ function OnPluginInstall ()
 		currentState = 0 -- sent request
 	end
 	
-	SendNoEcho("protocol gmcp sendchar")
-	SendNoEcho("protocol gmcp sendstatus")
-	
 	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
   
 	OnPluginEnable ()
 end
 
 function OnPluginEnable ()
+
+	SendNoEcho("protocol gmcp sendchar")
+	SendNoEcho("protocol gmcp sendstatus")
 	
 	LevelReportVariables = {}
 	levelSkillSpells = {}
@@ -615,7 +615,7 @@ function SkillGain(name, line, wildcards)
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
 		
-		if two > 1 and LevelReportVariables.showskillgain=="true" then
+		if two > 1 and two~=85 and LevelReportVariables.showskillgain=="true" then
 			SendNoEcho(LevelReportVariables.channel.." "..msg)
 		end
 end
