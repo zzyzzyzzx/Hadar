@@ -85,6 +85,16 @@ reports quests (working on cps/gqs)
    regexp="y"
   >
   </trigger>
+ <!-- -->
+ <trigger
+   enabled="n"
+   match="^You receive (?&lt;bonus&gt;\d+) quest points bonus for your first campaign completed today.$"
+   sequence="100"
+   regexp="y"
+   script="cp_bonus"
+   group="campaignRewards"
+  >
+  </trigger>
   	 <trigger
    enabled="n"
    match="--------------------------------------------------------------"
@@ -290,10 +300,15 @@ function campaign_rewards(name,line,wildcards)
 	EnableTriggerGroup("cpdone", true)
 end
 
+function cp_bonus(name,line,wildcards)
+	local amount = wildcards.bonus
+	Hadarsqpstrackers["endcpquest"] = Hadarsqpstrackers["endcpquest"] + amount
+end
+
 function cp_done()
 	StopTime("cp")
-	EnableTriggerGroup("cpdone", false)
-	EnableTriggerGroup("campaignRewards", false)
+	DoAfterSpecial (0.5, 'EnableTriggerGroup("cpdone", false)', sendto.script)
+	DoAfterSpecial (0.5, 'EnableTriggerGroup("campaignRewards", false)', sendto.script)
 end
 
 function OnPluginSaveState ()
@@ -302,7 +317,7 @@ function OnPluginSaveState ()
 	SetVariable ("Hadarsqpstrackerstotal", serialize.save ("Hadarsqpstrackerstotal"))
 	SetVariable ("Hadarsqpstrackersqtime", serialize.save ("Hadarsqpstrackersqtime"))
 	SetVariable ("Hadarsqpstrackerslastreset", serialize.save ("Hadarsqpstrackerslastreset"))
-	ShowInfoBar (true)
+	--ShowInfoBar (true)
 end -- function OnPluginSaveState
 
 function OnPluginInstall ()
@@ -325,9 +340,9 @@ function OnPluginInstall ()
 	Hadarsqpstrackers["endcpgold"]=0
 	
 	print("What is qps tracker going to do today brain? Same thing we do everynight, try and take over the world!")
-	ShowInfoBar (true)
-	InfoBackground ("white")
-	SetStatus("")
+	--ShowInfoBar (true)
+	--InfoBackground ("white")
+	--SetStatus("")
 	
 	CallPlugin("3e7dedbe37e44942dd46d264","Send_GMCP_Packet","request quest")
 end
@@ -378,7 +393,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			
 			if i=="action" and v=="comp" then
 				Hadarsqpstrackers.time=1
-				InfoBackground ("white")
+				--InfoBackground ("white")
 				SetStatus("")
 			end -- End completed quest
 			
