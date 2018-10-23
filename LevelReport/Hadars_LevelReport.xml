@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="1.92"
+   version="1.93"
    >
 
 </plugin>
@@ -500,8 +500,8 @@ function Pup_level()
 	mylevelconvert()
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
-	levelinfo.bonustrain = 0
-	levelinfo.bonustraintwo = 0
+	levelinfo.bonustrain = 1
+	levelinfo.bonustraintwo = 2
 	DoAfterSpecial(0.5, 'Execute("pupreport "..LevelReportVariables.channel)', sendto.script)
 end
 
