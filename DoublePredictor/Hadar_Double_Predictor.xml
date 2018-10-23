@@ -33,31 +33,34 @@ Just use the command predict to take a guess at the next hour of double
 
 <triggers>
   <trigger
-   enabled="y"
+   enabled="n"
    match="^Mob Deaths\s+:\s+([+-]?[0-9,]+)\s+([+-]?[0-9,]+)$"
    regexp="y"
    send_to="12"
    script="MobMath"
+   group="doubletriggers"
    sequence="100"
   >
   <send></send>
   </trigger>
   <trigger
-   enabled="y"
+   enabled="n"
    match="^ \* The system time is\s+: (\d+):(\d+):(\d+) - \w+ (\d+) (\w+), (\d+)"
    regexp="y"
    send_to="12"
    script="LetItGo"
+   group="doubletriggers"
    sequence="100"
   >
   <send></send>
   </trigger>
   <trigger
-   enabled="y"
+   enabled="n"
    match="^ \* Aardwolf last restarted on \: (\d+)\:(\d+)\:(\d+) \- \w+ (\d+) (\w+)\, (\d+)"
    regexp="y"
    send_to="12"
    script="GetTheDate"
+   group="doubletriggers"
    sequence="100"
   >
   <send>
@@ -78,6 +81,7 @@ Just use the command predict to take a guess at the next hour of double
 
 HadarDouble.Player='%1'
 HadarDouble.VI="no"
+EnableTriggerGroup("doubletriggers", true)
 Send("gamestat 5")
 Send("realtime")</send>
   </alias>
@@ -152,6 +156,7 @@ function doubleSet()
 	else
 		HadarDoubleString = HadarBackup
 	end
+	SaveState()
 end
 
 
@@ -233,6 +238,7 @@ function LetItGo(name, line, wildcards)
 
 	HadarDouble.Data = string.format(HadarDoubleString,HadarDouble.KillsNeeded,HadarDouble.MobsKilledPerMinute,HadarDouble.DaysLeft,HadarDouble.HoursLeft,HadarDouble.MinutesLeft)
 	SendSpecial(HadarDouble.Player.." "..HadarDouble.Data )
+	EnableTriggerGroup("doubletriggers", false)
 end
 
 
