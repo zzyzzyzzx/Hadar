@@ -15,11 +15,39 @@
    save_state="y"
    date_written="2016-09-20 09:04:48"
    requires="4.00"
-   version="1.0"
+   version="1.5"
    >
-
 </plugin>
 
+<aliases>
+	<alias
+   script="repopset"
+   match="^setrepop$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
+  <alias
+   script="setChannel"
+   match="^repopchannel (.*)$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+  >
+  </alias>
+  <alias match="^(?:had|repop) help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
+</aliases>
 
 <!--  Get our standard constants -->
 
@@ -42,10 +70,61 @@ function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	end -- if
 end -- gmcp
 
+function OnPluginSaveState ()
+	SetVariable ("repopVar", "repopVar = " .. serialize.save_simple (repopVar))
+	SetVariable ("pastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+function setChannel(name, line, wildcards)
+	if wildcards[1] ~= nil then
+		repopVar.channel = wildcards[1]
+		ColourNote("Teal","","Repop Report channel set to ","Green","",repopVar.channel)
+	end
+end
+
+function repopset()
+	HadarBackup = repopVar.repopString
+	repopVar.repopString = utils.inputbox ("Needs a total of 3 %s\n1)Area\n2)Time hours\n3)Time mins", "Look of repopTracker", repopVar.repopString, "Courier", 9)
+	if repopVar.repopString ~= nil then
+		SendNoEcho("echo repop will look like: "..repopVar.repopString)
+	else
+		repopVar.repopString = HadarBackup
+	end
+	SaveState()
+end
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	print("had help (to see all of hadar's plugin helpfiles), or repop help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+	
+	repopVar = {}
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("repopVar") or "")) ()
+	else
+		buildInitial()
+	end
+
+end
+
+function buildInitial()
+	repopVar.HadarRepopString = "@C%s @crepoped at @R%s@w:@R%s@w"
+	SaveState()
+end
 
 function OnPluginBroadcast(msg, id, name, text)
 
-local repopchannel = "gt"
 local color1 = "@C"
 local color2 = "@c"
 local timecolor = "@c"
@@ -56,16 +135,25 @@ local time
   if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
     if (text == "comm.repop") then
 	  for _,v in pairs(gmcp("comm.repop")) do
-		 zone = string.gsub(v, "(%l)(%w*)", function(a,b) return color1..string.upper(a)..color2..string.lower(b) end)
-		 time = os.date("%H")..timecolor..":"..terminator..os.date("%M")
+		 --zone = string.gsub(v, "(%l)(%w*)", function(a,b) return color1..string.upper(a)..color2..string.lower(b) end)
+		 zone = v
+		 timehour = os.date("%H")
+		 timemin = os.date("%M")
 	  end
-		 SendSpecial(repopchannel.." "..zone.."@W repopped @@ "..time)
+	  	repopVar.Data = string.format(repopVar.repopString,zone,timehour,timemin)
+		SendSpecial(repopVar.channel.." "..repopVar.Data)
     end
   end
 end
 
-function OnPluginInstall()
-   print("Let us Rule the world with repops!")
+function HadarHelp()
+	ColourNote("#159FE5","","+---------------------------------","Green","","[","Cyan","","R","Teal","","epop ","Cyan","","T","Teal","","eller","Green","","]","#159FE5","","---------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," repopchannel <Channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Change output to channel"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setrepop"),"#159FE5","","-","#F1D566","",string.format("%-64s"," lets you change what the output will look like"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
 ]]>
 </script>
