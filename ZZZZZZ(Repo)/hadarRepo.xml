@@ -32,5 +32,13 @@
     <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/Kill/Hadars_kill.zip</download>
     <installpath>0</installpath>
   </plugin>
+  <plugin>
+    <name>repop</name>
+    <author>Hadar</author>
+    <description>shows when a repop happened</description>
+    <id>d04caa4c8c9efbea17eab893</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/Repop/HadarRepop.zip</download>
+    <installpath>0</installpath>
+  </plugin>
 
  </pluginsListing>
