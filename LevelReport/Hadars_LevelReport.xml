@@ -787,7 +787,7 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 				mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
 			else
-				mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustraintwo
+				mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustrain
 			end
 			--levelinfo.bonustrain = mybonustrain
 			--levelinfo.bonustraintwo = mybonustrain
