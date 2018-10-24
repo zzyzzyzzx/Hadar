@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="1.94"
+   version="1.95"
    >
 
 </plugin>
@@ -617,7 +617,7 @@ function SkillGain(name, line, wildcards)
 		if tonumber(two) == 1 or tonumber(two) == 85 and LevelReportVariables.showskillgain=="true" then
 			levelskill(skill)
 		elseif tonumber(two) == 100 and LevelReportVariables.showskillgain=="true" then
-			msg = "@x125I have @x023M@x041astered "..skill
+			msg = "@x125I have @x023M@x041astered "..skill.. "@w"
 		elseif tonumber(two) < 100 and LevelReportVariables.showskillgain=="true" then
 			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
 		end
