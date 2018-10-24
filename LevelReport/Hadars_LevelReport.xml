@@ -50,7 +50,7 @@
 	<trigger
 		group="PupTriggers"
 		enabled="n"
-		match="^Lucky! You gain an extra (\d+) training {sessions|session}!$"
+		match="^Lucky! You gain an extra (\d+) training sessions?!$"
 		regexp="y"
 		omit_from_output="n"
 		sequence="100"
@@ -783,14 +783,12 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
 
 		if LevelReportVariables.timeonly == "false" then
-			if tonumber(levelinfo.bonustraintwo)>0 then
+			if tonumber(levelinfo.bonustraintwo)>=1 then
 				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 				mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
 			else
 				mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustrain
 			end
-			--levelinfo.bonustrain = mybonustrain
-			--levelinfo.bonustraintwo = mybonustrain
 		
 		
 			mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
