@@ -70,6 +70,10 @@ function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	end -- if
 end -- gmcp
 
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
 function OnPluginSaveState ()
 	SetVariable ("repopVar", "repopVar = " .. serialize.save_simple (repopVar))
 	SetVariable ("pastfirstinstall", "true")
@@ -84,7 +88,7 @@ end
 
 function repopset()
 	HadarBackup = repopVar.repopString
-	repopVar.repopString = utils.inputbox ("Needs a total of 3 %s\n1)Area\n2)Time hours\n3)Time mins", "Look of repopTracker", repopVar.repopString, "Courier", 9)
+	repopVar.repopString = utils.inputbox ("Has 3 variables:\n${name} - Area\n${hour} - Time hours\n${min} - Time mins", "Look of repopTracker", repopVar.repopString, "Courier", 9)
 	if repopVar.repopString ~= nil then
 		SendNoEcho("echo repop will look like: "..repopVar.repopString)
 	else
@@ -119,7 +123,7 @@ function OnPluginEnable ()
 end
 
 function buildInitial()
-	repopVar.HadarRepopString = "@C%s @crepoped at @R%s@w:@R%s@w"
+	repopVar.HadarRepopString = "@W${name} @Cr@cepoped @Ca@ct @R${hour}@w:@R${min}@w"
 	SaveState()
 end
 
@@ -140,8 +144,12 @@ local time
 		 timehour = os.date("%H")
 		 timemin = os.date("%M")
 	  end
-	  	repopVar.Data = string.format(repopVar.repopString,zone,timehour,timemin)
+	  	repopVar.Data = interp(repopVar.repopString, {name = zone, hour = timehour, min = timemin})
+		--repopVar.Data = string.format(repopVar.repopString,zone,timehour,timemin)
 		SendSpecial(repopVar.channel.." "..repopVar.Data)
+		
+		
+		
     end
   end
 end
