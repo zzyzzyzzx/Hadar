@@ -729,7 +729,7 @@ function statadd(hp,mana,moves,prac,train)
 --
 end
 
-function stataddredo(hp,mana,moves,prac,train,instinct)
+function stataddRedo(hp,mana,moves,prac,train,instinct)
 --
 		levelinfo.hp		 = hp
 		levelinfo.mana		 = mana
