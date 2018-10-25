@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="1.95"
+   version="1.94B"
    >
 
 </plugin>
@@ -95,6 +95,16 @@
 		omit_from_output="n"
 		sequence="100"
 		script="gain_Level"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain ([0-9]{1,3}) hit points, ([0-9]{1,3}) mana, ([0-9]{1,3}) moves, ([0-9]{1,3}) practices, ([0-9]{1,3}) trains and ([0-9]{1,3}) instinct trains\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="gain_Level_redo"
 	>
 	</trigger>
 	<trigger
@@ -525,8 +535,6 @@ local channel
 	
 	local report = tonumber(LevelReportVariables.level)
 	
-	
-	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
 	leveltable[report] = mylevelreport.message
 	
@@ -556,7 +564,18 @@ function gain_Level(name, line, wildcards)
 	mylevelconvert()
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
+	LevelReportVariables.redo=0
 	statadd(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5])
+	
+	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
+end
+
+function gain_Level_redo(name, line, wildcards)
+	mylevelconvert()
+	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
+	mylevelepoch()
+	LevelReportVariables.redo=1
+	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
 	
 	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
 end
@@ -710,6 +729,20 @@ function statadd(hp,mana,moves,prac,train)
 --
 end
 
+function stataddredo(hp,mana,moves,prac,train,instinct)
+--
+		levelinfo.hp		 = hp
+		levelinfo.mana		 = mana
+		levelinfo.moves		 = moves
+		levelinfo.prac		 = prac
+		levelinfo.train 	 = train
+		levelinfo.instinct   = instinct
+		levelinfo.bonusstat	 = nil
+		levelinfo.bonustrain = 0
+		levelinfo.levelskill = nil
+--
+end
+
 function trainadd(mybonustrain)
 --
 		levelinfo.bonustrain = levelinfo.bonustrain+mybonustrain
@@ -842,10 +875,15 @@ if LevelReportVariables.timeonly == "false" then
 	end
 
 	if tonumber(levelinfo.train) > 0 then
+	
 		if tonumber(levelinfo.bonustrain) > 0 then
 			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. colorplus .. "+" .. colornum .. levelinfo.bonustrain .. brac ..")"
 		else
 			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. brac .. ")"
+		end
+		
+		if LevelReportVariables.redo == 1 then
+			mylevelreport.gains = mylevelreport.gains .. color1 .. "I" .. color2 .."t" .. brac .. "(" .. colornum .. levelinfo.instinct .. brac .. ")"
 		end
 
 	end
