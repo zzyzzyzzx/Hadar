@@ -1,3 +1,4 @@
 This will be my repositories of scripts,
 
-I am going to start doing mush scripts as people ask for them, my lua files are needed, my common is needed for almost all my scripts
+to install a script if you are not goign to use the plugin manager, or to install the plugin manager
+go to the script, there is a button called "raw" right click that and "save link as"
