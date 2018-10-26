@@ -14,7 +14,7 @@
    purpose="predict double via a command"
    date_written="2016-09-14 11:59:02"
    requires="4.00"
-   version="2.3"
+   version="3.0"
    >
 <description trim="y">
 <![CDATA[
@@ -118,6 +118,9 @@ function OnPluginSaveState ()
 	SetVariable ("doublePastFirstInstall", "true")
 end -- function OnPluginSaveState
 
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
 
 function OnPluginInstall ()
    	if GetVariable ("enabled") == "false" then
@@ -144,13 +147,13 @@ function OnPluginEnable ()
 end
 
 function buildInitial()
-	HadarDoubleString = "@G\\}@R %s@w Kills Left @G{/ @w(Avg @R%s @wkpm) @G\\}@w Hour of Double in about: @R%s@wd @R%s@wh @R%s@wm @G{/@w"
+	HadarDoubleString = "@G\\}@R ${needed}@w Kills Left @G{/ @w(Avg @R${kpm} @wkpm) @G\\}@w Hour of Double in about: @R${day}@wd @R${hour}@wh @R${min}@wm @G{/@w"
 	SaveState()
 end
 
 function doubleSet()
 	HadarBackup = HadarDoubleString
-	HadarDoubleString = utils.inputbox ("Needs a total of 5 %s\n1)kills left\n2)avg kpm\n3)hours\n4)minutes\n5)seconds", "Look of Double Predictor", HadarDoubleString, "Courier", 9)
+	HadarDoubleString = utils.inputbox ("can accept up to  5 variables:\n${needed} - kills left\n${kpm} - avg kpm\n${day} - days\n${hour} - hours\n${min} - minutes", "Look of Double Predictor", HadarDoubleString, "Courier", 9)
 	if HadarDoubleString ~= nil then
 		SendNoEcho("echo double will look like: "..HadarDoubleString)
 	else
@@ -236,9 +239,12 @@ function LetItGo(name, line, wildcards)
 	local quickmath = HadarDouble.HoursLeft*60
 	HadarDouble.MinutesLeft=HadarDouble.LeftoverMinutes-quickmath
 
-	HadarDouble.Data = string.format(HadarDoubleString,HadarDouble.KillsNeeded,HadarDouble.MobsKilledPerMinute,HadarDouble.DaysLeft,HadarDouble.HoursLeft,HadarDouble.MinutesLeft)
+	--HadarDouble.Data = string.format(HadarDoubleString,HadarDouble.KillsNeeded,HadarDouble.MobsKilledPerMinute,HadarDouble.DaysLeft,HadarDouble.HoursLeft,HadarDouble.MinutesLeft)
+	HadarDouble.Data = interp(HadarDoubleString,{needed = HadarDouble.KillsNeeded, kpm = HadarDouble.MobsKilledPerMinute, day = HadarDouble.DaysLeft,hour = HadarDouble.HoursLeft,min = HadarDouble.MinutesLeft})
 	SendSpecial(HadarDouble.Player.." "..HadarDouble.Data )
 	EnableTriggerGroup("doubletriggers", false)
+	
+	
 end
 
 
