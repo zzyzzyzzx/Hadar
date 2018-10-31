@@ -107,11 +107,8 @@
 <script>
 <![CDATA[
 
-dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
-
 require "checkplugin"
 require "serialize"
-require "HadarLuaCommon"
 
 function OnPluginInstall()
    print("Track all the gold!")
