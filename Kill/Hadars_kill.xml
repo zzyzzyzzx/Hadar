@@ -13,7 +13,7 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.0"
+   version="1.1"
    >
 <description trim="y">
 <![CDATA[
@@ -37,16 +37,53 @@ Can see all my help files with had help or just this one with killer help
    send_to="12"
    script="SlistUpdate"
    sequence="100"
+   omit_from_output="y"
   >
   </trigger>
-  
+  <trigger
+   enabled="y"
+   match="^\{recoveries noprompt\}$"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   omit_from_output="y"
+  >
+  </trigger>
+  <trigger
+   match="^(\d+),(.*),(\d+)$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   omit_from_output="y"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^\{\/recoveries\}$"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   omit_from_output="y"
+  >
+  </trigger>
   <trigger
    enabled="y"
    match="^\{\/spellheaders\}$"
    regexp="y"
    send_to="12"
+   sequence="100"
+   omit_from_output="y"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^\{spellheaders noprompt\}$"
+   regexp="y"
+   send_to="12"
    script="SlistDone"
    sequence="100"
+   omit_from_output="y"
   >
   </trigger>
 </triggers>
@@ -87,11 +124,11 @@ Can see all my help files with had help or just this one with killer help
 
 <script>
 <![CDATA[
-dofile (GetPluginInfo (GetPluginID (), 20) .. "luapath.lua")
-
-require "HadarLuaCommon"
 require "serialize"
 
+function ismember(set, key)
+    return key[set] ~= nil
+end
 
 function SetKill(name, line, wildcards)
 
@@ -122,7 +159,7 @@ function OnPluginEnable ()
 	
 	allskills = {}
 	allspells = {}
-	killspell = nil
+	killspell = "kill"
 	
 	EnableTrigger("upattack",true)
 	SendSpecial("slist noprompt")
@@ -136,8 +173,8 @@ function OnPluginEnable ()
 end
 
 function OnPluginSaveState ()
-	SetVariable ("allskills", serialize.save ("allskills"))
-	SetVariable ("allspells", serialize.save ("allspells"))
+	SetVariable ("allskills", "allskills = " .. serialize.save_simple (allskills))
+	SetVariable ("allspells", "allspells = " .. serialize.save_simple (allspells))
 	SetVariable ("killspell", killspell)
 	SetVariable ("pastfirstinstall", "true")
 end -- nomore savestate
