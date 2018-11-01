@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.00"
+   version="2.20"
    >
 
 </plugin>
@@ -256,6 +256,22 @@
   >
   </alias>
   <alias
+   match="^setlevel$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="set_Level_Message"
+  >
+  </alias>
+  <alias
+   match="^setpup$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="set_Pup_Message"
+  >
+  </alias>
+  <alias
    match="^levelshow (?:(\d+|all))?(?:\s(.*))?$"
    enabled="y"
    regexp="y"
@@ -302,6 +318,10 @@ require "serialize"
 	levelinfo = {}
 	mylevelreport = {}
 	leveltable = {}
+	
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
@@ -423,6 +443,7 @@ function buildInitialColors()
 	LevelReportVariables.pupColorBracSecond = "@w" 
 	LevelReportVariables.pupColorPlus = "@W"
 	LevelReportVariables.pupColorStat = "@w"
+	LevelReportVariables.pupmessage = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@w"
 
 	LevelReportVariables.levelColorFirst = "@G"
 	LevelReportVariables.levelColorSecond = "@g"
@@ -437,6 +458,7 @@ function buildInitialColors()
 	LevelReportVariables.showstatgain = "true"
 	LevelReportVariables.showskillgain = "true"
 	LevelReportVariables.timeonly = "false"
+	LevelReportVariables.levelmessage = "@GL@gevel@R(@%${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
 	mylevelepoch()
 	mylevelconvert()
 end
@@ -446,6 +468,28 @@ function set_Level_Report(name, line, wildcards)
 		LevelReportVariables.channel = wildcards[1]
 		ColourNote("Teal","","Level Report channel set to "..LevelReportVariables.channel)
 	end
+end
+
+function set_Level_Message(name, line, wildcards)
+	HadarBackup = LevelReportVariables.levelmessage
+	LevelReportVariables.levelmessage = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct prac gains(redo)", "Look of repopTracker", LevelReportVariables.levelmessage, "Courier", 9)
+	if LevelReportVariables.levelmessage ~= nil then
+		SendNoEcho("echo level message will look like: "..LevelReportVariables.levelmessage)
+	else
+		LevelReportVariables.levelmessage = HadarBackup
+	end
+	SaveState()
+end
+
+function set_Pup_Message(name, line, wildcards)
+	HadarBackup = LevelReportVariables.pupmessage
+	LevelReportVariables.pupmessage = utils.inputbox ("Has 3 variables:\n${name} - Area\n${hour} - Time hours\n${min} - Time mins", "Look of repopTracker", LevelReportVariables.levelmessage, "Courier", 9)
+	if LevelReportVariables.pupmessage ~= nil then
+		SendNoEcho("echo pup message will look like: "..LevelReportVariables.pupmessage)
+	else
+		LevelReportVariables.pupmessage = HadarBackup
+	end
+	SaveState()
 end
 
 function set_SkillGain_Reports(name,line,wildcards)
@@ -503,7 +547,6 @@ local channel
 	
 	local test = pupreport(channel,LevelReportVariables.pupColorFirst,LevelReportVariables.pupColorSecond,LevelReportVariables.pupBrac,LevelReportVariables.pupColorNum,LevelReportVariables.pupColorTime,LevelReportVariables.pupColorBracSecond,LevelReportVariables.pupColorPlus,LevelReportVariables.pupColorStat)
 	
-	SendNoEcho(channel.." "..test)
 end
 
 function Pup_level()
@@ -532,14 +575,12 @@ local channel
 		channel = wildcards[1]
 	end
 	
+	levelinfo.bonusstat = "none"
+	levelinfo.instinct = 0
 	
 	local report = tonumber(LevelReportVariables.level)
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
-	leveltable[report] = mylevelreport.message
-	
-	
-	SendNoEcho(channel.." "..leveltable[report])
 end
 
 function level_Stat_Add(name, line, wildcards)
@@ -811,25 +852,13 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = ""
 	end
 
-		mylevelreport.time = mylevelreport.time .. color1 .. "H:".. colortim .. levelinfo.hour .. " "
-		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
-		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
-
-		if LevelReportVariables.timeonly == "false" then
 			if tonumber(levelinfo.bonustraintwo)>=1 then
 				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
-				mylevelreport.gains=color1.."T"..color2.."rains:"..colorstat..levelinfo.bonustrain..colorplus.."+"..colorstat..levelinfo.bonustraintwo..colorplus.."="..mylevelmath..endcolor
-			else
-				mylevelreport.gains=color1.."T"..color2.."rains:"..levelinfo.bonustrain
 			end
 		
+		mylevelreport.Data = interp(LevelReportVariables.pupmessage, {hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, tr = mylevelmath})
 		
-			mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
-		else
-			mylevelreport.message = color1 .. "P" .. color2 .. "up:" .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "]"
-		end
-		
-		return mylevelreport.message
+		SendSpecial(mylevelreport.channel.." "..mylevelreport.Data)
 --
 end
 function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,colorplus,colorstat)
@@ -842,70 +871,18 @@ function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,co
 	mylevelreport.channel = channel
 	end
 
-	if tonumber(levelinfo.year) > 0 then -- this if deals with spent over 1 year leveling colors the number red
-		mylevelreport.time = color1.."Y:@R"..levelinfo.year..","
-	else
-		mylevelreport.time = ""
-	end
-
-	if tonumber(levelinfo.month) > 0 then -- this if deals with spent over 1 month leveling colors the number red
-		mylevelreport.time = mylevelreport.time .. color1 .."M:@R"..levelinfo.month.." "
-	else
-		mylevelreport.time = ""
-	end
-
-	if tonumber(levelinfo.day) > 0 then -- this if deals with spent over 1 day leveling colors the number red
-		mylevelreport.time = mylevelreport.time .. color1 .. "D:@R" .. levelinfo.day .. " "
-	else
-		mylevelreport.time = ""
-	end
-
-		mylevelreport.time = mylevelreport.time .. color1 .. "H:".. colortim .. levelinfo.hour .. " "
-		mylevelreport.time = mylevelreport.time .. color1 .. "M:".. colortim .. levelinfo.min .. " "
-		mylevelreport.time = mylevelreport.time .. color1 .. "S:".. colortim .. levelinfo.sec
-		
-if LevelReportVariables.timeonly == "false" then
-
-		mylevelreport.gains = color1 .. "H" .. color2 .. "P" .. brac .. "(" .. colornum .. levelinfo.hp .. brac .. ")"
-		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "n" .. brac .. "(" ..colornum ..levelinfo.mana .. brac .. ")"
-		mylevelreport.gains = mylevelreport.gains .. color1 .."M" .. color2 .. "v" .. brac .. "(" ..colornum ..levelinfo.moves .. brac .. ")"
-
-	if tonumber(levelinfo.prac) > 0 then
-		mylevelreport.gains = mylevelreport.gains .. color1 .. "P" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.prac .. brac .. ")"
-	end
-
 	if tonumber(levelinfo.train) > 0 then
 	
 		if tonumber(levelinfo.bonustrain) > 0 then
-			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. colorplus .. "+" .. colornum .. levelinfo.bonustrain .. brac ..")"
-		else
-			mylevelreport.gains = mylevelreport.gains .. color1 .. "T" .. color2 .. "r" .. brac .. "(" .. colornum .. levelinfo.train .. brac .. ")"
-		end
-		
-		if LevelReportVariables.redo == 1 then
-			mylevelreport.gains = mylevelreport.gains .. color1 .. "I" .. color2 .."t" .. brac .. "(" .. colornum .. levelinfo.instinct .. brac .. ")"
+			levelinfo.train = levelinfo.train + levelinfo.bonustrain
 		end
 
 	end
 
-	if levelinfo.bonusstat ~= nil then
-		mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. color1 .. " +" .. color2 .. "Stats:" .. colorstat .. levelinfo.bonusstat .. endcolor
-	else
-		mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] " .. mylevelreport.gains .. endcolor
-	end
 	
-	if levelinfo.levelskill ~= nil then 
-	   mylevelreport.message=mylevelreport.message .. color1 .. "+" .. color2 .. "Skills/Spells:" .. colorstat .. levelinfo.levelskill .. endcolor
-	end
+mylevelreport.Data = interp(LevelReportVariables.levelmessage, {level = level, hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, hp = levelinfo.hp, mn = levelinfo.mana, mv = levelinfo.moves, tr = levelinfo.train, pr = levelinfo.prac, stat = levelinfo.bonusstat, inst = levelinfo.instinct})
 	
-	else
-	mylevelreport.message = color1 .. "L" .. color2 .. "evel" .. brac .. "(" .. colornum .. level .. brac .. ") " .. color1 .. "T" .. color2 .. "ook:" .. brac2 .. "[" .. mylevelreport.time .. brac2 .. "] "
-	
-	mylevelreport.message = "@GL@gevel@R(@%s@R) @GT@gook:@w[@GH:@W%s @GM:@W%s @GS:@W%s@w] @GH@gP@R(@w%s@R)@GM@gn@R(@w%s@R)@GM@gv@R(@w%s@R)@GP@gr@R(@w%s@R)@GT@gr@R(@w%s@R)"
-	
-end
-	
-return mylevelreport.channel .. " " .. mylevelreport.message
+	SendSpecial(mylevelreport.channel.." "..mylevelreport.Data)
 --
 end
 
@@ -921,6 +898,8 @@ function HadarHelp()
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setlevel and setpup"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set how the script outputs"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelshow <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
