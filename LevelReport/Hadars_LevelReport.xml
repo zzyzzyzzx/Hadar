@@ -458,7 +458,7 @@ function buildInitialColors()
 	LevelReportVariables.showstatgain = "true"
 	LevelReportVariables.showskillgain = "true"
 	LevelReportVariables.timeonly = "false"
-	LevelReportVariables.levelmessage = "@GL@gevel@R(@%${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
+	LevelReportVariables.levelmessage = "@GL@gevel@R(@W${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
 	mylevelepoch()
 	mylevelconvert()
 end
@@ -472,7 +472,7 @@ end
 
 function set_Level_Message(name, line, wildcards)
 	HadarBackup = LevelReportVariables.levelmessage
-	LevelReportVariables.levelmessage = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct prac gains(redo)", "Look of repopTracker", LevelReportVariables.levelmessage, "Courier", 9)
+	LevelReportVariables.levelmessage = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct prac gains(redo)", "Look of level message", LevelReportVariables.levelmessage, "Courier", 9)
 	if LevelReportVariables.levelmessage ~= nil then
 		SendNoEcho("echo level message will look like: "..LevelReportVariables.levelmessage)
 	else
@@ -483,7 +483,7 @@ end
 
 function set_Pup_Message(name, line, wildcards)
 	HadarBackup = LevelReportVariables.pupmessage
-	LevelReportVariables.pupmessage = utils.inputbox ("Has 3 variables:\n${name} - Area\n${hour} - Time hours\n${min} - Time mins", "Look of repopTracker", LevelReportVariables.levelmessage, "Courier", 9)
+	LevelReportVariables.pupmessage = utils.inputbox ("${hour} - Time hours\n${min} - Time mins\n${sec} - time seconds\n${tr} - trains", "Look of pup report", LevelReportVariables.pupmessage, "Courier", 9)
 	if LevelReportVariables.pupmessage ~= nil then
 		SendNoEcho("echo pup message will look like: "..LevelReportVariables.pupmessage)
 	else
