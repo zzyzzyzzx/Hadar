@@ -803,7 +803,7 @@ end
 function bonusstatadd(stat)
 --
 	if LevelReportVariables.showstatgain=="true" then
-		if levelinfo.bonusstat ~= nil then
+		if levelinfo.bonusstat ~= "none" then
 			levelinfo.bonusstat = levelinfo.bonusstat..","..stat
 		else
 			levelinfo.bonusstat = stat
@@ -852,6 +852,8 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 
 			if tonumber(levelinfo.bonustraintwo)>=1 then
 				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
+			else
+				local mylevelmath = levelinfo.bonustrain
 			end
 		
 		mylevelreport.Data = interp(LevelReportVariables.pupmessage, {hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, tr = mylevelmath})
