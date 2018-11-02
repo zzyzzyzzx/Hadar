@@ -603,8 +603,6 @@ function gain_Level(name, line, wildcards)
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	LevelReportVariables.redo=0
-	levelinfo.bonusstat = "none"
-	levelinfo.instinct = "0"
 	statadd(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5])
 	
 	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
@@ -615,8 +613,6 @@ function gain_Level_redo(name, line, wildcards)
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	LevelReportVariables.redo=1
-	levelinfo.bonusstat = "none"
-	levelinfo.instinct = "0"
 	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
 	
 	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
@@ -765,9 +761,10 @@ function statadd(hp,mana,moves,prac,train)
 		levelinfo.moves		 = moves
 		levelinfo.prac		 = prac
 		levelinfo.train 	 = train
-		levelinfo.bonusstat	 = nil
+		levelinfo.bonusstat	 = "none"
 		levelinfo.bonustrain = 0
 		levelinfo.levelskill = nil
+		levelinfo.instinct 	 = 0
 --
 end
 
@@ -779,7 +776,7 @@ function stataddRedo(hp,mana,moves,prac,train,instinct)
 		levelinfo.prac		 = prac
 		levelinfo.train 	 = train
 		levelinfo.instinct   = instinct
-		levelinfo.bonusstat	 = nil
+		levelinfo.bonusstat	 = "none"
 		levelinfo.bonustrain = 0
 		levelinfo.levelskill = nil
 --
