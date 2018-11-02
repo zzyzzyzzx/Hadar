@@ -13,7 +13,7 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.1"
+   version="1.2"
    >
 <description trim="y">
 <![CDATA[
@@ -33,42 +33,38 @@ Can see all my help files with had help or just this one with killer help
   <trigger
    match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
    name="upattack"
+   enabled="n"
    regexp="y"
    send_to="12"
    script="SlistUpdate"
+   group="slistUpdate"
    sequence="100"
    omit_from_output="y"
   >
   </trigger>
   <trigger
-   enabled="y"
-   match="^\{recoveries noprompt\}$"
+	name="RecoveriesCapture"
+	enabled="n"
+	match="^[0-9]+,[^,]+,[0-9]+$"
+	regexp="y"
+	group="slistUpdate"
+	omit_from_output="y"
+	sequence="100"
+	>
+	</trigger>
+  <trigger
+   enabled="n"
+   match="^\{spellheaders hadarkill\}$"
    regexp="y"
    send_to="12"
    sequence="100"
+   group="slistUpdate"
    omit_from_output="y"
   >
   </trigger>
   <trigger
-   match="^(\d+),(.*),(\d+)$"
-   enabled="y"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-   omit_from_output="y"
-  >
-  </trigger>
-  <trigger
-   enabled="y"
-   match="^\{\/recoveries\}$"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-   omit_from_output="y"
-  >
-  </trigger>
-  <trigger
-   enabled="y"
+   enabled="n"
+   group="slistUpdate"
    match="^\{\/spellheaders\}$"
    regexp="y"
    send_to="12"
@@ -77,11 +73,22 @@ Can see all my help files with had help or just this one with killer help
   >
   </trigger>
   <trigger
-   enabled="y"
-   match="^\{spellheaders noprompt\}$"
+   enabled="n"
+   group="slistUpdate"
+   match="^\{\/recoveries\}$"
    regexp="y"
    send_to="12"
    script="SlistDone"
+   sequence="100"
+   omit_from_output="y"
+  >
+  </trigger>
+  <trigger
+   enabled="n"
+   group="slistUpdate"
+   match="^\{recoveries hadarkill\}$"
+   regexp="y"
+   send_to="12"
    sequence="100"
    omit_from_output="y"
   >
@@ -131,20 +138,16 @@ function ismember(set, key)
 end
 
 function SetKill(name, line, wildcards)
-
 local v1 = Trim(string.lower(wildcards[1]))
-
 	if v1=="update" then
 		allskills={}
 		allspells={}
-		EnableTrigger("upattack",true)
-		SendSpecial("slist noprompt")
+		EnableTriggerGroup("slistUpdate",true)
+		SendSpecial("slist hadarkill")
 	else
 	killspell = utils.inputbox ("Input name of skill/spell", "Attack", killspell, "Courier", 9)
 	end -- ends update
-
 end --end setkill
-
 function OnPluginInstall ()
    	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
@@ -154,15 +157,15 @@ function OnPluginInstall ()
   
 	OnPluginEnable ()
 end --no more plugin install
-
 function OnPluginEnable ()
 	
 	allskills = {}
 	allspells = {}
-	killspell = "kill"
+	killspell = nil
 	
+	EnableTriggerGroup("slistUpdate",true)
 	EnableTrigger("upattack",true)
-	SendSpecial("slist noprompt")
+	SendSpecial("slist hadarkill")
 	
 	
 	if GetVariable ("pastfirstinstall") == "true" then
@@ -171,14 +174,12 @@ function OnPluginEnable ()
 		killspell = GetVariable ("killspell")
 	end
 end
-
 function OnPluginSaveState ()
-	SetVariable ("allskills", "allskills = " .. serialize.save_simple (allskills))
-	SetVariable ("allspells", "allspells = " .. serialize.save_simple (allspells))
+	SetVariable ("allskills", serialize.save ("allskills"))
+	SetVariable ("allspells", serialize.save ("allspells"))
 	SetVariable ("killspell", killspell)
 	SetVariable ("pastfirstinstall", "true")
 end -- nomore savestate
-
 function Trogdor(name, line, wildcards)
 local v = Trim(wildcards[1])
 	
@@ -196,7 +197,6 @@ local v = Trim(wildcards[1])
 		Send("kill "..killtarget)
 	end
 end
-
 function SlistUpdate(name, line, wildcards)
 	local sn = tonumber(wildcards[1])
 	local nm = wildcards[2]
@@ -217,13 +217,10 @@ function SlistUpdate(name, line, wildcards)
 		
 		SaveState()
 end--end update
-
 function SlistDone()
-	EnableTrigger("upattack",false)
+	EnableTriggerGroup("slistUpdate",false)
 	print("skills and spells updated")
 end--no more slist parsing (hopefully)
-
-
 function HadarHelp()
 	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","K","Teal","","ill","Green","","]","#159FE5","","---------------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
@@ -235,8 +232,6 @@ function HadarHelp()
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
-
-
 ]]>
 </script> 
 
