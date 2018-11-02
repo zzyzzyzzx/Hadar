@@ -575,8 +575,6 @@ local channel
 		channel = wildcards[1]
 	end
 	
-	levelinfo.bonusstat = "none"
-	
 	local report = tonumber(LevelReportVariables.level)
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
@@ -605,6 +603,8 @@ function gain_Level(name, line, wildcards)
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	LevelReportVariables.redo=0
+	levelinfo.bonusstat = "none"
+	levelinfo.instinct = "0"
 	statadd(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5])
 	
 	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
@@ -615,6 +615,8 @@ function gain_Level_redo(name, line, wildcards)
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	LevelReportVariables.redo=1
+	levelinfo.bonusstat = "none"
+	levelinfo.instinct = "0"
 	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
 	
 	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
