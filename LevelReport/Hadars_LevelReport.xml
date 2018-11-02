@@ -472,7 +472,7 @@ end
 
 function set_Level_Message(name, line, wildcards)
 	HadarBackup = LevelReportVariables.levelmessage
-	LevelReportVariables.levelmessage = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct prac gains(redo)", "Look of level message", LevelReportVariables.levelmessage, "Courier", 9)
+	LevelReportVariables.levelmessage = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct trains gains(redo)", "Look of level message", LevelReportVariables.levelmessage, "Courier", 9)
 	if LevelReportVariables.levelmessage ~= nil then
 		SendNoEcho("echo level message will look like: "..LevelReportVariables.levelmessage)
 	else
@@ -576,7 +576,6 @@ local channel
 	end
 	
 	levelinfo.bonusstat = "none"
-	levelinfo.instinct = 0
 	
 	local report = tonumber(LevelReportVariables.level)
 	
