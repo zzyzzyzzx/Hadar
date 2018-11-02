@@ -135,6 +135,15 @@ reports quests (working on cps/gqs)
    script="CampaignSettings"
   >
   </alias>
+  <alias
+   match="^qpschannel (.*)$"
+   enabled="y"
+   send_to="12"
+   regexp="y"
+   sequence="100"
+   script="set_qps_channel"
+  >
+  </alias>
    <alias
    match="^q (last|set room|room set|r|re|req|requ|reque|request|points|info|time|c|co|com|comp|compl|comple|complet|complete|list|buy|sell|appraise|fail)?( .*)?"
    enabled="y"
@@ -213,6 +222,13 @@ end -- gmcp
 
 function OnHelp ()
   world.Note (world.GetPluginInfo (world.GetPluginID (), 3))
+end
+
+function set_qps_channel(name, line, wildcards)
+	if wildcards[1] ~= nil then
+		Hadarsqpstrackers.reportchan = wildcards[1]
+		ColourNote("Cyan","","qpstrack Report channel set to: ","Teal","",Hadarsqpstrackers.reportchan)
+	end
 end
 
 function CampaignSettings(name, line, wildcards)
@@ -327,6 +343,7 @@ function OnPluginInstall ()
 	Hadarsqpstrackerstotal = {}
 	Hadarsqpstrackerscptime = {}
 	Hadarsqpstrackerslastreset = {}
+	Hadarsqpstrackers.reportchan = "gt"
 	assert (loadstring (GetVariable ("cproom") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackers") or "")) ()
 	assert (loadstring (GetVariable ("Hadarsqpstrackersqtime") or "")) ()
@@ -339,7 +356,7 @@ function OnPluginInstall ()
 	Hadarsqpstrackers["endcppractice"]=0
 	Hadarsqpstrackers["endcpgold"]=0
 	
-	print("What is qps tracker going to do today brain? Same thing we do everynight, try and take over the world!")
+	print("to see the help of all my scripts had help to see this one, qpstrack help")
 	--ShowInfoBar (true)
 	--InfoBackground ("white")
 	--SetStatus("")
@@ -548,13 +565,13 @@ function QuestSettings(name, line, wildcards)
 		if param == "" then
 			Send("quest sell")
 		else
-			Send("qust sell "..param)
+			Send("quest sell "..param)
 		end
 	elseif args == "appraise" then
 		if param == "" then
 			Send("quest appraise")
 		else
-			Send("qust appraise "..param)
+			Send("quest appraise "..param)
 		end
 	elseif args == "fail" then
 		Send("quest fail")
@@ -573,7 +590,6 @@ function StartTime(arg)
 end--End StartTime
 
 function StopTime(arg)
-Hadarsqpstrackers.reportchan="gt"
 	if arg == "q" then
 		Hadarsqpstrackers.QstopTime=os.time()
 		QPStimeDiff(os.time(),Hadarsqpstrackers.QstartTime,"q")
