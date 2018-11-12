@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.20"
+   version="2.21"
    >
 
 </plugin>
@@ -850,10 +850,12 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 		mylevelreport.time = ""
 	end
 
+	local mylevelmath
+	
 			if tonumber(levelinfo.bonustraintwo)>=1 then
-				local mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
+				mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
 			else
-				local mylevelmath = levelinfo.bonustrain
+				mylevelmath = levelinfo.bonustrain
 			end
 		
 		mylevelreport.Data = interp(LevelReportVariables.pupmessage, {hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, tr = mylevelmath})
