@@ -407,6 +407,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			if i=="gold" then Hadarsqpstrackers.gold=v end
 			if i=="completed" then Hadarsqpstrackers.completed=v end
 			if i=="opk" then Hadarsqpstrackers.opk=v end
+			if i=="hardcore" then Hadarsqpstrackers.hardcore=v end
 			
 			if i=="action" and v=="comp" then
 				Hadarsqpstrackers.time=1
@@ -476,6 +477,7 @@ local output = "@CL@cast "..string.upper(where)
 		if tonumber(Hadarsqpstrackers.lucky) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.lucky.." @Cl@cucky" end
 		if tonumber(Hadarsqpstrackers.tier) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tierqp.." @Ct@cier" end
 		if tonumber(Hadarsqpstrackers.opk) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.opk.." @Co@cpk" end
+		if tonumber(Hadarsqpstrackers.hardcore) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.hardcore.." @Ch@cardcore" end
 	
 		if tonumber(Hadarsqpstrackers.double) ~= 0 and tonumber(Hadarsqpstrackers.daily) ~= 0 then
 			output = output.."@W, @GX3"
