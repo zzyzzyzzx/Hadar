@@ -67,6 +67,16 @@
 		script="Pup_train_bonus"
 	>
 	</trigger>
+		<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^You gain (\d+) additional training session.? from your enhanced battle learning\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_train_bonus"
+	>
+	</trigger>
 	<trigger
 		group="PupTriggers"
 		enabled="n"
@@ -105,6 +115,16 @@
 		omit_from_output="n"
 		sequence="100"
 		script="gain_Level_redo"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain (\d+) additional training session.? from your enhanced battle learning\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="level_bonus_train"
 	>
 	</trigger>
 	<trigger
@@ -554,7 +574,7 @@ function Pup_level()
 	levelTimeDiff(os.time(),levelinfo.oldtimestamp,levelinfo)
 	mylevelepoch()
 	levelinfo.bonustrain = 0
-	levelinfo.bonustraintwo = 0
+	levelinfo.bonustrain = 0
 	DoAfterSpecial(0.5, 'Execute("pupreport "..LevelReportVariables.channel)', sendto.script)
 end
 
@@ -796,7 +816,7 @@ end
 
 function puptrainbonus(mybonustrain)
 --
-		levelinfo.bonustraintwo = levelinfo.bonustraintwo + mybonustrain
+		levelinfo.bonustrain = levelinfo.bonustrain + mybonustrain
 --
 end
 
@@ -852,11 +872,7 @@ function pupreport(channel,color1,color2,brac,colornum,colortim,brac2,colorplus,
 
 	local mylevelmath
 	
-			if tonumber(levelinfo.bonustraintwo)>=1 then
-				mylevelmath = levelinfo.bonustrain+levelinfo.bonustraintwo
-			else
 				mylevelmath = levelinfo.bonustrain
-			end
 		
 		mylevelreport.Data = interp(LevelReportVariables.pupmessage, {hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, tr = mylevelmath})
 		
