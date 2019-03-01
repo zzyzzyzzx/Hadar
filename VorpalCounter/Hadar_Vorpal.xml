@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="1.0"
+   version="2.0"
    save_state="y"
    >
 <description trim="y">
@@ -34,6 +34,16 @@ mmm mobs losing heads
    sequence="100"
   >
   </trigger>
+  
+  <trigger
+   enabled="y"
+   match="^Questor exclaims \'Make sure to unkeep anything you\'re going to remort auction\!\'$"
+   regexp="y"
+   send_to="12"
+   script="ResetMort"
+   sequence="100"
+  >
+  </trigger>
 </triggers>
 
 <aliases>
@@ -42,17 +52,30 @@ mmm mobs losing heads
    enabled="y"
    send_to="12"
    sequence="100"
+   regexp="y"
    script="VorpShow"
   >
   </alias>
-      <alias
-   match="vorpset *"
+  <alias
+   match="^vorpset (?:(message|channel))?(?:\s(.*))?$"
    enabled="y"
    send_to="12"
    sequence="100"
+   regexp="y"
    script="vorpset"
   >
   </alias>
+  <alias match="^(?:had|vorpal) help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
 </aliases>
 
 <script>
@@ -60,62 +83,112 @@ mmm mobs losing heads
 require "checkplugin"
 require "serialize"
 
+vorpalInfo = {}
+
 function OnPluginInstall ()
 	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
 		check (EnablePlugin(GetPluginID (), false))
 		return
 	end -- they didn't enable us last time
+	
+	print("Had help (to see all of hadar's plugin helpfiles), or vorpal help to just see this one")
   
 	OnPluginEnable ()
 end -- endinstall
 
 function OnPluginEnable ()
-	vorpalTotal = 0
-	vorpalMort = 0
-	if GetVariable ("vorpPastFirstInstall") == "true" then
-		assert (loadstring (GetVariable ("vorpalTotal") or "")) ()
-		assert (loadstring (GetVariable ("vorpalMort") or "")) ()
+	vorpalInfo = {}
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("vorpalInfo") or "")) ()
+	else
+		buildInitial()
 	end
-end -- endenable
+	
+	vorpalInfo.session = 0
+
+end
+
+function buildInitial()
+	vorpalInfo.total = 0
+	vorpalInfo.mort = 0
+	vorpalInfo.session = 0
+	vorpalInfo.channel = "gt"
+	vorpalInfo.message = "@CS@c[@R${session}@c] @CM@c[@R${mort}@c] @CT@c[@R${total}@c]@w"
+end
 
 function OnPluginSaveState ()
-	SetVariable ("vorpalTotal", serialize.save ("vorpalTotal"))
-	SetVariable ("vorpalMort", serialize.save ("vorpalMort"))
+	SetVariable ("vorpalInfo", "vorpalInfo = " .. serialize.save_simple (vorpalInfo))
 	SetVariable ("vorpPastFirstInstall", "true")
 end --end save state
 
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
+function ResetMort()
+	vorpalInfo.mort = 0
+end
+
 function VorpCount(name, line, wildcards)
-	if vorpalMort then
-		vorpalMort = vorpalMort+1
-	else
-		vorpalMort = 1
-	end
+	vorpalInfo.total=vorpalInfo.total+1
+	vorpalInfo.mort=vorpalInfo.mort+1
+	vorpalInfo.session=vorpalInfo.session+1
+		
+	local message = interp(vorpalInfo.message, {session = vorpalInfo.session, mort = vorpalInfo.mort, total = vorpalInfo.total})
 
-	if vorpalTotal then
-		vorpalTotal = vorpalTotal+1
-	else
-		vorpalTotal = 1
-	end
-
-	SendSpecial("gt @CV@corpal @C(@R"..vorpalMort.."@C/@R"..vorpalTotal.."@C)@w")
+	SendSpecial(vorpalInfo.channel.." "..message)
 	SaveState()
 end
 
-function VorpShow()
-	SendSpecial("echo @CV@corpal @C(@R"..vorpalMort.."@C/@R"..vorpalTotal.."@C)@w")
+function VorpShow(name, line, wildcards)
+local channel
+	if wildcards[1] == nil then
+		channel = vorpalInfo.channel
+	else
+		channel = wildcards[1]
+	end
+	
+	local message = interp(vorpalInfo.message, {session = vorpalInfo.session, mort = vorpalInfo.mort, total = vorpalInfo.total})
+
+	SendSpecial(channel.." "..message)
 end
 
 function vorpset(name, lines, wildcards)
-	vorpalMort = 1
-	vorpalTotal = wildcards[1]
-	SaveState()
+
+	if wildcards[1] == "channel" and wildcards[2] == "echo" then
+		vorpalInfo.channel = wildcards[2]
+		SendNoEcho("echo Your channel has been set to: " .. vorpalInfo.channel)
+	elseif wildcards[1] == "message" then
+		HadarBackup = vorpalInfo.message
+		vorpalInfo.message = utils.inputbox ("${session} - shows vorpals for this session\n${mort} - shows vorpals for this mort\n${total} - shows total vorpals\n", "look of vorpal counter", vorpalInfo.message, "Courier", 9)
+		
+		if vorpalInfo.message ~= nil then
+			SendNoEcho("echo vorpal message will look like: "..vorpalInfo.message)
+		else
+			vorpalInfo.message = HadarBackup
+		end
+		
+	else 
+		SendNoEcho("echo use vorpset channel channel - to set the channel, or vorpset message to change the look of the message")
+	end
+	
+		SaveState()
 end
 
-function VorpReset()
-	vorpalMort = 0 
-	print("Boom baby, vorpals reset!")
+function HadarHelp()
+	ColourNote("#159FE5","","+----------------------------------","Green","","[","Cyan","","V","Teal","","orpal","Cyan",""," C","Teal","","ounter","Green","","]","#159FE5","","----------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpshow <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show your vorpals on a channel."),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpset channel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-57s"," set the channel to report to on a vorpal"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpset message"),"#159FE5","","-","#F1D566","",string.format("%-64s"," how the vorpal message looks"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
+
 ]]>
 </script>
 

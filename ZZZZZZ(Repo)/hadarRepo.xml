@@ -40,5 +40,13 @@
     <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/Repop/HadarRepop.zip</download>
     <installpath>0</installpath>
   </plugin>
+  <plugin>
+    <name>vorpal counter</name>
+    <author>Hadar</author>
+    <description>reports when a mob loses its head</description>
+    <id>718f73b7d7c6a1250b77aa0e</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/VorpalCounter/Hadar_Vorpal.zip</download>
+    <installpath>0</installpath>
+  </plugin>
 
  </pluginsListing>
