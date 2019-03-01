@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.21"
+   version="2.22"
    >
 
 </plugin>
@@ -283,6 +283,22 @@
    script="set_Level_Message"
   >
   </alias>
+   <alias
+   match="^setmasteredskill$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="set_Mastered_Skill"
+  >
+  </alias>
+   <alias
+   match="^setleveledskill$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   script="set_Leveled_Skill"
+  >
+  </alias>
   <alias
    match="^setpup$"
    enabled="y"
@@ -479,6 +495,11 @@ function buildInitialColors()
 	LevelReportVariables.showskillgain = "true"
 	LevelReportVariables.timeonly = "false"
 	LevelReportVariables.levelmessage = "@GL@gevel@R(@W${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
+	
+	LevelReportVariables.masteredskill = "@x125I have @x023M@x041astered ${skill}@w" 
+	LevelReportVariables.leveledskill = "${skill} @x125 Has @x127I@x135ncreased@x125 to @x088 ${percent}"
+
+	
 	mylevelepoch()
 	mylevelconvert()
 end
@@ -497,6 +518,28 @@ function set_Level_Message(name, line, wildcards)
 		SendNoEcho("echo level message will look like: "..LevelReportVariables.levelmessage)
 	else
 		LevelReportVariables.levelmessage = HadarBackup
+	end
+	SaveState()
+end
+
+function set_Mastered_Skill(name, line, wildcards)
+	HadarBackup = LevelReportVariables.masteredskill
+	LevelReportVariables.masteredskill = utils.inputbox("${skill} - Skill", "Look of mastered skill if active", LevelReportVariables.masteredskill, "Courier", 9)
+	if LevelReportVariables.masteredskill ~= nil then
+		SendNoEcho("echo Mastered skill will look like: " .. LevelReportVariables.masteredskill)
+	else
+		LevelReportVariables.masteredskill = HadarBackup
+	end
+	SaveState()
+end
+
+function set_Leveled_Skill(name, line, wildcards)
+	HadarBackup = LevelReportVariables.leveledskill
+	LevelReportVariables.leveledskill = utils.inputbox("${skill} - Skill\n${percent} - percentage the skill is at", "Look of leveled skill if active", LevelReportVariables.leveledskill, "Courier", 9)
+	if LevelReportVariables.leveledskill ~= nil then
+		SendNoEcho("echo Leveled up skill will look like: " .. LevelReportVariables.leveledskill)
+	else
+		LevelReportVariables.leveledskill = HadarBackup
 	end
 	SaveState()
 end
@@ -691,12 +734,13 @@ function SkillGain(name, line, wildcards)
 		end
 	end
 	
+	
 		if tonumber(two) == 1 or tonumber(two) == 85 and LevelReportVariables.showskillgain=="true" then
 			levelskill(skill)
 		elseif tonumber(two) == 100 and LevelReportVariables.showskillgain=="true" then
-			msg = "@x125I have @x023M@x041astered "..skill.. "@w"
+			msg = interp(LevelReportVariables.masteredskill,{skill = skill})
 		elseif tonumber(two) < 100 and LevelReportVariables.showskillgain=="true" then
-			msg = skill.." @x125 Has @x127I@x135ncreased@x125 to @x088"..two.."@w"
+			msg = interp(LevelReportVariables.leveledskill,{skill = skill, percent = two})
 		end
 		
 		if two > 1 and two~=85 and LevelReportVariables.showskillgain=="true" then
@@ -914,22 +958,24 @@ end
 function HadarHelp()
 	ColourNote("#159FE5","","+-----------------------------------","Green","","[","Cyan","","L","Teal","","evel","Cyan",""," R","Teal","","eport","Green","","]","#159FE5","","-----------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set the channel to report to."),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-60s"," set the channel to report to."),"#159FE5","","|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setlevel and setpup"),"#159FE5","","-","#F1D566","",string.format("%-64s"," set how the script outputs"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setlevel and setpup"),"#159FE5","","-","#F1D566","",string.format("%-63s"," set how the script outputs"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setleveledskill and setmasteredskill"),"#159FE5","","-","#F1D566","",string.format("%-46s"," how leveled/mastered skills look"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelshow <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show the given levels report"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelshow <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-55s"," show the given levels report"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows stats on level"),"#159FE5","","|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-62s"," shows stats on level"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," skillgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows skills gained on level"),"#159FE5","","|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," skillgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-61s"," shows skills gained on level"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," leveltimeonly <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," shows only level time"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," leveltimeonly <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-57s"," shows only level time"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
+
 
 
 --leveltimeonly
