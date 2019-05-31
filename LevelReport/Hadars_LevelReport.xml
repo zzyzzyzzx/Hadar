@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.22"
+   version="2.23"
    >
 
 </plugin>
@@ -639,6 +639,7 @@ local channel
 	end
 	
 	local report = tonumber(LevelReportVariables.level)
+	leveltable[report] = mylevelreport.Data
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
 end
@@ -944,6 +945,7 @@ function levelreport(level,channel,color1,color2,brac,colornum,colortim,brac2,co
 	
 mylevelreport.Data = interp(LevelReportVariables.levelmessage, {level = level, hour = levelinfo.hour, min = levelinfo.min, sec = levelinfo.sec, hp = levelinfo.hp, mn = levelinfo.mana, mv = levelinfo.moves, tr = levelinfo.train, pr = levelinfo.prac, stat = levelinfo.bonusstat, inst = levelinfo.instinct})
 	
+
 	SendSpecial(mylevelreport.channel.." "..mylevelreport.Data)
 --
 end
