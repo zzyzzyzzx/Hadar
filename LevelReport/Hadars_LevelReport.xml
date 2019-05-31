@@ -639,9 +639,10 @@ local channel
 	end
 	
 	local report = tonumber(LevelReportVariables.level)
-	leveltable[report] = mylevelreport.Data
 	
 	local test = levelreport(LevelReportVariables.level,channel,LevelReportVariables.levelColorFirst,LevelReportVariables.levelColorSecond,LevelReportVariables.levelBrac,LevelReportVariables.levelColorNum,LevelReportVariables.levelColorTime,LevelReportVariables.levelColorBracSecond,LevelReportVariables.levelColorPlus,LevelReportVariables.levelColorStat)
+
+	leveltable[report] = mylevelreport.Data
 end
 
 function level_Stat_Add(name, line, wildcards)
