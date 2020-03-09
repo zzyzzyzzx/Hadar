@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!-- Saved on Tuesday, September 20, 2016, 2:53 PM -->
+<!-- MuClient version 5.01 -->
+
+<muclient>
+<plugin
+   name="Hadar_discord_webhook"
+   author="Hadar"
+   id="a3a5abf8ec2ec2d2e3600548"
+   language="Lua"
+   purpose="trigger stuff to webhook of discord"
+   save_state="y"
+   date_written="2016-09-20 14:51:44"
+   requires="4.00"
+   version="1.0"
+   >
+<description trim="y">
+<![CDATA[
+Double exp to discord webhook
+]]>
+</description>
+
+</plugin>
+
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Triggers  29-->
+
+<triggers>
+  <trigger
+   match="^Below the flare, you hear (.*) scream '(.*)'$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="fifteendouble"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^\[\s+10 minutes of double exp started courtesy of (.*)\s+\]$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="tendouble"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^Double experience for 10 minutes courtesy of (.*)'s daily blessing.$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="tendouble"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^Double experience for 10 minutes courtesy of (.*).$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="tendouble"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^You hear a loud roar from (.*) and the world appears calmer for a while..$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="hourdouble"
+   omit_from_output="n"
+  >
+  </trigger>
+</triggers>
+
+<!--  Plugin help  -->
+
+<aliases>
+  <alias
+   match="^kill( (.*))?"
+   enabled="n"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+  >
+  </alias>
+</aliases>
+
+<script>
+<![CDATA[
+local json = require("json")
+local ltn12 = require("ltn12")
+local discordURL = "PUT WEBHOOK URL HERE!!!!"
+async_ok, async = pcall (require, "async")
+thread = nil
+
+function fifteendouble(name,line,wildcards)
+	discordSendMessage(wildcards[1],"15")
+end
+
+function tendouble(name,line,wildcards)
+	discordSendMessage(wildcards[1],"10")
+end
+
+function hourdouble(name,line,wildcards)
+	discordSendMessage(wildcards[1],"60")
+end
+
+function discordSendMessage(reason,time)
+if async_ok and not thread then
+   thread = async.request(discordURL, "HTTPS")
+end
+	local payload = {}
+	local body = {}
+	body["headers"]={}
+	
+	if time == "60" then
+		payload["content"] = "@here "..time.." minutes of double thanks to "..reason
+	else
+		payload["content"] = time.." minutes of double thanks to "..reason
+	end
+	payload["tts"] = false
+
+	retval, page, status, headers, full_status = thread:join()
+	thread = nil
+	if status == 200 then -- 200 is the HTTP status code for "OK"
+	local encode = json.encode(payload)
+	
+	
+	body.headers["content-type"] = "application/json"
+	body["source"] = encode
+	
+
+	async.doAsyncRemoteRequest(discordURL, result_function, "HTTPS", 120, timeout_function, body)
+
+	else
+		print("access error")
+	end
+end
+
+function result_function(retval, page, status, headers, full_status, requested_url, request_body)
+
+end
+
+function timeout_function()
+	print("Timed out")
+end
+
+]]>
+</script> 
+
+</muclient>
