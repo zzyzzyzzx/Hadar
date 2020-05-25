@@ -389,7 +389,7 @@ function printmoblist()
 	local msg = interp(mob_list.message, {amob = mob_list.allmobs, smob = mob_list.mobs})
 	mob_list.mobs = 0
 	mob_list.allmobs = 0
-	if mob_list.channel ~= disable then
+	if mob_list.channel ~= "disable" then
 		SendNoEcho(mob_list.channel.." "..msg)
 	end
 end
