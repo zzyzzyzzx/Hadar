@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadar_consider"
+   author="Hadar"
+   id="4e2c40680d4b45615e9fc34c"
+   language="Lua"
+   purpose="Send con to a channel with hadarmagic"
+   save_state="y"
+   date_written="2020-05-19 00:00:00"
+   requires="4.43"
+   version="2.0"
+   >
+<description trim="y">
+<![CDATA[
+send consider output to a channel blacklisting keywords
+]]>
+</description>
+</plugin>
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+<!--  Triggers  -->
+
+<triggers>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) looks a little worried about the idea\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) says 'BEGONE FROM MY SIGHT unworthy!'$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) should be a fair fight!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) snickers nervously\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) would be easy, but is it even worth the work out\?$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) would crush you like a bug!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) would dance on your grave!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^(\([A-Za-z ]+\) ?)*Best run away from (.+) while you can!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*Challenging (.+) would be either very brave or very stupid\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   regexp="y"
+   match="^(\([A-Za-z ]+\) ?)*No Problem! (.+) is weak compared to you\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^(\([A-Za-z ]+\) ?)*You would be completely annihilated by (.+)!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^(\([A-Za-z ]+\) ?)*You would stomp (.+) into the ground\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^(\([A-Za-z ]+\) ?)*(.+) chuckles at the thought of you fighting"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   script="process_mob"
+   sequence="100"
+   send_to="12"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^You see no one here but yourself!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^.+ would smite you for killing .+!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^.+ would not approve of you killing .+!$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^.+ has divine protection\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^.+ has already been challenged\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^If you killed .+, who would serve"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^Strange forces prevent violence here\.$"
+   keep_evaluating="y"
+   omit_from_output="n"
+   regexp="y"
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+<!-- Aliases -->
+<aliases>
+  <alias
+   match="^econ$"
+   keep_evaluating="y"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+  >
+  </alias> 
+
+  <alias
+   match="^econ blacklist$"
+   keep_evaluating="y"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="set_mob"
+  >
+  </alias>
+
+  <alias
+   match="^econ channel (.*)$"
+   keep_evaluating="y"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="econ_channel"
+  >
+  </alias>
+  
+  <alias
+   match="^econ message$"
+   keep_evaluating="y"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="econ_message"
+  >
+  </alias>
+  
+  <alias match="^(?:had|econ) help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
+  
+</aliases>
+<!--  Script  -->
+<script>
+<![CDATA[
+require "serialize"
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	print("had help (to see all of hadar's plugin helpfiles), or econ help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+	
+	mob_list = {}
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("mob_list") or "")) ()
+	else
+		mob_list.message = "@R[@CC@considers@R]@W:@w ${amob} @R[@CN@con @CB@clacklisted@R] ${smob}"
+		mob_list.channel = "echo"
+		mob_list.blacklist = "hadar"
+		mob_list.mobs = 0
+		mob_list.allmobs = 0
+	end
+
+end
+
+
+function split (input)
+		sep = ","
+        local t={}
+        for str in string.gmatch(input, "([^"..sep.."]+)") do
+                table.insert(t, str)
+        end
+        return t
+end
+
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
+function set_mob(mob)
+	HadarBackup = mob_list["blacklist"]
+	mob_list["blacklist"] = utils.inputbox ("Please put blacklisted words here, sepeted by a comma \",\"", "Set blacklisted words", mob_list["blacklist"], "Courier", 9)
+	if mob_list["blacklist"] ~= nil then
+		SendNoEcho("echo blacklisted words are: "..mob_list["blacklist"])
+	else
+		mob_list["blacklist"] = HadarBackup
+	end
+	SaveState()
+end
+
+
+function process_mob(name, line, wildcards)
+	local mob=nil
+	mob=wildcards[2]
+	local hadartest = "me,hadar,test"
+	
+	if mob_list.allmobs == 0 then
+		mob_list.allmobs = mob
+	else
+		mob_list.allmobs = mob_list["allmobs"] .. "," .. mob
+	end
+	
+	if not ismobinlist(mob) then
+		if mob_list["mobs"] == 0 then 
+			mob_list["mobs"] = mob
+		else
+			mob_list["mobs"] = mob_list["mobs"].. "," .. mob
+		end
+	end
+	
+	
+	AddTimer ("fire_considers", 0, 0, .2, "", timer_flag.Enabled + timer_flag.OneShot, "printmoblist")
+	--DoAfterSpecial(0.5, 'print(mob_list.mobs)', sendto.script)
+
+end
+
+function ismobinlist(mob)
+	for i,v in pairs(split(mob_list["blacklist"])) do
+		if string.find(mob,v) then
+			return true
+		end
+			
+	end
+	
+end
+
+function printmoblist()
+	local msg = interp(mob_list.message, {amob = mob_list.allmobs, smob = mob_list.mobs})
+	mob_list.mobs = 0
+	mob_list.allmobs = 0
+	if mob_list.channel ~= disable then
+		SendNoEcho(mob_list.channel.." "..msg)
+	end
+end
+
+function econ_message()
+	HadarBackup = mob_list.message
+	mob_list.message = utils.inputbox ("Has 2 variables:\n${amobs} - will show all mobs considered\n${smob} - Will only show mobs not on the blacklist", "Look of excluded consider", mob_list.message, "Courier", 9)
+	if mob_list.message ~= nil then
+		SendNoEcho("echo excluded consider will look like: "..mob_list.message)
+	else
+		mob_list.message = HadarBackup
+	end
+	SaveState()
+end
+
+
+function econ_channel(name, line, wildcards)
+	if wildcards[1] ~= nil then
+		mob_list.channel = wildcards[1]
+		ColourNote("Teal","","econ Report channel set to "..mob_list.channel)
+	end
+	SaveState()
+end
+
+function OnPluginSaveState ()
+	SetVariable ("mob_list", "mob_list = " .. serialize.save_simple (mob_list))
+	SetVariable ("pastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+----------------------------------------------------------------------------------------------------
+--									     End hadarlua stuff 	   							      --
+--																								  --
+--									    Begin help Stuff										  --
+----------------------------------------------------------------------------------------------------
+
+function HadarHelp()
+	ColourNote("#159FE5","","+-------------------------------------","Green","","[","Cyan","","E","Teal","","xclude","Cyan",""," C","Teal","","onsider","Green","","]","#159FE5","","-------------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," econ blacklist"),"#159FE5","","-","#F1D566","",string.format("%-68s"," pulls up blacklisted dialog, seperate with commas."),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," econ channel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," set channel, use disable for no message"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," econ message"),"#159FE5","","-","#F1D566","",string.format("%-68s"," pulls up dialog box to edit message"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note! or on discord zzyzzyzzx#0001"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",92).."+")
+end
+
+]]>
+</script>
+</muclient>

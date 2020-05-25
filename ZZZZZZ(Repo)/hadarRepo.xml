@@ -48,5 +48,13 @@
     <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/VorpalCounter/Hadar_Vorpal.zip</download>
     <installpath>0</installpath>
   </plugin>
+  <plugin>
+    <name>Exclude Consider</name>
+    <author>Hadar</author>
+    <description>setup a consider with a blacklist</description>
+    <id>4e2c40680d4b45615e9fc34c</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ExcludeConsider/Hadars_consider.zip</download>
+    <installpath>0</installpath>
+  </plugin>
 
  </pluginsListing>
