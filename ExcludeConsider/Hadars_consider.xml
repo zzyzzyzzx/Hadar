@@ -396,7 +396,7 @@ end
 
 function econ_message()
 	HadarBackup = mob_list.message
-	mob_list.message = utils.inputbox ("Has 2 variables:\n${amobs} - will show all mobs considered\n${smob} - Will only show mobs not on the blacklist", "Look of excluded consider", mob_list.message, "Courier", 9)
+	mob_list.message = utils.inputbox ("Has 2 variables:\n${amob} - will show all mobs considered\n${smob} - Will only show mobs not on the blacklist", "Look of excluded consider", mob_list.message, "Courier", 9)
 	if mob_list.message ~= nil then
 		SendNoEcho("echo excluded consider will look like: "..mob_list.message)
 	else
