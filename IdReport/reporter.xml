@@ -1092,7 +1092,7 @@ end
 
 function HadarHelp()
 	ColourNote("#159FE5","","+--------------------------------------------------","Green","","[","Cyan","","I","Teal","","dentify","Green","","]","#159FE5","","--------------------------------------------------+")
-	ColourNote("#159FE5","","|"..string.format("%-109s"," ").."|")
+	ColourNote("#159FE5","","|"..string.format("%-99s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," id <item> <paramaters>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," activates the script and IDs the items."),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
 	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," set channel for default reporting"),"#159FE5","","|")
