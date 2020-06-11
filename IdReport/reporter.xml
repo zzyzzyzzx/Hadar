@@ -41,7 +41,7 @@
 <trigger
    enabled="n"
    match="^\+-*\+$"
-   omit_from_output="n"
+   omit_from_output="y"
    regexp="y"
    group="idCap"
    sequence="100"
@@ -70,14 +70,12 @@
 <trigger
    enabled="n"
    match="^\|(.*)\|"
-   omit_from_output="n"
+   omit_from_output="y"
    regexp="y"
    group="idCap"
    script="infoCap"
    sequence="100"
-   keep_evaluating="n"
-   lines_to_match="2"
-   multi_line="y"
+   keep_evaluating="y"
   >
 </trigger>
 
