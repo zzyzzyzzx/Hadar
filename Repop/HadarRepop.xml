@@ -123,8 +123,7 @@ function OnPluginEnable ()
 end
 
 function buildInitial()
-	repopVar.repopString = "@W${name} @Cr@cepoped @Ca@ct @R${hour}@w:@R${min}@w"
-	repopVar.channel = "gt"
+	repopVar.HadarRepopString = "@W${name} @Cr@cepoped @Ca@ct @R${hour}@w:@R${min}@w"
 	SaveState()
 end
 

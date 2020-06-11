@@ -379,10 +379,8 @@ function ismobinlist(mob)
 	for i,v in pairs(split(mob_list["blacklist"])) do
 		if string.find(mob,v) then
 			return true
-		end
-			
+		end	
 	end
-	
 end
 
 function printmoblist()

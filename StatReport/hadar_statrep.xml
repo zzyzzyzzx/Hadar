@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!-- Saved on Tuesday, September 20, 2016, 2:53 PM -->
+<!-- MuClient version 5.01 -->
+
+<muclient>
+<plugin
+   name="Hadar_StatRep"
+   author="Hadar"
+   id="c3b387aef811333eb5ce307b"
+   language="Lua"
+   purpose="report stats/stats from max"
+   save_state="y"
+   date_written="2018-08-22 00:00:00"
+   requires="4.00"
+   version="1.0"
+   >
+<description trim="y">
+<![CDATA[
+Can see all my help files with had help or just this one with killer help
+]]>
+</description>
+
+</plugin>
+
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Triggers  -->
+<triggers>
+  <trigger
+   match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
+   name="upattack"
+   regexp="y"
+   send_to="12"
+   script=""
+   sequence="100"
+  >
+  </trigger>
+</triggers>
+
+
+<!--  Plugin help  -->
+
+<aliases>
+<alias
+   match="^repstat ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="statRep_build"
+  >
+  </alias>
+  <alias
+   match="^repstat ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="statRep_build"
+  >
+  </alias>
+  <alias
+   match="^repstat ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="statRep_build"
+  >
+  </alias>
+  <alias
+   match="^repstat ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="statRep_build"
+  >
+  </alias>
+
+  
+  
+  <alias match="^(?:had|statrep) help$"
+	enabled="y"
+	sequence="99"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
+</aliases>
+
+<script>
+<![CDATA[
+require "serialize"
+
+
+
+function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
+	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
+	if result ~= 0 then
+		ColourNote ("orange", "", "Warning: Could not get GMCP value for " .. what)
+		return nil
+	else
+		local luastmt = "ret = " .. value
+		assert (loadstring (luastmt or "")) ()
+		return ret
+	end -- if
+end -- gmcp
+
+function OnPluginBroadcast(msg, id, name, text)
+
+	if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+		if (text == "char.status") then
+			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+		
+			assert(loadstring("LoadInfo = "..gmcparg or "")) ()
+			currentState = tonumber(gmcp("char.status.state"))
+		
+			for i,v in pairs(LoadInfo) do
+				if i == "status" then
+					for k,j in pairs(v) do
+						if k == "level" then
+							lvl = j
+						end
+					end
+				end
+				if i == "base" then
+					for k,j in pairs(v) do
+						if k == "tier" then
+							tier = j
+						end
+					end
+				end
+				if i == "stats" then
+					for k,j in pairs(v) do
+						if k == "str" then
+							str = tonumber(j)
+						elseif k == "int" then
+							int = tonumber(j)
+						elseif k == "wis" then
+							wis = tonumber(j)
+						elseif k == "con" then
+							con = tonumber(j)
+						elseif k == "dex" then
+							dex = tonumber(j)
+						elseif k == "luck" then
+							luck = tonumber(j)
+						elseif k == "hr" then
+							hr = tonumber(j)
+						elseif k == "dr" then
+							dr = tonumber(j)
+						end
+					end
+				end
+				if i == "maxstats" then
+					for k,j in pairs(v) do
+						if k == "maxstr" then
+							maxstr = tonumber(j)
+						elseif k == "maxint" then
+							maxint = tonumber(j)
+						elseif k == "maxwis" then
+							maxwis = tonumber(j)
+						elseif k == "maxcon" then
+							maxcon = tonumber(j)
+						elseif k == "maxdex" then
+							maxdex = tonumber(j)
+						elseif k == "maxluck" then
+							maxluck = tonumber(j)
+						elseif k == "maxhp" then
+							maxhp = tonumber(j)
+						elseif k == "maxmana" then
+							maxmana = tonumber(j)
+						end
+					end
+				end
+			end -- end for
+		end --end if char status
+	end
+end
+
+function OnPluginSaveState ()
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	print("had help (to see all of hadar's plugin helpfiles), or stats help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+	
+	SendNoEcho("protocols gmcp sendstatus")
+	SendNoEcho("protocols gmcp sendbase")
+	SendNoEcho("protocols gmcp sendstats")
+	SendNoEcho("protocols gmcp sendmax")
+
+end
+											 
+----------------------------------------------------------------------------------------------------
+--										      End GMCP											  --
+--																								  --
+--								         Start function Stuff									  --
+----------------------------------------------------------------------------------------------------
+
+function statRep_build(name,line,wildcards)
+	local repChannel
+	local a = "@B"
+	local b = "@Y"
+	local c = "@w"
+	
+	if wildcards[1] == "" then
+		repChannel = "echo"
+	else
+		repChannel = wildcards[1]
+	end
+	
+
+	
+	SendNoEcho(repChannel .. " " ..
+    a .. "[" .. b .. "Str" .. a .. ": " .. b .. str .. a .."/" .. b .. maxstr .. a .. "] " ..
+    a .. "[" .. b .. "Dex" .. a .. ": " .. b .. dex .. a .."/" .. b .. maxdex .. a .. "] " ..
+    a .. "[" .. b .. "Con" .. a .. ": " .. b .. con .. a .."/" .. b .. maxcon .. a .. "] " ..
+    a .. "[" .. b .. "Int" .. a .. ": " .. b .. int .. a .."/" .. b .. maxint .. a .. "] " ..
+    a .. "[" .. b .. "Wis" .. a .. ": " .. b .. wis .. a .."/" .. b .. maxwis .. a .. "] " ..
+    a .. "[" .. b .. "Luck" .. a .. ": " .. b .. luck .. a .."/" .. b .. maxluck .. a .. "] " ..
+    a .. "HR: " .. b .. hr .. " " ..
+    a .. "DR: " .. b .. dr .. " " ..
+    a .. "HP: " .. b .. maxhp .. " " ..
+    a .. "Mana: " .. b .. maxmana .. " " ..
+    a .. "[" .. b .. "Totals" .. a .. ": " .. b .. (dex + str + wis + con + int + luck) .. a .."/" .. b .. (maxdex + maxstr + maxwis + maxcon + maxint + maxluck) .. a .. "] " ..
+    "")
+	
+end
+
+----------------------------------------------------------------------------------------------------
+--									     End function stuff 	   							      --
+--																								  --
+--									    Begin LuaFile Stuff										  --
+----------------------------------------------------------------------------------------------------
+
+function calcMaxStats (level, tier)
+        local level = tonumber(level)
+        local tier = tonumber(tier)
+        local maxpossible = nil
+        if (level <= 70 ) then
+                maxpossible = (level + 25) + (tier * 2)
+        elseif ((level > 70) and (level <= 155)) then
+                maxpossible = 95 + ((level - 70) * 2) + (tier * 2)
+        elseif ((level > 155) and (level <= 200)) then
+                maxpossible = 265 + ((level - 155) * 3) + (tier * 2)
+        elseif (level == 201) then
+                maxpossible = 395
+        end
+        return maxpossible  
+end -- calcMaxStats
+ 
+function calcMaxCost (maxpossible, current)
+        local maxcost = 0
+        local currentcount = tonumber(current)
+        local possible = tonumber(maxpossible)
+        local cost = 0
+        if (possible == currentcount) then
+                return maxcost
+        end
+        while (currentcount < possible) do
+                if ((currentcount <= 70 ) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 1
+                end
+                if ((currentcount >= 71) and (currentcount <= 90)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 2
+                end
+                if ((currentcount >= 91) and (currentcount <= 130) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 3
+                end
+                if ((currentcount >= 131) and (currentcount <= 170) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 4
+                end
+                if ((currentcount >= 171) and (currentcount <= 200) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 6
+                end
+                if ((currentcount >= 201) and (currentcount <= 224) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 9
+                end
+                if ((currentcount >= 225) and (currentcount <= 250) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 11
+                end
+                if ((currentcount >= 251) and (currentcount <= 275) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 15
+                end
+                if ((currentcount >= 276) and (currentcount <= 290) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 17
+                end
+                if ((currentcount >= 291) and (currentcount <= 300) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 20
+                end
+                if ((currentcount >= 301) and (currentcount <= 325) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 25
+                end
+                if ((currentcount >= 326) and (currentcount <= 350) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 35
+                end
+                if ((currentcount >= 351) and (currentcount <= 375) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 50
+                end
+                if ((currentcount >= 376) and (currentcount <= 400) and (currentcount <= possible)) then
+                        currentcount = currentcount + 1
+                        maxcost = maxcost + 60
+                end
+        end
+        return maxcost  
+end -- calcMaxCost
+ 
+ 
+function maxVital (maxpossible, current)
+        local maxcost = 0
+        local currentcount = tonumber(current)
+        local possible = tonumber(maxpossible)
+        local cost = 0
+        if (possible == currentcount) then
+                return maxcost
+        end
+        while (currentcount < possible) do
+                if ((currentcount <= 10000 ) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 2
+                end
+                if ((currentcount >= 10001) and (currentcount <= 14000)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 3
+                end
+                if ((currentcount >= 14001) and (currentcount <= 18000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 4
+                end
+                if ((currentcount >= 18001) and (currentcount <= 22000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 5
+                end
+                if ((currentcount >= 22001) and (currentcount <= 26000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 6
+                end
+                if ((currentcount >= 26001) and (currentcount <= 30000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 7
+                end
+                if ((currentcount >= 30001) and (currentcount <= 40000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 10
+                end
+                if ((currentcount >= 40001) and (currentcount <= 50000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 15
+                end
+                if ((currentcount >= 50001) and (currentcount <= 75000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 20
+                end
+                if ((currentcount >= 75001) and (currentcount <= 80000) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 25
+                end
+                if ((currentcount >= 80001) and (currentcount <= 99999) and (currentcount <= possible)) then
+                        currentcount = currentcount + 10
+                        maxcost = maxcost + 30
+                end
+        end
+        return maxcost  
+end -- maxVital
+
+
+----------------------------------------------------------------------------------------------------
+--									    End luafile stuff 	   							          --
+--																								  --
+--									    Begin help Stuff										  --
+----------------------------------------------------------------------------------------------------
+
+
+function HadarHelp()
+	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","K","Teal","","ill","Green","","]","#159FE5","","---------------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Setkill <update>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will update the spell used on 'kill'"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," kill <name>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Will use the kill spell/skill (with optional name)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+end
+
+
+]]>
+</script> 
+
+</muclient>

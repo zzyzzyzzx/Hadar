@@ -643,7 +643,7 @@ function cp_end_tracking()
 end
 
 function gqs_called()
-	Sound("ding.wav")
+	--Sound("ding.wav")
 	FlashIcon()
 end
 --ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
