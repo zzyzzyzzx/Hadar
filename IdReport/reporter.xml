@@ -41,7 +41,7 @@
 <trigger
    enabled="n"
    match="^\+-*\+$"
-   omit_from_output="y"
+   omit_from_output="n"
    regexp="y"
    group="idCap"
    sequence="100"
@@ -60,7 +60,7 @@
 
 <trigger
    enabled="y"
-   match="^Current bid on this item is \s+ gold \(No bid yet\)\.$"
+   match="^Current bid on this item is \d+ gold \(No bid yet\)\.$"
    omit_from_output="y"
    regexp="y"
    sequence="100"
@@ -69,13 +69,15 @@
 
 <trigger
    enabled="n"
-   match="^\| (.*)\|$"
-   omit_from_output="y"
+   match="^\|(.*)\|"
+   omit_from_output="n"
    regexp="y"
    group="idCap"
    script="infoCap"
    sequence="100"
-   keep_evaluating="y"
+   keep_evaluating="n"
+   lines_to_match="2"
+   multi_line="y"
   >
 </trigger>
 
@@ -327,6 +329,7 @@ function infoCap(name, line, wildcards, styles)
 		report.coloredname = trim(string.sub(cname,string.find(cname, ":")+1,string.find(cname, " |")))
 	end
 
+
 --original person to write all this was durel did not want to re-write so borrowed
   local isPartialId, id, name, level, weight, wearable, score, keywords, itemType, worth, flags,
         affectMods, continuation, material, foundAt, ownedBy, clan, rawMaterial
@@ -487,6 +490,7 @@ function infoCap(name, line, wildcards, styles)
 			flagsContinuation = true
 		else
 			flagsContinuation = false
+			makeEnchantmentstuff()
 		end -- if
 	end -- if
 
@@ -509,6 +513,7 @@ function infoCap(name, line, wildcards, styles)
 			-- If the continued flags end in a comma, keep the continuation going; otherwise stop it
 			if not (string.find(continuation, ",$")) then
 				flagsContinuation = false
+				makeEnchantmentstuff()
 			end -- if
 		elseif (affectModsContinuation) then
 		-- Add the continuation to the existing affectMods
@@ -522,66 +527,6 @@ function infoCap(name, line, wildcards, styles)
 		else
       -- Placeholder to add continuation support for other things (notes? others?)
 		end -- if
-		
-		
-		if not string.find(report.Flags, "solidified") then
-			if not string.find(report.Flags, "invis") then
-				report.enchantingSolid = "@RS@w"
-				report.enchantingSolidno = "S"
-				if report.enchanting == nil then
-					report.enchanting = "@RS@w"
-				else
-					report.enchanting = report.enchanting .. "@RS@w"
-				end
-			else
-				report.enchantingSolid = "@GS@w"
-				report.enchantingSolidyes = "S"
-				if report.enchanting == nil then
-					report.enchanting = "@GS@w"
-				else
-					report.enchanting = report.enchanting .. "@GS@w"
-				end
-			end
-		end
-		if not string.find(report.Flags, "resonated") then
-			if string.find(report.Flags, "hum") then
-				report.enchantingReso = "@GR@w"
-				report.enchantingResoyes = "R"
-				if report.enchanting == nil then
-					report.enchanting = "@RR@W"
-				else
-					report.enchanting = report.enchanting .. "@RR@W"
-				end
-			else
-				report.enchantingReso = "@RR@w"
-				report.enchantingResono = "R"
-				if report.enchanting == nil then
-					report.enchanting = "@GR@W"
-				else
-					report.enchanting = report.enchanting .. "@GR@W"
-				end
-			end
-		end
-		if not string.find(report.Flags, "illuminated") then
-				report.enchantingIllum = "@GI@w"
-				report.enchantingIllumyes = "I"
-			if string.find(report.Flags, "glow") then
-				if report.enchanting == nil then
-					report.enchanting = "@RI@W"
-				else
-					report.enchanting = report.enchanting .. "@RI@W"
-				end
-			else
-				report.enchantingIllum = "@RI@w"
-				report.enchantingIllumno = "I"
-				if report.enchanting == nil then
-					report.enchanting = "@GI@W"
-				else
-					report.enchanting = report.enchanting .. "@GI@W"
-				end
-			end
-		end
-		
 	end -- if
 
   if (material ~= nil) then
@@ -829,8 +774,68 @@ function infoCap(name, line, wildcards, styles)
     report.Specials = specials
   end -- if
   
-	AddTimer ("makeidoutput", 0, 0, .2, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutput")
+	AddTimer ("makeidoutput", 0, 0, .2, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutput") 
 end --end infocap
+
+function makeEnchantmentstuff()
+if not string.find(report.Flags, "solidified") then
+			if not string.find(report.Flags, "invis") then
+				report.enchantingSolid = "@RS@w"
+				report.enchantingSolidno = "S"
+				if report.enchanting == nil then
+					report.enchanting = "@RS@w"
+				else
+					report.enchanting = report.enchanting .. "@RS@w"
+				end
+			else
+				report.enchantingSolid = "@GS@w"
+				report.enchantingSolidyes = "S"
+				if report.enchanting == nil then
+					report.enchanting = "@GS@w"
+				else
+					report.enchanting = report.enchanting .. "@GS@w"
+				end
+			end
+		end
+		if not string.find(report.Flags, "resonated") then
+			if string.find(report.Flags, "hum") then
+				report.enchantingReso = "@GR@w"
+				report.enchantingResoyes = "R"
+				if report.enchanting == nil then
+					report.enchanting = "@RR@W"
+				else
+					report.enchanting = report.enchanting .. "@RR@W"
+				end
+			else
+				report.enchantingReso = "@RR@w"
+				report.enchantingResono = "R"
+				if report.enchanting == nil then
+					report.enchanting = "@GR@W"
+				else
+					report.enchanting = report.enchanting .. "@GR@W"
+				end
+			end
+		end
+		if not string.find(report.Flags, "illuminated") then
+				report.enchantingIllum = "@GI@w"
+				report.enchantingIllumyes = "I"
+			if string.find(report.Flags, "glow") then
+				if report.enchanting == nil then
+					report.enchanting = "@RI@W"
+				else
+					report.enchanting = report.enchanting .. "@RI@W"
+				end
+			else
+				report.enchantingIllum = "@RI@w"
+				report.enchantingIllumno = "I"
+				if report.enchanting == nil then
+					report.enchanting = "@GI@W"
+				else
+					report.enchanting = report.enchanting .. "@GI@W"
+				end
+			end
+		end
+end
 
 
 function makeOutput()
@@ -1086,24 +1091,24 @@ end
 
 
 function HadarHelp()
-	ColourNote("#159FE5","","+-------------------------------------","Green","","[","Cyan","","I","Teal","","dentify","Green","","]","#159FE5","","-------------------------------------+")
+	ColourNote("#159FE5","","+--------------------------------------------------","Green","","[","Cyan","","I","Teal","","dentify","Green","","]","#159FE5","","--------------------------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%-109s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," id <item> <paramaters>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," activates the script and IDs the items."),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," id <item> <paramaters>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," activates the script and IDs the items."),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," set channel for default reporting"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," idchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," set channel for default reporting"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idauto"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles auto identifing bids and rauction"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idauto"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles auto identifing bids and rauction"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idbeeps"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles trigger words for beeps/icon flashing"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idbeeps"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles trigger words for beeps/icon flashing"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idwords"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you make a list of words for idbeeps"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idwords"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you make a list of words for idbeeps"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idshow <number/all> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you see past ids use with"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idshow <number/all> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you see past ids use with"),"#159FE5","","|")
 	ColourNote("#159FE5","","|","white","",string.format("%84s"," idsetmax to change max ids in history, all shows all the IDS"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idsetmax <number>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," change the max ids to keep in history, default is 20"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idsetmax <number>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," change the max ids to keep in history, default is 20"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idset"),"#159FE5","","-","#F1D566","",string.format("%-68s"," will let you hadarmagic the output, type idsethelp for a helpfile with all variables"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idset"),"#159FE5","","-","#F1D566","",string.format("%-68s"," will let you hadarmagic the output, type idsethelp for a helpfile with all variables"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
 	ColourNote("#159FE5","","|","white","",string.format("%99s"," if any issues arise, please contact Hadar via a personal note! or on discord zzyzzyzzx#0001"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",109).."+")
