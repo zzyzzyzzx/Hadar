@@ -56,5 +56,13 @@
     <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ExcludeConsider/Hadars_consider.zip</download>
     <installpath>0</installpath>
   </plugin>
+    <plugin>
+    <name>Id reporter</name>
+    <author>Hadar</author>
+    <description>report ided item to a channel</description>
+    <id>a92c40f4114e1d08f4c121ed</id>
+    <download>https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/IdReport/reporter.zip</download>
+    <installpath>0</installpath>
+  </plugin>
 
  </pluginsListing>
