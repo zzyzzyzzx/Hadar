@@ -257,7 +257,7 @@ end
 
 function buildInitial()
 
-	idreport.output = "${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@T) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+	idreport.output = "${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
 	
 	idreport.maxid = 20
 	idreport.currentid = 1
@@ -808,16 +808,16 @@ if not string.find(report.Flags, "solidified") then
 		end
 		if not string.find(report.Flags, "resonated") then
 			if string.find(report.Flags, "hum") then
-				report.enchantingReso = "@GR@w"
-				report.enchantingResoyes = "R"
+				report.enchantingReso = "@RR@w"
+				report.enchantingResono = "R"
 				if report.enchanting == nil then
-					report.enchanting = "@RR@W"
+					report.enchanting = "@GR@W"
 				else
 					report.enchanting = report.enchanting .. "@RR@W"
 				end
 			else
-				report.enchantingReso = "@RR@w"
-				report.enchantingResono = "R"
+				report.enchantingReso = "@GR@w"
+				report.enchantingResoyes = "R"
 				if report.enchanting == nil then
 					report.enchanting = "@GR@W"
 				else
@@ -826,8 +826,8 @@ if not string.find(report.Flags, "solidified") then
 			end
 		end
 		if not string.find(report.Flags, "illuminated") then
-				report.enchantingIllum = "@GI@w"
-				report.enchantingIllumyes = "I"
+				report.enchantingIllum = "@RI@w"
+				report.enchantingIllumno = "I"
 			if string.find(report.Flags, "glow") then
 				if report.enchanting == nil then
 					report.enchanting = "@RI@W"
@@ -835,8 +835,8 @@ if not string.find(report.Flags, "solidified") then
 					report.enchanting = report.enchanting .. "@RI@W"
 				end
 			else
-				report.enchantingIllum = "@RI@w"
-				report.enchantingIllumno = "I"
+				report.enchantingIllum = "@GI@w"
+				report.enchantingIllumyes = "I"
 				if report.enchanting == nil then
 					report.enchanting = "@GI@W"
 				else
@@ -1060,7 +1060,7 @@ end
 function setOutput()
 	local HadarBackup = idreport.output
 	idreport.output = utils.inputbox ("This has a ton of variables, i suggest looking at hid help and going to the website","Look of hadars Identification", idreport.output, "Courier", 9)
-	if HadarDoubleString ~= nil then
+	if idreport.output ~= nil then
 		SendNoEcho("echo id report has the following format: "..idreport.output)
 	else
 		idreport.output = HadarBackup
