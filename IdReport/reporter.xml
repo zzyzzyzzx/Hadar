@@ -227,7 +227,7 @@ dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
 function OnPluginSaveState ()
 	SetVariable ("idreport", "idreport = " .. serialize.save_simple (idreport))
-	SetVariable ("pastfirstinstall", "true")
+	SetVariable ("idpastfirstinstall", "true")
 end -- function OnPluginSaveState
 
 function OnPluginInstall ()
@@ -247,7 +247,7 @@ function OnPluginEnable ()
 	report = {}
 	idreport = {}
 		
-	if GetVariable ("pastfirstinstall") == "true" then
+	if GetVariable ("idpastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("idreport") or "")) ()
 	else
 		buildInitial()
@@ -257,7 +257,7 @@ end
 
 function buildInitial()
 
-	idreport.output = "${name} Lvl: ${lvl} ${avgDmg:|avedam} ${wearable|:wearloc}${Leads To:|leadsto} (${Weight:|weight}) [${Capacity:|capacity}${ TotWeight:|totweight}${ WeightReduction:|weightred}${Hr:|hr}${ Dr:|dr}${ Inflicts:|inflicts}${ Specials:|specials}${use:|spelluse}${ name:|spellname}${ level:|spelllevel}${TotStats:|totalstat}${ Int:|int}${ Wis:|wis}${ Dex:|dex}${ Con:|con}${ Luck:|luck}${ points:|score}] (${enchantsolid}${enchantreso}${enchantillum})"
+	idreport.output = "${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@T) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
 	
 	idreport.maxid = 20
 	idreport.currentid = 1
@@ -783,7 +783,7 @@ function infoCap(name, line, wildcards, styles)
     report.Specials = specials
   end -- if
   
-	AddTimer ("makeidoutput", 0, 0, .2, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutput") 
+	AddTimer ("makeidoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutput") 
 end --end infocap
 
 function makeEnchantmentstuff()
@@ -956,7 +956,7 @@ function makeOutput()
 	elseif tonumber(idreport.rbidnum) > 0 then
 		SendSpecial(idreport.channel .. " [RBID:".. idreport.rbidnum.."] " .. msg)
 	elseif tonumber(idreport.lbidnum) > 0 then
-		SendSpecial(idreport.channel .. " [RBID:".. idreport.rbidnum.."] " .. msg)
+		SendSpecial(idreport.channel .. " [LBID:".. idreport.lbidnum.."] " .. msg)
 	else
 		SendSpecial(idreport.channel .. " " .. msg)
 	end
