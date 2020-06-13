@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.00"
+   version="1.00"
    >
 
 </plugin>
@@ -54,6 +54,16 @@
    omit_from_output="n"
    regexp="y"
    script="autoidenta"
+   sequence="100"
+  >
+</trigger>
+
+<trigger
+   enabled="y"
+   match="^Market\: \w+ is selling .* \(Level \d+, Num (\d+)\)\. Auction is for \w+\.$"
+   omit_from_output="n"
+   regexp="y"
+   script="autoidentl"
    sequence="100"
   >
 </trigger>
@@ -256,6 +266,7 @@ function buildInitial()
 	idreport.autoid = "yes"
 	idreport.bidnum = 0
 	idreport.rbidnum = 0
+	idreport.lbidnum = 0
 	
 end
 
@@ -944,11 +955,15 @@ function makeOutput()
 		SendSpecial(idreport.channel .. " [BID:".. idreport.bidnum.."] " .. msg)
 	elseif tonumber(idreport.rbidnum) > 0 then
 		SendSpecial(idreport.channel .. " [RBID:".. idreport.rbidnum.."] " .. msg)
+	elseif tonumber(idreport.lbidnum) > 0 then
+		SendSpecial(idreport.channel .. " [RBID:".. idreport.rbidnum.."] " .. msg)
 	else
 		SendSpecial(idreport.channel .. " " .. msg)
 	end
 
 	idreport.bidnum = 0
+	idreport.rbidnum = 0
+	idreport.lbidnum = 0
 	EnableTriggerGroup("idCap", false)
 	report = {}
 end--end makeOutput()
@@ -1076,6 +1091,14 @@ function autoidentr(name, line, wildcards)
 		EnableTriggerGroup("idCap", true)
 		idreport.rbidnum = wildcards[1]
 		SendSpecial("rbid "..idreport.rbidnum)
+	end
+end
+
+function autoidentl(name, line, wildcards)
+	if idreport.autoid == "yes" then
+		EnableTriggerGroup("idCap", true)
+		idreport.lbidnum = wildcards[1]
+		SendSpecial("lbid "..idreport.lbidnum)
 	end
 end
 
