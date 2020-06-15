@@ -981,7 +981,7 @@ end
 	if one == "all" then
 		for i,v in pairs(idreport) do
 			if tonumber(i) and tonumber(i) <= tonumber(idreport.maxid) then
-				SendSpecial("echo @WID: "..i.." Has data: @C".. v)
+				AnsiNote(stylesToANSI(ColoursToStyles("@WID: "..i.." Has data: @C".. v)))
 			end
 		end
 	elseif tonumber(one) >= 1  and tonumber(one) <= idreport.maxid then
