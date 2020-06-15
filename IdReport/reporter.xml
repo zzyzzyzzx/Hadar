@@ -69,11 +69,12 @@
 </trigger>
 
 <trigger
-   enabled="y"
-   match="^Current bid on this item is \d+ gold \(No bid yet\)\.$"
+   enabled="n"
+   match="^Current bid on this item is .* \(No bid yet\)\.$"
    omit_from_output="y"
    regexp="y"
    sequence="100"
+   group="idCap"
   >
 </trigger>
 
