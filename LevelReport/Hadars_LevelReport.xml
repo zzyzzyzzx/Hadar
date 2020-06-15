@@ -7,7 +7,7 @@
 
 <muclient>
 <plugin
-   name="LevelReport"
+   name="Hadar_LevelReport"
    author="Hadar"
    id="1a36da4e764254b16bd1e33f"
    language="Lua"
@@ -356,7 +356,11 @@ require "serialize"
 	leveltable = {}
 	
 function interp(s, tab)
-  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	if s == nil then
+		hadarerror("@RYou forgot to fill in a message please use @Clevel help@R and run the message commands to see which one.")
+	else
+		return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	end
 end
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
@@ -949,6 +953,11 @@ mylevelreport.Data = interp(LevelReportVariables.levelmessage, {level = level, h
 
 	SendSpecial(mylevelreport.channel.." "..mylevelreport.Data)
 --
+end
+
+
+function hadarerror(str)
+	AnsiNote(stylesToANSI(ColoursToStyles(str)))
 end
 
 
