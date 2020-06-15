@@ -54,37 +54,18 @@ Can see all my help files with had help or just this one with killer help
    script="statRep_build"
   >
   </alias>
-  <alias
-   match="^repstat ?(.*)?$"
-   enabled="y"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-   script="statRep_build"
-  >
-  </alias>
-  <alias
-   match="^repstat ?(.*)?$"
-   enabled="y"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-   script="statRep_build"
-  >
-  </alias>
-  <alias
-   match="^repstat ?(.*)?$"
-   enabled="y"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-   script="statRep_build"
-  >
-  </alias>
-
   
+  <alias
+   match="^statrep ?(\w+)? ?(.*)?$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="statRep_Output"
+  >
+  </alias>
   
-  <alias match="^(?:had|statrep) help$"
+  <alias match="^(?:had) help$"
 	enabled="y"
 	sequence="99"
 	send_to="12"
@@ -101,7 +82,19 @@ Can see all my help files with had help or just this one with killer help
 <![CDATA[
 require "serialize"
 
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
+function interp(s, tab)
+	if s == nil then
+		hadarerror("@RYou forgot to fill in a message please use @Clevel help@R and run the message commands to see which one.")
+	else
+		return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	end
+end
+
+function hadarerror(str)
+	AnsiNote(stylesToANSI(ColoursToStyles(str)))
+end
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
@@ -128,56 +121,58 @@ function OnPluginBroadcast(msg, id, name, text)
 				if i == "status" then
 					for k,j in pairs(v) do
 						if k == "level" then
-							lvl = j
+							hlvl = j
 						end
 					end
 				end
 				if i == "base" then
 					for k,j in pairs(v) do
 						if k == "tier" then
-							tier = j
+							htier = j
 						end
 					end
 				end
 				if i == "stats" then
 					for k,j in pairs(v) do
 						if k == "str" then
-							str = tonumber(j)
+							hstr = tonumber(j)
 						elseif k == "int" then
-							int = tonumber(j)
+							hint = tonumber(j)
 						elseif k == "wis" then
-							wis = tonumber(j)
+							hwis = tonumber(j)
 						elseif k == "con" then
-							con = tonumber(j)
+							hcon = tonumber(j)
 						elseif k == "dex" then
-							dex = tonumber(j)
+							hdex = tonumber(j)
 						elseif k == "luck" then
-							luck = tonumber(j)
+							hluck = tonumber(j)
 						elseif k == "hr" then
-							hr = tonumber(j)
+							hhr = tonumber(j)
 						elseif k == "dr" then
-							dr = tonumber(j)
+							hdr = tonumber(j)
 						end
 					end
 				end
 				if i == "maxstats" then
 					for k,j in pairs(v) do
 						if k == "maxstr" then
-							maxstr = tonumber(j)
+							hmaxstr = tonumber(j)
 						elseif k == "maxint" then
-							maxint = tonumber(j)
+							hmaxint = tonumber(j)
 						elseif k == "maxwis" then
-							maxwis = tonumber(j)
+							hmaxwis = tonumber(j)
 						elseif k == "maxcon" then
-							maxcon = tonumber(j)
+							hmaxcon = tonumber(j)
 						elseif k == "maxdex" then
-							maxdex = tonumber(j)
+							hmaxdex = tonumber(j)
 						elseif k == "maxluck" then
-							maxluck = tonumber(j)
+							hmaxluck = tonumber(j)
 						elseif k == "maxhp" then
-							maxhp = tonumber(j)
+							hmaxhp = tonumber(j)
 						elseif k == "maxmana" then
-							maxmana = tonumber(j)
+							hmaxmana = tonumber(j)
+						elseif k == "maxmoves" then
+							hmaxmoves = tonumber(j)
 						end
 					end
 				end
@@ -187,6 +182,8 @@ function OnPluginBroadcast(msg, id, name, text)
 end
 
 function OnPluginSaveState ()
+	SetVariable ("hstatrep", "hstatrep = " .. serialize.save_simple (hstatrep))
+	SetVariable ("statpastfirstinstall", "true")
 end -- function OnPluginSaveState
 
 
@@ -203,12 +200,25 @@ function OnPluginInstall ()
 end
 
 function OnPluginEnable ()
+
+	hstatrep = {}
 	
 	SendNoEcho("protocols gmcp sendstatus")
 	SendNoEcho("protocols gmcp sendbase")
 	SendNoEcho("protocols gmcp sendstats")
 	SendNoEcho("protocols gmcp sendmax")
+	
+	if GetVariable ("statpastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("hstatrep") or "")) ()
+	else
+		buildInitial()
+	end
 
+end
+
+function buildInitial()
+	hstatrep.Channel = "echo"
+	hstatrep.output = "@g\\}@WStr@w: @R${str}@w/@r${maxstr}@g{/ @g\\}@WDex@w: @R${dex}@W/@r${maxdex}@g{/ @g\\}@WCon@w: @R${con}@W/@r${maxcon}@W@g{/ @g\\}@WInt@w: @R${int}@W/@r${maxint}@W@g{/ @g\\}@WWis@w: @R${wis}@W/@r${maxwis}@W@g{/ @g\\}@WLuck@w: @R${luck}@W/@r${maxluck}@W@g{/ @WHR@w: @R${hr}@W @WDR@w: @R${dr}@W @WHP@w: @R${hp}@W @WMana@w: @R${mana}@W @g\\}@WTotals@w: @R${total}@w/@R${maxtotal}@g{/@w"
 end
 											 
 ----------------------------------------------------------------------------------------------------
@@ -219,32 +229,89 @@ end
 
 function statRep_build(name,line,wildcards)
 	local repChannel
-	local a = "@B"
-	local b = "@Y"
-	local c = "@w"
 	
-	if wildcards[1] == "" then
-		repChannel = "echo"
-	else
-		repChannel = wildcards[1]
+	if wildcards[1] ~= "" then
+		hstatrep.Channel = wildcards[1]
 	end
 	
+	local msg = interp(hstatrep.output,{
+		  str = hstr
+		, maxstr = hmaxstr
+		, int = hint
+		, maxint = hmaxint
+		, wis = hwis
+		, maxwis = hmaxwis
+		, dex = hdex
+		, maxdex = hmaxdex
+		, con = hcon
+		, maxcon = hmaxcon
+		, luck = hluck
+		, maxluck = hmaxluck
+		, hr = hhr
+		, dr = hdr
+		, hp = hmaxhp
+		, mana = hmaxmana
+		, moves = hmaxmoves
+		, total = (hdex + hstr + hwis + hcon + hint + hluck)
+		, maxtotal = (hmaxdex + hmaxstr + hmaxwis + hmaxcon + hmaxint + hmaxluck)
 
+	})
 	
-	SendNoEcho(repChannel .. " " ..
-    a .. "[" .. b .. "Str" .. a .. ": " .. b .. str .. a .."/" .. b .. maxstr .. a .. "] " ..
-    a .. "[" .. b .. "Dex" .. a .. ": " .. b .. dex .. a .."/" .. b .. maxdex .. a .. "] " ..
-    a .. "[" .. b .. "Con" .. a .. ": " .. b .. con .. a .."/" .. b .. maxcon .. a .. "] " ..
-    a .. "[" .. b .. "Int" .. a .. ": " .. b .. int .. a .."/" .. b .. maxint .. a .. "] " ..
-    a .. "[" .. b .. "Wis" .. a .. ": " .. b .. wis .. a .."/" .. b .. maxwis .. a .. "] " ..
-    a .. "[" .. b .. "Luck" .. a .. ": " .. b .. luck .. a .."/" .. b .. maxluck .. a .. "] " ..
-    a .. "HR: " .. b .. hr .. " " ..
-    a .. "DR: " .. b .. dr .. " " ..
-    a .. "HP: " .. b .. maxhp .. " " ..
-    a .. "Mana: " .. b .. maxmana .. " " ..
-    a .. "[" .. b .. "Totals" .. a .. ": " .. b .. (dex + str + wis + con + int + luck) .. a .."/" .. b .. (maxdex + maxstr + maxwis + maxcon + maxint + maxluck) .. a .. "] " ..
-    "")
+	SendNoEcho(hstatrep.Channel .. " " ..msg)
 	
+end
+
+function statRep_Output(name,line,wildcards)
+	local one = string.lower(wildcards[1])
+	local two = string.lower(wildcards[2]) or nil
+
+	if one == nil or one == "" or one == " " then
+		hadarerror("statrep needs an output, please check out statrep help (or use command repstat <channel>)")
+	end
+	
+	if one == "help" then
+		HadarHelp()
+	elseif one == "output" then
+		changeOutput()
+	elseif one == "channel" then
+		setchannel(two)
+	end
+	
+end
+
+function changeOutput()
+	local HadarBackup = hstatrep.output
+		local s = [[
+		Can accept upto the following variables
+		${str} - Strength stat / ${maxstr} - maximum Strength
+		${int} - Intelligence Stat / ${maxint} - maximum Intelligence
+		${wis} - Wisdom Stat / ${maxwis} - maximum Wisdom
+		${dex} - Dexterity Stat / ${maxdex} - maximum Dexterity
+		${con} - Constitution Stat / ${maxcon} - maximum Constitution
+		${luck} - Luck Stat / ${maxluck} - maximum Luck
+		${hp} - maximum health
+		${mana} - maximum mana
+		${moves} - maximum moves
+		${hr} - your hit roll / ${dr} - your damage roll
+		${total} - total of all stats combined
+		${maxtotal} - total of all maxstats combined
+		]]
+		hstatrep.output = utils.inputbox (s,"Look of stat reporter", hstatrep.output, "Courier", 9)
+	if hstatrep.output ~= nil then
+		hadarerror("@gstatrep output@W:@w" .. hstatrep.output)
+	else
+		hstatrep.output = HadarBackup
+	end
+	SaveState()
+end
+
+function setchannel(str)
+	if str ~= nil and str ~= "" and str ~= " " then
+		hstatrep.Channel = str
+		hadarerror("@RStat Rep @Cdefault channel set to: @G" .. hstatrep.Channel)
+	else
+		hadarerror("@RERROR: @wto set default channel please use @Cstatrep channel <channel>@w")
+	end
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -405,14 +472,15 @@ end -- maxVital
 
 
 function HadarHelp()
-	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","K","Teal","","ill","Green","","]","#159FE5","","---------------------------------------+")
+	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","S","Teal","","tat rep","Green","","]","#159FE5","","---------------------------------------+")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Setkill <update>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will update the spell used on 'kill'"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statrep <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will send to echo else sends to a channel"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," kill <name>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Will use the kill spell/skill (with optional name)"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statrep output"),"#159FE5","","-","#F1D566","",string.format("%-64s"," changes the output of the message"),"#159FE5","","|")
 	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statrep channel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," changes default channel default:echo"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note! or on discord zzyzzyzzx#0001"),"#159FE5","","|")
 	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
 end
 
