@@ -231,6 +231,16 @@ function OnPluginSaveState ()
 	SetVariable ("idpastfirstinstall", "true")
 end -- function OnPluginSaveState
 
+function hadarprint(str,level)
+	level = level or "script"
+	if level == "debug" and idreport.debug == 1 then
+		AnsiNote(stylesToANSI(ColoursToStyles(str)))
+	else
+		AnsiNote(stylesToANSI(ColoursToStyles(str)))
+	end
+	
+end
+
 function OnPluginInstall ()
    	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
@@ -268,6 +278,7 @@ function buildInitial()
 	idreport.bidnum = 0
 	idreport.rbidnum = 0
 	idreport.lbidnum = 0
+	idreport.iddebug = 0 --change this to 1 if you want to 100% reset your scripts variables
 	
 end
 
@@ -1113,99 +1124,99 @@ end
 
 
 function HadarHelp()
-	ColourNote("#159FE5","","+--------------------------------------------------","Green","","[","Cyan","","I","Teal","","dentify","Green","","]","#159FE5","","--------------------------------------------------+")
-	ColourNote("#159FE5","","|"..string.format("%-99s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," id <item> <paramaters>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," activates the script and IDs the items."),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," set channel for default reporting"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idauto"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles auto identifing bids and rauction"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idbeeps"),"#159FE5","","-","#F1D566","",string.format("%-68s"," toggles trigger words for beeps/icon flashing"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idwords"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you make a list of words for idbeeps"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idshow <number/all> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," lets you see past ids use with"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," idsetmax to change max ids in history, all shows all the IDS"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idsetmax <number>"),"#159FE5","","-","#F1D566","",string.format("%-68s"," change the max ids to keep in history, default is 20"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-30s"," idset"),"#159FE5","","-","#F1D566","",string.format("%-68s"," will let you hadarmagic the output, type idsethelp for a helpfile with all variables"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%99s"," if any issues arise, please contact Hadar via a personal note! or on discord zzyzzyzzx#0001"),"#159FE5","","|")
-	ColourNote("#159FE5","","+"..string.rep("-",109).."+")
+local s = [[
+@x086+--------------------------------------------------------@g[@x051I@cdentify@g]@x086-------------------------------------------------------+
+@x086|                                                                                                                         |
+@x086| @x130id <item> <paramaters>        @x123- @x136activates the script and IDs the items.                                                 @x086|
+@x086| @x142idchannel <channel>           @x123- @x154set channel for default reporting                                                       @x086|
+@x086| @x130autoid                        @x123- @x136toggles auto identifing bids, rauction and market                                       @x086|
+@x086| @x142idbeeps                       @x123- @x154toggles trigger words for beeps/icon flashing                                           @x086|
+@x086| @x130idwords                       @x123- @x136lets you make a list of words for idbeeps                                               @x086|
+@x086| @x142idshow <number/all> <channel> @x123- @x154Lets you see past Ids use with idsetmax, all shows all IDS                              @x086|
+@x086| @x130idsetmax <number>             @x123- @x136change the max ids to keep in history, default is 20                                    @x086|
+@x086| @x142idset                         @x123- @x154will let you hadarmagic the output, type idsethelp for a helpfile with all variables    @x086|
+@x086|                                                                                                                         |
+@x086|                 @WIf you have any issues please contact me via note/tell or on discord Zzyzzyzzx#0001                     @x086|
+@x086+-------------------------------------------------------------------------------------------------------------------------+
+
+
+]]
+hadarprint(s)
 end
 
 function hadarhelptwo()
-	ColourNote("#159FE5","","+-------------------------------------","Green","","[","Cyan","","I","Teal","","dentify","Cyan",""," S","Teal","","et","Green","","]","#159FE5","","-------------------------------------+")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-23s"," idset"),"#159FE5","","-","#F1D566","",string.format("%-68s"," will let you hadarmagic the output, type idsethelp for a helpfile with all variables"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," to use a variable just do it like this: ${variable}"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s","EG: ${name} will display item name, you can also do something like this:"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," ${Name:|name} or ${name|:Name} ... will auto hide the field when not in use"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|"..string.format("%92s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," the variables are as follows"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," id"),"#159FE5","","-","#e62e00","",string.format("%-68s"," id number of the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," name"),"#159FE5","","-","#cc6600","",string.format("%-68s"," name of the item (in color)"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," lvl"),"#159FE5","","-","#e62e00","",string.format("%-68s"," the level of the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," weight"),"#159FE5","","-","#cc6600","",string.format("%-68s"," total weight of the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," wearable"),"#159FE5","","-","#e62e00","",string.format("%-68s"," location item can be worn"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," score"),"#159FE5","","-","#cc6600","",string.format("%-68s"," the score of an item based off your settings"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," keywords"),"#159FE5","","-","#e62e00","",string.format("%-68s"," item keywords"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," type"),"#159FE5","","-","#cc6600","",string.format("%-68s"," what is the type of item (eg armor, weapon, scroll)"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," worth"),"#159FE5","","-","#e62e00","",string.format("%-68s"," total cost of the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," totalstat"),"#159FE5","","-","#cc6600","",string.format("%-68s"," total stats of the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," material"),"#159FE5","","-","#e62e00","",string.format("%-68s"," what the material is made out of"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," affmod"),"#159FE5","","-","#cc6600","",string.format("%-68s"," the modifiers affecting the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," foundat"),"#159FE5","","-","#e62e00","",string.format("%-68s"," what area the item is from"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," spelluse"),"#159FE5","","-","#cc6600","",string.format("%-68s"," what the first spell on a potion/scroll does"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," spellname"),"#159FE5","","-","#e62e00","",string.format("%-68s"," name of the first spell on a potion/scroll"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," spelllevel"),"#159FE5","","-","#cc6600","",string.format("%-68s"," level of the first spell on a potion/scroll"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," leadsto"),"#159FE5","","-","#e62e00","",string.format("%-68s"," where a portal goes"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," capacity"),"#159FE5","","-","#cc6600","",string.format("%-68s"," max amount of items the container can hold"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," holding"),"#159FE5","","-","#e62e00","",string.format("%-68s"," how many items that are in the container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," heavyitem"),"#159FE5","","-","#cc6600","",string.format("%-68s"," heaviest item in the container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," itemsinside"),"#159FE5","","-","#e62e00","",string.format("%-68s"," how many items in a container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," totweight"),"#159FE5","","-","#cc6600","",string.format("%-68s"," total weight of the container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," itemburden"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows how many items are in a container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," weightred"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows weight reduction from a container"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," clan"),"#159FE5","","-","#e62e00","",string.format("%-68s"," reports what clan its from"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," int"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows Strength on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," wis"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows Wisdom on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," dex"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows Dexterity on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," con"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows Constitution stat on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," luck"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows Luck on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," hp"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows additional health points added from an item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," mana"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows additional mana added from an item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," move"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows additional moves added from an item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," hr"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows hit roll of an item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," dr"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows damage roll of an item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," allphys"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows resistance for all physical attacks"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," allmagic"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows resistance for all magic attacks"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," tempint"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows temporary Strength on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," tempwis"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows temporary Wisdom on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," tempdex"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows temporary Dexterity on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," tempcon"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows temporary Constitution stat on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," templuck"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows temporary Luck on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," inflicts"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows temporary what the weapon inflicts"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," damtype"),"#159FE5","","-","#cc6600","",string.format("%-68s"," shows the damage type of a weapon"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," weaponyype"),"#159FE5","","-","#e62e00","",string.format("%-68s"," reports a wepons type"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," specials"),"#159FE5","","-","#cc6600","",string.format("%-68s"," reports a special flag on a weapon"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," flagsall"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows all flags on the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," flagsenchant"),"#159FE5","","-","#cc6600","",string.format("%-68s"," only shows enchanting flags"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," <resistance name>"),"#159FE5","","-","#e62e00","",string.format("%-68s"," shows resistance of an item just use its name, EG bash or pierce"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," avedam"),"#159FE5","","-","#cc6600","",string.format("%-68s"," reports a weapons average damage"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," tmpAvedam"),"#159FE5","","-","#e62e00","",string.format("%-68s"," reports an average damage that is temperary(like temper)"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," enchantsolid"),"#159FE5","","-","#cc6600","",string.format("%-68s"," pre colors the item based on solidify green for go red for no"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," enchantsolidyes"),"#159FE5","","-","#e62e00","",string.format("%-68s"," lets you color your own solidify if you can solidify the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," enchantsolidno"),"#159FE5","","-","#cc6600","",string.format("%-68s"," lets you color your own solidify if you cant solidify the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," enchantreso"),"#159FE5","","-","#e62e00","",string.format("%-68s"," pre colors the item based on resonating green for go red for no"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," enchantresoyes"),"#159FE5","","-","#cc6600","",string.format("%-68s"," lets you color your own resonate if you can resonate the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," enchantresono"),"#159FE5","","-","#e62e00","",string.format("%-68s"," lets you color your own resonate if you cant resonate the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," enchantillum"),"#159FE5","","-","#cc6600","",string.format("%-68s"," pre colors the item based on illumination either green for go or red for no"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#47d147","",string.format("%-23s"," enchantillumyes"),"#159FE5","","-","#e62e00","",string.format("%-68s"," lets you color your own illumination if you can illuminate the item"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#009900","",string.format("%-23s"," enchantillumno"),"#159FE5","","-","#cc6600","",string.format("%-68s"," lets you color your own illumination if you cant illuminate the item"),"#159FE5","","|")
+	local s = [[
+@x099+------------------------------------------[Identify Set]------------------------------------------+
+@x099| @x009idset    @x099-@x222 will let you hadarmagic the output, type idsethelp for a helpfile with all variables  @x099|
+@x099|                                                                                                  @x099|
+@x099| @x015                       to use a variable just do it like this: ${variable}                       @x099|
+@x099| @x015            EG: ${name} will display item name, you can also do something like this:             @x099|
+@x099| @x015           ${Name:|name} or ${name|:Name} ... will auto hide the field when not in use           @x099|
+@x099|                                                                                                  @x099|
+@x099| @x009Variable:         @x099-@x222 @x009Description:                                                                 @x099|   
+@x099| @x002id                @x099-@x214 id number of the item                                                        @x099|
+@x099| @x010name              @x099-@x222 name of the item (in color)                                                  @x099|
+@x099| @x002lvl               @x099-@x214 the level of the item                                                        @x099|
+@x099| @x010weight            @x099-@x222 total weight of the item                                                     @x099|
+@x099| @x002wearable          @x099-@x214 location item can be worn                                                    @x099|
+@x099| @x010score             @x099-@x222 the score of an item based off your settings                                 @x099|
+@x099| @x002keywords          @x099-@x214 item keywords                                                                @x099|
+@x099| @x010type              @x099-@x222 what is the type of item (eg armor, weapon, scroll)                          @x099|
+@x099| @x002worth             @x099-@x214 total cost of the item                                                       @x099|
+@x099| @x010totalstat         @x099-@x222 total stats of the item                                                      @x099|
+@x099| @x002material          @x099-@x214 what the material is made out of                                             @x099|
+@x099| @x010affmod            @x099-@x222 the modifiers affecting the item                                             @x099|
+@x099| @x002foundat           @x099-@x214 what area the item is from                                                   @x099|
+@x099| @x010spelluse          @x099-@x222 what the first spell on a potion/scroll does                                 @x099|
+@x099| @x002spellname         @x099-@x214 name of the first spell on a potion/scroll                                   @x099|
+@x099| @x010spelllevel        @x099-@x222 level of the first spell on a potion/scroll                                  @x099|
+@x099| @x002leadsto           @x099-@x214 where a portal goes                                                          @x099|
+@x099| @x010capacity          @x099-@x222 max amount of items the container can hold                                   @x099|
+@x099| @x002holding           @x099-@x214 how many items that are in the container                                     @x099|
+@x099| @x010heavyitem         @x099-@x222 heaviest item in the container                                               @x099|
+@x099| @x002itemsinside       @x099-@x214 how many items in a container                                                @x099|
+@x099| @x010totweight         @x099-@x222 total weight of the container                                                @x099|
+@x099| @x002itemburden        @x099-@x214 shows how many items are in a container                                      @x099|
+@x099| @x010weightred         @x099-@x222 shows weight reduction from a container                                      @x099|
+@x099| @x002clan              @x099-@x214 reports what clan its from                                                   @x099|
+@x099| @x010int               @x099-@x222 shows Strength on the item                                                   @x099|
+@x099| @x002wis               @x099-@x214 shows Wisdom on the item                                                     @x099|
+@x099| @x010dex               @x099-@x222 shows Dexterity on the item                                                  @x099|
+@x099| @x002con               @x099-@x214 shows Constitution stat on the item                                          @x099|
+@x099| @x010luck              @x099-@x222 shows Luck on the item                                                       @x099|
+@x099| @x002hp                @x099-@x214 shows additional health points added from an item                            @x099|
+@x099| @x010mana              @x099-@x222 shows additional mana added from an item                                     @x099|
+@x099| @x002move              @x099-@x214 shows additional moves added from an item                                    @x099|
+@x099| @x010hr                @x099-@x222 shows hit roll of an item                                                    @x099|
+@x099| @x002dr                @x099-@x214 shows damage roll of an item                                                 @x099|
+@x099| @x010allphys           @x099-@x222 shows resistance for all physical attacks                                    @x099|
+@x099| @x002allmagic          @x099-@x214 shows resistance for all magic attacks                                       @x099|
+@x099| @x010tempint           @x099-@x222 shows temporary Strength on the item                                         @x099|
+@x099| @x002tempwis           @x099-@x214 shows temporary Wisdom on the item                                           @x099|
+@x099| @x010tempdex           @x099-@x222 shows temporary Dexterity on the item                                        @x099|
+@x099| @x002tempcon           @x099-@x214 shows temporary Constitution stat on the item                                @x099|
+@x099| @x010templuck          @x099-@x222 shows temporary Luck on the item                                             @x099|
+@x099| @x002inflicts          @x099-@x214 shows temporary what the weapon inflicts                                     @x099|
+@x099| @x010damtype           @x099-@x222 shows the damage type of a weapon                                            @x099|
+@x099| @x002weaponyype        @x099-@x214 reports a wepons type                                                        @x099|
+@x099| @x010specials          @x099-@x222 reports a special flag on a weapon                                           @x099|
+@x099| @x002flagsall          @x099-@x214 shows all flags on the item                                                  @x099|
+@x099| @x010flagsenchant      @x099-@x222 only shows enchanting flags                                                  @x099|
+@x099| @x002<resistance name> @x099-@x214 shows resistance of an item just use its name, EG bash or pierce             @x099|
+@x099| @x010avedam            @x099-@x222 reports a weapons average damage                                             @x099|
+@x099| @x002tmpAvedam         @x099-@x214 reports an average damage that is temperary(like temper)                     @x099|
+@x099| @x010enchantsolid      @x099-@x222 pre colors the item based on solidify green for go red for no                @x099|
+@x099| @x002enchantsolidyes   @x099-@x214 lets you color your own solidify if you can solidify the item                @x099|
+@x099| @x010enchantsolidno    @x099-@x222 lets you color your own solidify if you cant solidify the item               @x099|
+@x099| @x002enchantreso       @x099-@x214 pre colors the item based on resonating green for go red for no              @x099|
+@x099| @x010enchantresoyes    @x099-@x222 lets you color your own resonate if you can resonate the item                @x099|
+@x099| @x002enchantresono     @x099-@x214 lets you color your own resonate if you cant resonate the item               @x099|
+@x099| @x010enchantillum      @x099-@x222 pre colors the item based on illumination either green for go or red for no  @x099|
+@x099| @x002enchantillumyes   @x099-@x214 lets you color your own illumination if you can illuminate the item          @x099|
+@x099| @x010enchantillumno    @x099-@x222 lets you color your own illumination if you cant illuminate the item         @x099|
+@x099+--------------------------------------------------------------------------------------------------+@x000
+]]
+	hadarprint(s)
 end
 
 ]]>
