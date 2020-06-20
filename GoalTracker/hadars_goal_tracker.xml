@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadars_Goal_Tracker"
+   author="Hadar"
+   id="547cb3a5ca51e749033b63f6"
+   language="Lua"
+   purpose="lets you input goals to strive to"
+   save_state="y"
+   date_written="2020-01-01 00:00:00"
+   requires="4.00"
+   version="1.10"
+   >
+
+</plugin>
+
+<!--
+Testers:
+tallimos
+-->
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Triggers
+
+<trigger
+   enabled="y"
+   match=""
+   omit_from_output="y"
+   regexp="y"
+   group=""
+   script=""
+   sequence="100"
+  >
+</trigger>
+
+
+  -->
+
+<!-- Alias
+<alias
+   script=""
+   match="\s*"
+   enabled="y"
+   regexp="y"
+   group=""
+   sequence="100"
+  >
+  </alias>
+ -->
+
+<aliases>
+<alias
+   match="^hgoals? ?(.*)?"
+   script="qpsgoalMain"
+   enabled="y"
+   regexp="y"
+   group=""
+   sequence="100"
+  >
+  </alias>
+</aliases>
+
+<script>
+<![CDATA[
+require "serialize"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+require "tprint"
+
+local sAlias = "hgoal"
+
+function interp(s, tab)
+	if s == nil then
+		hadarprint("@RYou forgot to fill in a message please use @C"..sAlias.." help@R and run the message commands to see which one.","Error")
+	else
+		return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	end
+end
+
+function hadarprint(str,level)
+	level = level or "script"
+     
+	if level == "debug" and qpgoal.debug == "true" then
+		AnsiNote(stylesToANSI(ColoursToStyles("@Y"..GetPluginName ().."_DEBUG@w:@W "..str)))
+	elseif level == "error" and qpgoal.debug == "true" then
+          AnsiNote(stylesToANSI(ColoursToStyles("@R"..GetPluginName ().."_ERROR@w:@Y "..str)))
+     elseif level == "debug" and qpgoal.debug == "false" then
+		return
+     elseif level == "error" and qpgoal.debug == "false" then
+          return
+     else
+          AnsiNote(stylesToANSI(ColoursToStyles(str)))
+	end
+end
+
+function OnPluginSaveState ()
+	SetVariable ("qpgoal", "qpgoal = " .. serialize.save_simple (qpgoal))
+	SetVariable ("qpgoalpastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or "..sAlias.." help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+
+	qpgoal = {}
+	qpgoal["goals"] = {}
+	
+	if GetVariable ("qpgoalpastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("qpgoal") or "")) ()
+	else
+		buildInitial()
+	end
+     
+     hadarprint("qpgoal.debug= "..qpgoal.debug,"debug")
+     if qpgoal.debug == "true" then
+          buildInitial()
+     elseif qpgoal.debug == 0 or qpgoal.debug == 1 then
+          hadarprint("Code: 0x00000^0","error")
+          buildInitial()
+     end
+     
+	Execute("sendgmcp request worth")
+end
+
+function buildInitial()
+     hadarprint("Build initial","debug")
+     qpgoal.Channel = "echo"
+     qpgoal.debug = "false" --WARNING setting this to 1 will delete all data you have set
+     qpgoal.data = "@G\\}@wSaving for: ${name}, Need ${type}: ${goal} / ${have}@G{/"
+     
+     SaveState()
+end
+
+
+----------------------------------------------------------------------------------------------------
+--		                              End Standard Template  							   --
+--								     										   --
+--								Start required Stuff	 						   --
+----------------------------------------------------------------------------------------------------
+
+function split (input)
+		sep = ","
+        local t={}
+        for str in string.gmatch(input, "([^"..sep.."]+)") do
+                table.insert(t, str)
+        end
+        return t
+end
+
+function trim(s)
+			return s:find'^%s*$' and '' or s:match'^%s*(.*%S)'
+end
+
+function bsplit(input)
+		sep = " "
+        local t={}
+        for str in string.gmatch(input, "([^"..sep.."]+)") do
+                table.insert(t, str)
+        end
+        return t
+end
+
+----------------------------------------------------------------------------------------------------
+--							End required stuff	    		               			   --
+--																			   --
+--							Start main Stuff              						   --
+----------------------------------------------------------------------------------------------------
+
+function OnPluginBroadcast(msg, id, name, text)
+
+	if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+		if (text == "char.worth") then
+			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+		
+			assert(loadstring("LoadInfo = "..gmcparg or "")) ()
+			currentState = tonumber(gmcp("char.status.state"))
+		
+			for i,v in pairs(LoadInfo) do
+               
+                    if i == "worth" then
+                         for j,k in pairs(v) do
+                              if j == "tp" then
+                                   qpgoal.ttp = k
+                              elseif j == "qp" then
+                                   qpgoal.tqp = k
+                              elseif j == "gold" then
+                                   qpgoal.tgold = k
+                              elseif j == "trains" then
+                                   qpgoal.ttrain = k
+                              elseif j == "bank" then
+                                   qpgoal.tbank = k
+                              elseif j == "pracs" then
+                                   qpgoal.tpracs = k
+                              end
+                         end
+                    end
+				
+			end -- end for
+		end --end if char status
+	end
+end
+
+function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
+	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
+	if result ~= 0 then
+		ColourNote ("orange", "", "Warning: Could not get GMCP value for " .. what)
+		return nil
+	else
+		local luastmt = "ret = " .. value
+		assert (loadstring (luastmt or "")) ()
+		return ret
+	end -- if
+end -- gmcp
+
+function qpsgoalMain(n,l,w)
+	local first, rest = w[1]:match("(%w+)%s*(.*)")
+
+	
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     
+     hadarprint("@CFirst: ".. first .. " @cRest:"..rest,"debug")
+
+	if first == "help" then
+		HadarHelp()
+	elseif first == "set" then
+		qpsgoalSet(rest)
+	elseif first == "edit" then
+		qpsgoalEdit(rest)
+     elseif first == "delete" then
+          qpsgoalDelete(rest)
+     elseif first == "view" or first == "display" then
+          qpsgoalView(rest)
+     elseif first == "channel" then
+          qpsgoalChannel(rest)
+     elseif first == "output" then
+          qpsgoalOutput()
+	end
+
+end --end of qpsgoalMain() 
+
+function qpsgoalOutput()
+     local HadarBackup = qpgoal.data
+     
+     local s = [[
+     Can accept upto the following variables:
+     ${name} - Name of the goal
+     ${goal} - The amount needed to complete the goal
+     ${type} - the type of goal (tp,qp,train,prac,gold,bank)
+     ${have} - how many of the goal type you have on hand
+     ${total} - displays the difference between have and need
+     ]]
+     
+     qpgoal.data = utils.inputbox (s,"Look of Hadars Goals", qpgoal.data, "Courier", 9)
+	if qpgoal.data ~= nil then
+		hadarprint("@G"..sAlias.."@C has the following format@w: "..qpgoal.data)
+	else
+		qpgoal.data = HadarBackup
+	end
+	SaveState()
+end
+
+function qpsgoalChannel(str)
+	local first = str:match("(%w+)")
+     
+     if first ~= nil and first ~= "" and first ~= " " then
+		qpgoal.Channel = first
+          hadarprint("@CGoal channel set to: @G"..qpgoal.Channel.."@w")
+	else
+          hadarprint("@CTo set goal channel please do @G"..sAlias.." <channelname>")
+	end
+     
+end
+
+function qpsgoalSet(str)
+	local first, second, third = str:match("(%w+)%s*(%d*)%s*(%w*)")
+     
+     if first == nil or second == nil then return hadarprint("qpsgoal set usage: qpsgoal set <name> <amount> (type of goal)","error") end
+     if third == "qp" then third = "qps" end
+     if third == "tp" then third = "tps" end
+     if third == "train" then third = "trains" end
+     if third == "prac" then third = "pracs" end
+	
+	if qpgoal["goals"][first] == nil then
+		qpgoal["goals"][first] = {}
+		qpgoal["goals"][first]["goal"] = second
+		if third ~= "" then
+			qpgoal["goals"][first]["type"] = third
+		else
+			qpgoal["goals"][first]["type"] = "qps"
+		end
+	end
+	
+	hadarprint("@CGoal Added: @G"..first.."@C @g(@camount@g)@w:@R"..second.."@C with @g(@ctype@g)@w:@R"..qpgoal["goals"][first]["type"].."@w")
+	SaveState()
+     
+end
+
+function qpsgoalEdit(str)
+	local first, second, third = str:match("(%w+)%s*(%d*)%s*(%w*)")
+     
+     if first == nil or second == nil then return hadarprint(sAlias.." edit usage: "..sAlias.." edit <name> <amount> (type of goal)","error") end
+     if third == "qp" then third = "qps" end
+     if third == "tp" then third = "tps" end
+     if third == "train" then third = "trains" end
+     if third == "prac" then third = "pracs" end
+	
+	if qpgoal["goals"][first] ~= nil then
+     
+          local backup = qpgoal["goals"][first]
+     
+		qpgoal["goals"][first]["goal"] = second
+		if third ~= "" then
+			qpgoal["goals"][first]["type"] = third
+		else
+			qpgoal["goals"][first]["type"] = "qps"
+		end
+          
+          if backup["goal"] == second and backup["type"] == qpgoal["goals"][first]["type"] then
+               hadarprint("@RNo Change@C was made to @G"..first.."@C Goal@w")
+          elseif backup["goal"] ~= second and backup["type"] == qpgoal["goals"][first]["type"] then
+               hadarprint("@CGoal: @G"..first.."@C Updated @g(@cgoal amount@g)@w:@R"..backup["goal"].." @Cto@w: @R"..second.."@w")
+          elseif backup["goal"] == second and backup["type"] ~= qpgoal["goals"][first]["type"] then
+               hadarprint("@CGoal: @G"..first.."@C Updated @g(@cgoal type@g)@w:@R"..backup["type"].." @Cto@w: @R"..qpgoal["goals"][first]["type"].."@w")
+          elseif backup["goal"] ~= second and backup["type"] ~= qpgoal["goals"][first]["type"] then
+               hadarprint("@CGoal: @G"..first.."@C Updated @g(@cgoal amount@g)@w:@R"..backup["goals"].." @Cto@w: @R"..second.."@C And updated @g(@cgoal type@g)@w:@R"..backup["type"].."@C to@w: @R"..qpgoal["goals"][first]["type"].."@w")
+          end
+          
+     elseif qpgoal["goals"][first] == nil then
+         hadarprint("@CTo add a goal please use@w: @G"..sAlias.." set <name> <amount> (type of goal)@w")
+	end
+	SaveState()
+end
+
+function qpsgoalView(str)
+	local first = str:match("(%w+)") or "all"
+     local goalvargoal
+     local goalvartype
+     local goalvarname
+     local goalhave
+	
+     hadarprint("qpsgoalView Fired:"..first,"debug")
+     
+     
+     for i,v in pairs(qpgoal["goals"]) do
+          goalvarname = i
+          for j,k in pairs(v) do
+               if j == "goal" then
+                    goalvargoal = k
+               elseif j == "type" then
+                    goalvartype = k
+                         
+                    if k == "tps" then
+                         goalhave = qpgoal.ttp
+                    elseif k == "qps" then
+                         goalhave = qpgoal.tqp
+                    elseif k == "gold" then
+                         goalhave = qpgoal.tgold
+                    elseif k == "trains" then
+                         goalhave = qpgoal.ttrain
+                    elseif k == "bank" then
+                         goalhave = qpgoal.tbank
+                    elseif k == "pracs" then
+                         goalhave = qpgoal.tpracs
+                    end
+               end
+          end
+          
+          
+          if first == "list" then
+               hadarprint("You are currently working to:")
+               for t,m in pairs (qpgoal["goals"]) do
+                    hadarprint(t)
+               end
+               return
+          end
+          
+          
+          hadarprint("qpsgoalView "..first.."="..goalvartype,"debug")
+          
+          if first == goalvartype then
+               local dothis = (goalvargoal - goalhave)
+               makeoutput(goalvarname,goalvargoal,goalvartype,goalhave,dothis)
+          elseif first == "all" then
+               local dothis = (goalvargoal - goalhave)
+               makeoutput(goalvarname,goalvargoal,goalvartype,goalhave,dothis)
+          end
+     end
+end
+
+function makeoutput(n,g,t,h,q)
+     qpgoal.message = interp(qpgoal.data,{name = n, goal = g, type = t, have = h, total = q})
+     local c = string.lower(qpgoal.Channel)
+
+     hadarprint("qpgoal.tqp:"..qpgoal.tqp.."g:"..g,"debug")
+     
+     if g <= qpgoal.tqp and t == "qps" and c == "echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.tqp and t == "qps" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g <= qpgoal.ttp and t == "tps" and c=="echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.ttp and t == "tps" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g <= qpgoal.tgold and t == "gold" and c=="echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.tgold and t == "gold" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g <= qpgoal.ttrain and t == "trains" and c=="echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.ttrain and t == "trains" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g <= qpgoal.tbank and t == "bank" and c=="echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.tbank and t == "bank" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g <= qpgoal.tpracs and t == "pracs" and c=="echo" then
+          hadarprint("@G"..utils.utf8encode("10003").." @w"..qpgoal.message)
+     elseif g <= qpgoal.tpracs and t == "pracs" and c~="echo" then
+          SendSpecial(qpgoal.Channel.." @G! @w"..qpgoal.message)
+     elseif g > qpgoal.tqp or g > qpgoal.ttp or g > qpgoal.tgold or g > qpgoal.ttrain or g > qpgoal.tpracs or g > qpgoal.bank then
+          SendSpecial(qpgoal.Channel.." "..qpgoal.message)
+     end
+
+end
+
+function qpsgoalDelete(str)
+	local first = str:match("(%w+)")
+     
+     hadarprint("goalsdelete first:"..first,"debug")
+	
+	if qpgoal["goals"][first] ~= nil then
+          hadarprint("@CG@coal @CT@cracker @RDeleting@w: "..first)
+		qpgoal["goals"][first] = nil
+	end
+     
+     SaveState()
+end
+
+
+
+function HadarHelp()
+	local s = [[
+@x086+-------------------------------------@g[@CG@coals@g]@x086----------------------------------+@w
+@x086|                                                                              @x086|
+@x086| @x130sAlias set <name> <amount> (type) @x123- @x136sets a goal with the name and amount    @x086|
+@x086|                                      @x136type is optional defaults to qps        @x086|
+@x086|                                     @x136 (valid types: tps, qps, trains, pracs,  @x086|
+@x086|                                                  @x136  gold, bank)               @x086|
+@x086|                                                                              @x086|
+@x086| @x142sAlias edit <name> <amount> (type) @x123 - @x154Edits a goal can't change name just     @x086|
+@x086|                                     @x154 amount and type                         @x086|
+@x086|                                                                              @x086|
+@x086| @x130sAlias delete <name>               @x123 - @x136Deletes the goal with that name        @x086 |
+@x086|                                                                              @x086|
+@x086| @x142sAlias channel <channel>           @x123 - @x154Changes the channel to output to default@x086|
+@x086|                                      @x154is echo                                 @x086|
+@x086|                                                                              @x086|
+@x086| @x130sAlias view (all|type|list)       @x123  -@x136 Shows either all goals or the type of   @x086|
+@x086|                                     @x136 goals outputs to the default channel    @x086|
+@x086|                                      @x136list just shows the names of the goal   @x086|
+@x086|                                                                              @x086|
+@x086| @x142sAlias output                      @x123 - @x154lets you change the output of view      @x086|
+@x086|                                                                              @x086|
+@x086|   @Wany issues please contact me via note/tell or on discord Zzyzzyzzx#0001    @x086|
+@x086+------------------------------------------------------------------------------+@w
+	]]
+	
+     
+	hadarprint(string.gsub(s,"sAlias",sAlias))
+end
+
+]]>
+</script> 
+
+</muclient>
