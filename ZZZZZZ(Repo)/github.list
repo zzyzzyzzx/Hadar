@@ -1,5 +1,7 @@
-https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/DiscordNotifications/Hadar_discord_webhook.xml
-https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/DoublePredictor/Hadar_Double_Predictor.xml
-https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ExcludeConsider/Hadars_consider.xml
-https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/GoalTracker/hadars_goal_tracker.xml
-https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/IdReport/reporter.xml
+{
+  [1] = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/DiscordNotifications/Hadar_discord_webhook.xml",
+  [2] = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/DoublePredictor/Hadar_Double_Predictor.xml",
+  [3] = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ExcludeConsider/Hadars_consider.xml",
+  [4] = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/GoalTracker/hadars_goal_tracker.xml",
+  [5] = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/IdReport/reporter.xml",
+}
