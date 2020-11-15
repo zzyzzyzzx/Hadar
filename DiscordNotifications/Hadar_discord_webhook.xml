@@ -100,9 +100,9 @@ Double exp to discord webhook
 <![CDATA[
 local json = require("json")
 local ltn12 = require("ltn12")
-local discordURL = "PUT WEBHOOK URL HERE!!!!"
+local discordURL = "WEBHOOK URL GOES HERE"
 async_ok, async = pcall (require, "async")
-thread = nil
+payload = {}
 
 function fifteendouble(name,line,wildcards)
 	discordSendMessage(wildcards[1],"15")
@@ -117,31 +117,32 @@ function hourdouble(name,line,wildcards)
 end
 
 function discordSendMessage(reason,time)
-if async_ok and not thread then
-   thread = async.request(discordURL, "HTTPS")
-end
-	local payload = {}
-	local body = {}
-	body["headers"]={}
-	
+   
 	if time == "60" then
-		payload["content"] = "@here "..time.." minutes of double thanks to "..reason
+		payload = {
+        username= reason,
+        embeds={{color=15844367,description="@here We have an hour of double!"}}}
 	else
-		payload["content"] = time.." minutes of double thanks to "..reason
+		payload = {
+        username= reason,
+        embeds={{color=15844367,description="We have "..time.."minutes of double!"}}}
 	end
-	payload["tts"] = false
 
-	retval, page, status, headers, full_status = thread:join()
-	thread = nil
-	if status == 200 then -- 200 is the HTTP status code for "OK"
-	local encode = json.encode(payload)
-	
-	
-	body.headers["content-type"] = "application/json"
-	body["source"] = encode
-	
+if async_ok then
+     async.doAsyncRemoteRequest(discordURL, is_alive, "HTTPS")
+end--end async_ok
+end
 
-	async.doAsyncRemoteRequest(discordURL, result_function, "HTTPS", 120, timeout_function, body)
+function is_alive(retval, page, status, headers, full_status, requested_url, request_body)
+     if status == 200 then -- 200 is the HTTP status code for "OK"
+          local body = {}
+          body["headers"]={}
+          local encode = json.encode(payload)
+	
+          body.headers["content-type"] = "application/json"
+          body["source"] = encode
+
+          async.doAsyncRemoteRequest(discordURL, result_function, "HTTPS", 120, timeout_function, body)
 
 	else
 		print("access error")
