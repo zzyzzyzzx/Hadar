@@ -11,15 +11,10 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.00"
+   version="2.09"
    >
 
 </plugin>
-
-
-<!--  Get our standard constants -->
-
-<include name="constants.lua"/>
 
 <!--  Triggers
 
@@ -100,6 +95,16 @@
   >
 </trigger>
 
+<trigger
+   enabled="y"
+   match="^A full appraisal will reveal further information on this item\.$"
+   omit_from_output="y"
+   regexp="y"
+   sequence="100"
+  >
+</trigger>
+
+
 </triggers>
 
 <!-- Alias
@@ -117,17 +122,16 @@
 </aliases>
  -->
  <aliases>
-  <alias
-   match="^idshow\s?(\d+|all)\s?(.*)?$"
+   <alias
+   match="^hid ?(.*)?"
    enabled="y"
    regexp="y"
    sequence="100"
    send_to="12"
-   script="showid"
+   script="hidMain"
   >
   </alias>
-  
-    <alias match="^(?:had|hid) help$"
+  <alias match="^had help$"
 	enabled="y"
 	sequence="100"
 	send_to="12"
@@ -136,82 +140,6 @@
 	>
 	<send>
 		HadarHelp()
-	</send>
-	</alias>
-	
-	<alias
-	match="^idchannel\s?(\w+)?$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="setreportchannel"
-	>
-	</alias>
-	
-	<alias
-	match="^idauto$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="toggleAutoID"
-	>
-	</alias>
-	
-	<alias
-	match="^idwords$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="setreportwords"
-	>
-	</alias>
-	
-	<alias
-	match="^idbeeps$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="toggleannoying"
-	>
-	</alias>
-	
-	<alias
-	match="^idset$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="setOutput"
-	>
-	</alias>
-	
-	<alias
-	match="^idmax\s?(\d+)?$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="idmax"
-	>
-	</alias>
-	
-	<alias
-	match="^idsethelp$"
-	enabled="y"
-	regexp="y"
-	sequence="100"
-	script="hadarhelptwo"
-	>
-	</alias>
-	
-	<alias match="^id\s(.*)"
-	enabled="y"
-	sequence="100"
-	send_to="12"
-	regexp="y"
-	keep_evaluating="y"
-	>
-	<send>
-		EnableTriggerGroup("idCap", true)
-		SendSpecial("identify %1")
 	</send>
 	</alias>
 </aliases>
@@ -225,6 +153,9 @@ require "tprint"
 
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
+local overwriteChannel = "echo"
+local OldChannel = nil
+
 
 function OnPluginSaveState ()
 	SetVariable ("idreport", "idreport = " .. serialize.save_simple (idreport))
@@ -234,9 +165,9 @@ end -- function OnPluginSaveState
 function hadarprint(str,level)
 	level = level or "script"
 	if level == "debug" and idreport.debug == 1 then
-		AnsiNote(stylesToANSI(ColoursToStyles(str)))
+		AnsiNote(ColoursToANSI(str))
 	else
-		AnsiNote(stylesToANSI(ColoursToStyles(str)))
+		AnsiNote(ColoursToANSI(str))
 	end
 	
 end
@@ -268,27 +199,101 @@ end
 
 function buildInitial()
 
-	idreport.output = "${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
-	
-	idreport.maxid = 20
+	idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+     
+     
+	idreport.maxid = 25
 	idreport.currentid = 1
 	idreport.annoying = "no"
 	idreport.channel = "echo"
 	idreport.autoid = "yes"
-	idreport.bidnum = 0
-	idreport.rbidnum = 0
-	idreport.lbidnum = 0
+	report.bidnum = 0
+	report.rbidnum = 0
+	report.lbidnum = 0
 	idreport.iddebug = 0 --change this to 1 if you want to 100% reset your scripts variables
 	
 end
 
-function split (input)
-		sep = "|"
-        local t={}
-        for str in string.gmatch(input, "([^"..sep.."]+)") do
-                table.insert(t, str)
-        end
-        return t
+function hidMain(n,l,w)
+	local first, rest = w[1]:match("(%w+)%s*(.*)")
+
+	
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     
+     first = tonumber(first) or string.lower(first)
+     
+
+	if first == "help" then
+          HadarHelp(rest)
+	elseif first == "channel" then
+		setreportchannel(rest)
+	elseif first == "autoid" then
+		toggleAutoID()
+     elseif first == "words" then
+          setreportwords()
+     elseif first == "beep" then
+          toggleannoying()
+     elseif first == "set" then
+          setOutput()
+     elseif first == "max" then
+          idmax(rest)
+     elseif first == "reset" then
+          hadarreset()
+     elseif first == "fullreset" then
+          if rest == "confirm" then
+               hadarresetfull()
+          else
+               hadarprint("@yIf you are sure you would to fully reset and lose all data please do: @Rhid fullreset confirm")
+          end
+     elseif first == "all" then
+          showid("all","blank")
+     elseif first == "id" then
+          EnableTriggerGroup("idCap", true)
+		SendSpecial("identify "..rest)
+     elseif type(first) == "number" then
+          showid(first,rest)
+     else
+          EnableTriggerGroup("idCap", true)
+		SendSpecial("identify "..first)
+          
+          if rest == nil or rest == "" or rest == " " then
+               overwriteChannel = idreport.channel
+          else
+               overwriteChannel = rest
+          end
+	end
+
+end --end of qpsgoalMain() 
+
+
+function hadarreset()
+     hadarprint("@Yif this was a mistake your output was:@W")
+     print(idreport.output)
+     idreport.output = "${@GBID:@w|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+     hadarprint("@CReport output set to original")
+end
+
+function hadarresetfull()
+     report = {}
+	idreport = {}
+     
+     idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+     
+     
+	idreport.maxid = 25
+	idreport.currentid = 1
+	idreport.annoying = "no"
+	idreport.channel = "echo"
+	idreport.autoid = "yes"
+	report.bidnum = 0
+	report.rbidnum = 0
+	report.lbidnum = 0
+	idreport.iddebug = 0 --change this to 1 if you want to 100% reset your scripts variables
+     hadarprint("@CReport script fully reset")
 end
 
 
@@ -301,7 +306,7 @@ local workingon = 0
 		return (s:gsub('($%b{})',
 			function(w)
 				if w:find("|") then
-					for i,v in pairs(split(triminterp(w))) do
+					for i,v in pairs(utils.split(triminterp(w),"|")) do
 						if i == 1 and tab[v] ~= nil then
 							if v == "score" and tonumber(tab[v]) > 0 then
 								stringone = tab[v]
@@ -317,9 +322,9 @@ local workingon = 0
 							workingon = 2
 						elseif i == 2 and stringtwo ~= nil and tab[v] ~= nil and workingon == 2 then
 							if v == "score" and tonumber(tab[v]) > 0 then
-								return stringtwo .. tab[v] or "pigs"
+								return stringtwo .. tab[v]
 							elseif v ~= "score" then
-								return stringtwo .. tab[v] or "monkies"
+								return stringtwo .. tab[v]
 							end
 						else
 							--print("could not find I:"..i .." V:" .. v)
@@ -338,16 +343,20 @@ function triminterp(s)
 			return(string)
 end
 
-function trim(s)
-			return s:find'^%s*$' and '' or s:match'^%s*(.*%S)'
-end
-
 function infoCap(name, line, wildcards, styles)
 
 	if string.find(wildcards[1],"Name%s+:") then
 		local cname = StylesToColoursOneLine(styles)
+          local lastnum = 0
 		
-		report.coloredname = trim(string.sub(cname,string.find(cname, ":")+1,string.find(cname, " |")))
+          
+          if string.find(cname, " |") then
+               lastnum = string.find(cname, " |")
+          else
+               lastnum = string.find(cname, " @w|")
+          end
+          
+		report.coloredname = Trim(string.sub(cname,string.find(cname, ":")+1,lastnum))
 	end
 
 
@@ -358,7 +367,7 @@ function infoCap(name, line, wildcards, styles)
   isPartialId = string.find(line, "A full appraisal will reveal further information on this item")
 
   _, _, id = string.find(line, "Id%s+:%s+(%d+)%s+")
-  _, _, name = string.find(line, "Name%s+:%s+(.-)%s+|")
+  _, _, name = string.find(line, "Name%s+:%s+(.+)%s+|")
   _, _, level = string.find(line, "Level%s+:%s+(%d+)%s+")
   _, _, weight = string.find(line, "Weight%s+:%s+([0-9,-]+)%s+")
   _, _, wearable = string.find(line, "Wearable%s+:%s+(.*) %s+")
@@ -661,82 +670,182 @@ function infoCap(name, line, wildcards, styles)
 
   if (acid ~= nil) then
     report.Acid = acid
+    if report.resistAll == nil then
+          report.resistAll = "Acid:"..acid
+     else
+          report.resistAll = report.resistAll.." ,Acid:"..acid
+    end
   end -- if
 
   if (cold ~= nil) then
     report.Cold = cold
+    if report.resistAll == nil then
+          report.resistAll = "Cold:"..cold
+    else
+          report.resistAll = report.resistAll.." ,Cold:"..cold
+    end
   end -- if
 
   if (energy ~= nil) then
     report.Energy = energy
+    if report.resistAll == nil then
+          report.resistAll = "Energy:"..energy
+     else
+          report.resistAll = report.resistAll.." ,Energy:"..energy
+    end
   end -- if
 
   if (holy ~= nil) then
     report.Holy = holy
+     if report.resistAll == nil then
+          report.resistAll = "Holy:"..holy
+     else
+          report.resistAll = report.resistAll.." ,Holy:"..holy
+    end
   end -- if
 
   if (electric ~= nil) then
     report.Electric = electric
+        if report.resistAll == nil then
+          report.resistAll = "Electric:"..electric
+     else
+          report.resistAll = report.resistAll.." ,Electric:"..electric
+    end
   end -- if
 
   if (negative ~= nil) then
     report.Negative = negative
+        if report.resistAll == nil then
+          report.resistAll = "Negative:"..negative
+     else
+          report.resistAll = report.resistAll.." ,Negative:"..negative
+    end
   end -- if
 
   if (shadow ~= nil) then
     report.Shadow = shadow
+        if report.resistAll == nil then
+          report.resistAll = "Shadow:"..shadow
+     else
+          report.resistAll = report.resistAll.." ,Shadow:"..shadow
+    end
   end -- if
 
   if (magic ~= nil) then
     report.Magic = magic
+        if report.resistAll == nil then
+          report.resistAll = "Magic:"..magic
+     else
+          report.resistAll = report.resistAll.." ,Magic:"..magic
+    end
   end -- if
 
   if (air ~= nil) then
     report.Air = air
+        if report.resistAll == nil then
+          report.resistAll = "Air:"..air
+     else
+          report.resistAll = report.resistAll.." ,Air:"..air
+    end
   end -- if
 
   if (earth ~= nil) then
     report.Earth = earth
+        if report.resistAll == nil then
+          report.resistAll = "Earth:"..earth
+     else
+          report.resistAll = report.resistAll.." ,Earth:"..earth
+    end
   end -- if
 
   if (fire ~= nil) then
     report.Fire = fire
+        if report.resistAll == nil then
+          report.resistAll = "Fire:"..fire
+     else
+          report.resistAll = report.resistAll.." ,Fire:"..fire
+    end
   end -- if
 
   if (light ~= nil) then
     report.Light = light
+        if report.resistAll == nil then
+          report.resistAll = "Light:"..light
+     else
+          report.resistAll = report.resistAll.." ,Light:"..light
+    end
   end -- if
 
   if (mental ~= nil) then
     report.Mental = mental
+        if report.resistAll == nil then
+          report.resistAll = "Mental:"..mental
+     else
+          report.resistAll = report.resistAll.." ,Mental:"..mental
+    end
   end -- if
 
   if (sonic ~= nil) then
     report.Sonic = sonic
+        if report.resistAll == nil then
+          report.resistAll = "sonic:"..sonic
+     else
+          report.resistAll = report.resistAll.." ,Sonic:"..sonic
+    end
   end -- if
 
   if (water ~= nil) then
     report.Water = water
+        if report.resistAll == nil then
+          report.resistAll = "Water:"..water
+     else
+          report.resistAll = report.resistAll.." ,Water:"..water
+    end
   end -- if
 
   if (poison ~= nil) then
     report.Poison = poison
+        if report.resistAll == nil then
+          report.resistAll = "Poison:"..poison
+     else
+          report.resistAll = report.resistAll.." ,Poison:"..poison
+    end
   end -- if
 
   if (disease ~= nil) then
     report.Disease = disease
+        if report.resistAll == nil then
+          report.resistAll = "Disease:"..disease
+     else
+          report.resistAll = report.resistAll.." ,Disease:"..disease
+    end
   end -- if
 
   if (slash ~= nil) then
     report.Slash = slash
+        if report.resistAll == nil then
+          report.resistAll = "Slash:"..slash
+     else
+          report.resistAll = report.resistAll.." ,Slash:"..slash
+    end
   end -- if
 
   if (pierce ~= nil) then
     report.Pierce = pierce
+        if report.resistAll == nil then
+          report.resistAll = "Pierce:"..pierce
+     else
+          report.resistAll = report.resistAll.." ,Pierce:"..pierce
+    end
   end -- if
 
   if (bash ~= nil) then
     report.Bash = bash
+        if report.resistAll == nil then
+          report.resistAll = "Bash:"..bash
+     else
+          report.resistAll = report.resistAll.." ,Bash:"..bash
+    end
   end -- if
 
   if (avedam ~= nil) then
@@ -862,6 +971,7 @@ end
 function makeOutput()
 		local msg = interp(idreport.output,{
 		  id = report.Id
+          , repid = idreport.currentid
 		, name = report.coloredname
 		, lvl = report.Level
 		, weight = report.Weight
@@ -909,6 +1019,7 @@ function makeOutput()
 		, specials = report.Specials
 		, flagsall = report.Flags
 		, flagsenchant = report.enchanting
+          , resistall = report.resistAll
 		, acid = report.Acid
 		, cold = report.Cold
 		, energy = report.Energy
@@ -940,64 +1051,58 @@ function makeOutput()
 		, enchantillum = report.enchantingIllum
 		, enchantillumyes = report.enchantIllumyes
 		, enchantillumno = report.enchantIllumno
-
+          , bidnum = report.bidNum
+          , rbidnum = report.rbidNum
+          , lbidnum = report.lbidNum
 	})
+     
+     OldChannel = idreport.channel
+     idreport.channel = overwriteChannel
+
+     
 		
 	if tonumber(idreport.currentid)<=tonumber(idreport.maxid) then
-		
-		if tonumber(idreport.bidnum) > 0 then	
-			idreport[idreport.currentid] = "[BID:".. idreport.bidnum.."] "..msg
-		elseif tonumber(idreport.rbidnum) > 0 then
-			idreport[idreport.currentid] = "[RBID:".. idreport.bidnum.."] "..msg
-		else
-			idreport[idreport.currentid] = msg
-		end
+		idreport[idreport.currentid] = msg
 		idreport.currentid = tonumber(idreport.currentid)+1
 	else
-		if tonumber(idreport.bidnum) > 0 then	
-			idreport[1] = "[BID:".. idreport.bidnum.."] "..msg
-		else
-			idreport[1] = msg
-		end
+          idreport[1] = msg
 		idreport.currentid = 2
 	end
-	
-	
-	if tonumber(idreport.bidnum) > 0 then	
-		SendSpecial(idreport.channel .. " [BID:".. idreport.bidnum.."] " .. msg)
-	elseif tonumber(idreport.rbidnum) > 0 then
-		SendSpecial(idreport.channel .. " [RBID:".. idreport.rbidnum.."] " .. msg)
-	elseif tonumber(idreport.lbidnum) > 0 then
-		SendSpecial(idreport.channel .. " [LBID:".. idreport.lbidnum.."] " .. msg)
-	else
-		SendSpecial(idreport.channel .. " " .. msg)
-	end
+     
+     
+	SendSpecial(idreport.channel .. " " .. msg)
 
-	idreport.bidnum = 0
-	idreport.rbidnum = 0
-	idreport.lbidnum = 0
+     idreport.channel = OldChannel
+     overwriteChannel = OldChannel
+     OldChannel = nil
+    
+     
+     
+	report.bidnum = 0
+	report.rbidnum = 0
+	report.lbidnum = 0
+     report.resistAll = nil
 	EnableTriggerGroup("idCap", false)
 	report = {}
 end--end makeOutput()
 
-function showid(name, line, wildcards)
-local one = wildcards[1]
-local two = wildcards[2]
-local showidchannel = "echo"
+function showid(id, params)
 
-if two ~= nil and two ~= " " and two ~= "" then
-	showidchannel = two
-end
+     local showidchannel = "echo"
 
-	if one == "all" then
+     if params ~= nil and params ~= " " and params ~= "" then
+          showidchannel = params
+     end
+
+	if id == "all" then
 		for i,v in pairs(idreport) do
 			if tonumber(i) and tonumber(i) <= tonumber(idreport.maxid) then
 				AnsiNote(stylesToANSI(ColoursToStyles("@WID: "..i.." Has data: @C".. v)))
 			end
 		end
-	elseif tonumber(one) >= 1  and tonumber(one) <= idreport.maxid then
-		if idreport[tonumber(one)] ~= nil then
-			SendSpecial(showidchannel .. " " .. idreport[tonumber(one)])
+	elseif tonumber(id) >= 1  and tonumber(id) <= idreport.maxid then
+		if idreport[tonumber(id)] ~= nil then
+			SendSpecial(showidchannel .. " " .. idreport[tonumber(id)])
 		else
 			print("that does not exist, please try a different number")
 		end
@@ -1006,12 +1111,18 @@ end
 	end
 end
 
-function setreportchannel(name, line, wildcards)
-	if wildcards[1] ~= nil and wildcards[1] ~= "" and wildcards[1] ~= " " then
-		idreport.channel = wildcards[1]
-		ColourNote("Teal","","Level Report channel set to "..idreport.channel)
+function setreportchannel(params)
+
+     if type(params)~="string" then
+          return
+     end
+     
+	if params ~= nil and params ~= "" and params ~= " " then
+		idreport.channel = params
+          hadarprint("@cLevel Report channel set to @G"..idreport.channel)
 	else
-		ColourNote("Teal","","To set channel please do idchannel <channelname>")
+		hadarprint("@cYour current channel is @G"..idreport.channel)
+          hadarprint("@cTo set channel please do hid channel <channelname>")
 	end
 end
 
@@ -1030,10 +1141,10 @@ end
 function toggleannoying()
 	if idreport.annoying == "yes" then
 		idreport.annoying = "no"
-		SendSpecial("echo @CTrigger Matching turned: @ROFF@w")
+          hadarprint("@CTrigger Matching turned: @ROFF@w")
 	else
 		idreport.annoying = "yes"
-		SendSpecial("echo @CTrigger Matching turned: @GON@w")
+          hadarprint("@CTrigger Matching turned: @GON@w")
 	end
 end
 
@@ -1041,7 +1152,7 @@ function setreportwords()
 	local HadarBackup = idreport["callout"]
 	idreport["callout"] = utils.inputbox ("Please put trigger words here to activate beeping\nplease seperate words with a comma \",\"", "Set trigger words", idreport["callout"], "Courier", 9)
 	if idreport["callout"] ~= nil then
-		SendNoEcho("echo beep trigger words are: "..idreport["callout"])
+          hadarprint("@Cbeep trigger words are@w: "..idreport["callout"])
 	else
 		idreport["callout"] = HadarBackup
 	end
@@ -1050,30 +1161,21 @@ end
 
 function isinList(str)
 	if idreport["callout"] == nil or idreport["callout"] == "" or idreport["callout"] == " " then
-		print("please add a word, or words to your trigger (idwords)")
+          hadarprint("please add a word, or words to your trigger (hid word)")
 		return
 	end
-	for i,v in pairs(asplit(idreport["callout"])) do
+	for i,v in pairs(utils.split(idreport["callout"],",")) do
 		if string.find(string.lower(str),string.lower(v)) then
 			return true
 		end	
 	end
 end
 
-function asplit (input)
-		sep = ","
-        local t={}
-        for str in string.gmatch(input, "([^"..sep.."]+)") do
-                table.insert(t, str)
-        end
-        return t
-end
-
 function setOutput()
 	local HadarBackup = idreport.output
 	idreport.output = utils.inputbox ("This has a ton of variables, i suggest looking at hid help and going to the website","Look of hadars Identification", idreport.output, "Courier", 9)
 	if idreport.output ~= nil then
-		SendNoEcho("echo id report has the following format: "..idreport.output)
+          hadarprint("id report has the following format:"..idreport.output)
 	else
 		idreport.output = HadarBackup
 	end
@@ -1083,34 +1185,34 @@ end
 function toggleAutoID()
 	if idreport.autoid == "yes" then
 		idreport.autoid = "no"
-		SendSpecial("echo @CAuto-ID turned: @ROFF@w")
+          hadarprint("@CAuto-ID turned: @ROFF@w")
 	else
 		idreport.autoid = "yes"
-		SendSpecial("echo @CAuto-ID turned: @GON@w")
+          hadarprint("@CAuto-ID turned: @GON@w")
 	end
 end
 
 function autoidenta(name, line, wildcards)
 	if idreport.autoid == "yes" then
 		EnableTriggerGroup("idCap", true)
-		idreport.bidnum = wildcards[1]
-		SendSpecial("bid "..idreport.bidnum)
+		report.bidNum = wildcards[1]
+		SendSpecial("bid "..report.bidNum)
 	end
 end
 
 function autoidentr(name, line, wildcards)
 	if idreport.autoid == "yes" then
 		EnableTriggerGroup("idCap", true)
-		idreport.rbidnum = wildcards[1]
-		SendSpecial("rbid "..idreport.rbidnum)
+		report.rbidNum = wildcards[1]
+		SendSpecial("rbid "..report.rbidNum)
 	end
 end
 
 function autoidentl(name, line, wildcards)
 	if idreport.autoid == "yes" then
 		EnableTriggerGroup("idCap", true)
-		idreport.lbidnum = wildcards[1]
-		SendSpecial("lbid "..idreport.lbidnum)
+		report.lbidNum = wildcards[1]
+		SendSpecial("lbid "..report.lbidNum)
 	end
 end
 
@@ -1118,67 +1220,70 @@ function idmax(name, line, wildcards)
 	if tonumber(wildcards[1]) then
 		idreport.maxid = wildcards[1]
 	else
-		print("please input a valid number")
+          hadarprint("@RPlease input a valid number@w")
 	end
 end
 
 
-function HadarHelp()
-local s = [[
-@x086+--------------------------------------------------------@g[@x051I@cdentify@g]@x086-------------------------------------------------------+
-@x086|                                                                                                                         |
-@x086| @x130id <item> <paramaters>        @x123- @x136activates the script and IDs the items.                                                 @x086|
-@x086| @x142idchannel <channel>           @x123- @x154set channel for default reporting                                                       @x086|
-@x086| @x130autoid                        @x123- @x136toggles auto identifing bids, rauction and market                                       @x086|
-@x086| @x142idbeeps                       @x123- @x154toggles trigger words for beeps/icon flashing                                           @x086|
-@x086| @x130idwords                       @x123- @x136lets you make a list of words for idbeeps                                               @x086|
-@x086| @x142idshow <number/all> <channel> @x123- @x154Lets you see past Ids use with idsetmax, all shows all IDS                              @x086|
-@x086| @x130idsetmax <number>             @x123- @x136change the max ids to keep in history, default is 20                                    @x086|
-@x086| @x142idset                         @x123- @x154will let you hadarmagic the output, type idsethelp for a helpfile with all variables    @x086|
-@x086|                                                                                                                         |
-@x086|                 @WIf you have any issues please contact me via note/tell or on discord Zzyzzyzzx#0001                     @x086|
-@x086+-------------------------------------------------------------------------------------------------------------------------+
+function HadarHelp(param)
+local helpfile
 
+print(GetInfo(281))
 
+if param == "1" or param == "" or param == " " or param == nil then
+helpfile = [[
+@x086+----------------------------------@g[@x051I@cdentify@g]@x086---------------------------------+
+@x086|                                                                             @x086|
+@x086| @x130hid <paramaters> @x123- @x136command to use the script                                @x086|
+@x086| @x142hid channel <channel> @x123- @x154set channel for default reporting                   @x086|
+@x086| @x130hid autoid @x123- @x136toggles auto identifing bids, rauction and market              @x086|
+@x086| @x142hid beep @x123- @x154toggles trigger words for beeps/icon flashing                    @x086|
+@x086| @x130hid words @x123- @x136lets you make a list of words for idbeeps                       @x086|
+@x086| @x142hid <id|all> <channel> @x123- @x154Lets you see past Ids use with hid max             @x086|
+@x086|                          @x154all shows all IDS                                  @x086|
+@x086| @x130hid max <number> @x123- @x136change the max ids to keep in history, default is 20     @x086|
+@x086| @x142hid set @x123- @x154will let you hadarmagic the output, type hid help2 for a helpfile @x086|
+@x086|           @x154with all variables                                                @x086|
+@x086| @x130hid reset @x123- @x136sets hadarmagic output back to the original default             @x086|
+@x086| @x142hid fullreset @x123- @x154resets the script to install status (no coming back)        @x086|
+@x086|                                                                             @x086|
+@x086|                                                                             @x086|
+@x086| To Customize the script please read the following:                          @x086|
+@x086| @x130hid help 2 @x123- @x136shows the second helpfile with all the variables               @x086|
+@x086| @x142hid help 3 @x123- @x154shows the third helpfile with variables                        @x086|
+@x086| @x130hid help 4 @x123- @x136shows the third helpfile with variables                        @x086|
+@x086| @x142hid help 5 @x123- @x154shows the third helpfile with variables                        @x086|
+@x086| @x130hid help 6 @x123- @x136shows the third helpfile with variables                        @x086|
+@x086| @x142hid help examples @x123- @x154shows the second helpfile with all the variables        @x086|
+@x086|                                                                             @x086|
+@x086|    @WIf you have any issues please contact me via note/tell or on discord     @x086|
+@x086+-----------------------------------------------------------------------------+
 ]]
-hadarprint(s)
-end
-
-function hadarhelptwo()
-	local s = [[
-@x099+------------------------------------------[Identify Set]------------------------------------------+
-@x099| @x009idset    @x099-@x222 will let you hadarmagic the output, type idsethelp for a helpfile with all variables  @x099|
-@x099|                                                                                                  @x099|
-@x099| @x015                       to use a variable just do it like this: ${variable}                       @x099|
-@x099| @x015            EG: ${name} will display item name, you can also do something like this:             @x099|
-@x099| @x015           ${Name:|name} or ${name|:Name} ... will auto hide the field when not in use           @x099|
-@x099|                                                                                                  @x099|
-@x099| @x009Variable:         @x099-@x222 @x009Description:                                                                 @x099|   
-@x099| @x002id                @x099-@x214 id number of the item                                                        @x099|
-@x099| @x010name              @x099-@x222 name of the item (in color)                                                  @x099|
-@x099| @x002lvl               @x099-@x214 the level of the item                                                        @x099|
-@x099| @x010weight            @x099-@x222 total weight of the item                                                     @x099|
-@x099| @x002wearable          @x099-@x214 location item can be worn                                                    @x099|
-@x099| @x010score             @x099-@x222 the score of an item based off your settings                                 @x099|
-@x099| @x002keywords          @x099-@x214 item keywords                                                                @x099|
-@x099| @x010type              @x099-@x222 what is the type of item (eg armor, weapon, scroll)                          @x099|
-@x099| @x002worth             @x099-@x214 total cost of the item                                                       @x099|
-@x099| @x010totalstat         @x099-@x222 total stats of the item                                                      @x099|
-@x099| @x002material          @x099-@x214 what the material is made out of                                             @x099|
-@x099| @x010affmod            @x099-@x222 the modifiers affecting the item                                             @x099|
-@x099| @x002foundat           @x099-@x214 what area the item is from                                                   @x099|
-@x099| @x010spelluse          @x099-@x222 what the first spell on a potion/scroll does                                 @x099|
-@x099| @x002spellname         @x099-@x214 name of the first spell on a potion/scroll                                   @x099|
-@x099| @x010spelllevel        @x099-@x222 level of the first spell on a potion/scroll                                  @x099|
-@x099| @x002leadsto           @x099-@x214 where a portal goes                                                          @x099|
-@x099| @x010capacity          @x099-@x222 max amount of items the container can hold                                   @x099|
-@x099| @x002holding           @x099-@x214 how many items that are in the container                                     @x099|
-@x099| @x010heavyitem         @x099-@x222 heaviest item in the container                                               @x099|
-@x099| @x002itemsinside       @x099-@x214 how many items in a container                                                @x099|
-@x099| @x010totweight         @x099-@x222 total weight of the container                                                @x099|
-@x099| @x002itemburden        @x099-@x214 shows how many items are in a container                                      @x099|
-@x099| @x010weightred         @x099-@x222 shows weight reduction from a container                                      @x099|
-@x099| @x002clan              @x099-@x214 reports what clan its from                                                   @x099|
+elseif param == "2" then
+helpfile = [[
+@x086+----------------------------------@g[@x051I@cdentify@g]@x086---------------------------------+
+ 
+@x099| @x009Variable:         @x099-@x222 @x009Description:                       @x099|
+@x099| @x002id                @x099-@x214 id number of the item                   @x099|
+@x099| @x010name              @x099-@x222 name of the item (in color)             @x099|
+@x099| @x002lvl               @x099-@x214 the level of the item                   @x099|
+@x099| @x010weight            @x099-@x222 total weight of the item                @x099|
+@x099| @x002wearable          @x099-@x214 location item can be worn               @x099|
+@x099| @x010score             @x099-@x222 the score of an item based off your     @x099|
+                                    @x222settings                                 @x099|
+@x099| @x002keywords          @x099-@x214 item keywords                           @x099|
+@x099| @x010type              @x099-@x222 what is the type of item                @x099|
+                                    @x222(eg armor, weapon, scroll)               @x099|
+@x099| @x002worth             @x099-@x214 total cost of the item                  @x099|
+@x099| @x010totalstat         @x099-@x222 total stats of the item                 @x099|
+@x099| @x002material          @x099-@x214 what the material is made out of        @x099|
+@x099| @x002foundat           @x099-@x214 what area the item is from              @x099|
+@x099|                                                                            @x099|
+@x099|@WIf you have any issues please contact me via note/tell or on discord      @x099|
+@x086+-----------------------------------------------------------------------------+
+]]
+elseif param == "3" then
+     helpfile = [[
 @x099| @x010int               @x099-@x222 shows Strength on the item                                                   @x099|
 @x099| @x002wis               @x099-@x214 shows Wisdom on the item                                                     @x099|
 @x099| @x010dex               @x099-@x222 shows Dexterity on the item                                                  @x099|
@@ -1196,15 +1301,12 @@ function hadarhelptwo()
 @x099| @x010tempdex           @x099-@x222 shows temporary Dexterity on the item                                        @x099|
 @x099| @x002tempcon           @x099-@x214 shows temporary Constitution stat on the item                                @x099|
 @x099| @x010templuck          @x099-@x222 shows temporary Luck on the item                                             @x099|
-@x099| @x002inflicts          @x099-@x214 shows temporary what the weapon inflicts                                     @x099|
-@x099| @x010damtype           @x099-@x222 shows the damage type of a weapon                                            @x099|
-@x099| @x002weaponyype        @x099-@x214 reports a wepons type                                                        @x099|
-@x099| @x010specials          @x099-@x222 reports a special flag on a weapon                                           @x099|
-@x099| @x002flagsall          @x099-@x214 shows all flags on the item                                                  @x099|
-@x099| @x010flagsenchant      @x099-@x222 only shows enchanting flags                                                  @x099|
-@x099| @x002<resistance name> @x099-@x214 shows resistance of an item just use its name, EG bash or pierce             @x099|
 @x099| @x010avedam            @x099-@x222 reports a weapons average damage                                             @x099|
 @x099| @x002tmpAvedam         @x099-@x214 reports an average damage that is temperary(like temper)                     @x099|
+]]
+elseif param == "4" then
+     helpfile = [[
+@x099| @x010flagsenchant      @x099-@x222 only shows enchanting flags                                                  @x099|
 @x099| @x010enchantsolid      @x099-@x222 pre colors the item based on solidify green for go red for no                @x099|
 @x099| @x002enchantsolidyes   @x099-@x214 lets you color your own solidify if you can solidify the item                @x099|
 @x099| @x010enchantsolidno    @x099-@x222 lets you color your own solidify if you cant solidify the item               @x099|
@@ -1214,6 +1316,50 @@ function hadarhelptwo()
 @x099| @x010enchantillum      @x099-@x222 pre colors the item based on illumination either green for go or red for no  @x099|
 @x099| @x002enchantillumyes   @x099-@x214 lets you color your own illumination if you can illuminate the item          @x099|
 @x099| @x010enchantillumno    @x099-@x222 lets you color your own illumination if you cant illuminate the item         @x099|
+]]
+elseif param == "5" then
+     helpfile = [[
+@x099| @x010spelluse          @x099-@x222 what the first spell on a potion/scroll does                                 @x099|
+@x099| @x002spellname         @x099-@x214 name of the first spell on a potion/scroll                                   @x099|
+@x099| @x010spelllevel        @x099-@x222 level of the first spell on a potion/scroll                                  @x099|
+@x099| @x002inflicts          @x099-@x214 shows temporary what the weapon inflicts                                     @x099|
+@x099| @x010damtype           @x099-@x222 shows the damage type of a weapon                                            @x099|
+@x099| @x002weaponyype        @x099-@x214 reports a wepons type                                                        @x099|
+@x099| @x010specials          @x099-@x222 reports a special flag on a weapon                                           @x099|
+]]
+elseif param == "6" then
+     helpfile = [[
+@x099| @x010affmod            @x099-@x222 the modifiers affecting the item                                             @x099|
+@x099| @x002leadsto           @x099-@x214 where a portal goes                                                          @x099|
+@x099| @x010capacity          @x099-@x222 max amount of items the container can hold                                   @x099|
+@x099| @x002holding           @x099-@x214 how many items that are in the container                                     @x099|
+@x099| @x010heavyitem         @x099-@x222 heaviest item in the container                                               @x099|
+@x099| @x002itemsinside       @x099-@x214 how many items in a container                                                @x099|
+@x099| @x010totweight         @x099-@x222 total weight of the container                                                @x099|
+@x099| @x002itemburden        @x099-@x214 shows how many items are in a container                                      @x099|
+@x099| @x010weightred         @x099-@x222 shows weight reduction from a container                                      @x099|
+@x099| @x002clan              @x099-@x214 reports what clan its from                                                   @x099|
+@x099| @x002flagsall          @x099-@x214 shows all flags on the item                                                  @x099|
+@x099| @x002<resistance name> @x099-@x214 shows resistance of an item just use its name, EG bash or pierce             @x099|
+]]
+elseif param == "examples" then
+end
+hadarprint(helpfile)
+end
+
+
+function HadarHelpTwo()
+	local s = [[
+@x099+------------------------------------------[Identify Set]------------------------------------------+
+@x099| @x009hid help examples    @x099-@x222 Will show you different examples  @x099|
+@x099|                                                                                                  @x099|
+@x099| @x015                       to use a variable just do it like this: ${variable}                       @x099|
+@x099| @x015            EG: ${name} will display item name, you can also do something like this:             @x099|
+@x099| @x015           ${Name:|name} or ${name|:Name} ... will auto hide the field when not in use           @x099|
+@x099|                                                                                                  @x099|
+@x099| @x009Variable:         @x099-@x222 @x009Description:                                                                 @x099|   
+
+
 @x099+--------------------------------------------------------------------------------------------------+@x000
 ]]
 	hadarprint(s)
