@@ -271,12 +271,6 @@ end
 --								         Start Main Stuff										  --
 ----------------------------------------------------------------------------------------------------
 
-function round (x)
-  if x >= 0 then
-    return math.ceil (x + 0.05)
-  end
-end -- function round
-
 function expMain(name,line,wc)
      local first, rest = wc[1]:match("(%w+)%s*(.*)")
      
@@ -303,6 +297,8 @@ function expMain(name,line,wc)
           end
      elseif first == "help" then
           HadarHelp()
+     elseif first == "see" then
+          seeStatus(rest)
      else
           HadarHelp()
      end
@@ -412,7 +408,7 @@ function makeOutputNormal()
      
      local expsec = tonumber(expTracker["NR"].sec)+tonumber(expTracker["NR"].min)*60
      
-     expTracker["NR"].rate = round(tonumber(exprate)/tonumber(expsec))
+     expTracker["NR"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
      expTracker["NR"].Type = "NR"
      
      makeOutput()
@@ -503,7 +499,7 @@ function hourReport()
      local expsec = 3600
      local exprate = expTracker["HR"].totexp
      
-     expTracker["HR"].rate = round(tonumber(exprate)/tonumber(expsec))
+     expTracker["HR"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
     
      expTracker["GL"].Type="HR"
      
@@ -560,7 +556,24 @@ function expSelectReport(param)
      
 end
 
+function seeStatus(param)
+     if param == nil then
+          hadarprint("To see status it cant be blank please choose, hour or double","error")
+          return
+     end
+     
+     param = string.lower(param)
+     
+     if param == "hour" then
+     elseif param == "double" then
+     else
+     end
+     
+end
+
 function HadarHelp()
+
+
      hadarprint("TEMP HELP FILE FOR EXP TRACKER")
      hadarprint("hxp - Main command shows this file")
      hadarprint("hxp select <type>- sets the exp you will be tracking")
