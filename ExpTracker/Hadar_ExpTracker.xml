@@ -246,21 +246,21 @@ function buildInitial()
      expTracker["NR"].totexp = 0
      expTracker["NR"].sec = 0
      expTracker["NR"].min = 0
-     expTracker["NR"].message = "[Exp Tracker] Your kill earned you ${exprate} per second"
+     expTracker["NR"].message = "Your kill earned you ${exprate} per second"
 -------------------------------------------------------------
 ------------Initilize hour variables-------------------------
      expTracker["HR"].hourEXP = 0
      expTracker["HR"].rareEXP = 0
      expTracker["HR"].bonusEXP = 0
      expTracker["HR"].totexp = 0
-     expTracker["HR"].message = "[Exp Tracker] last hour ${totexp} - ${exp}"
+     expTracker["HR"].message = "last hour ${totexp} - ${xp} per second"
 -------------------------------------------------------------
 -----------Initilize Double variables------------------------
      expTracker["DL"].hourEXP = 0
      expTracker["DL"].rareEXP = 0
      expTracker["DL"].bonusEXP = 0
      expTracker["DL"].totexp = 0
-     expTracker["DL"].message = "[Exp Tracker] last double total exp ${totexp} - ${exp}"
+     expTracker["DL"].message = "last double total exp ${totexp} - ${xp} per second"
 -------------------------------------------------------------
 end
 
@@ -423,14 +423,14 @@ function makeOutput()
      local message
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == true then
-          message = interp(expTracker["NR"].message, {exp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = string.format ("%2.5g", expTracker["NR"].rate)})
-          hadarprint(message)
+          message = interp(expTracker["NR"].message, {xp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = string.format ("%2.5g", expTracker["NR"].rate)})
+          hadarprint(message,"script")
      elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
-          message = interp(expTracker["HR"].message, {exp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
-          hadarprint(message)
+          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
+          hadarprint(message,"script")
      elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
-          message = interp(expTracker["HR"].message, {exp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
-          hadarprint(message)
+          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
+          hadarprint(message,"script")
      end
      
 end
