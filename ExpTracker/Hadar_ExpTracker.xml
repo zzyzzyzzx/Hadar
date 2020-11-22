@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.13"
+   version="0.14"
    >
 
 </plugin>
@@ -426,10 +426,10 @@ function makeOutput()
           message = interp(expTracker["NR"].message, {xp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = string.format ("%2.5g", expTracker["NR"].rate)})
           hadarprint(message,"script")
      elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
-          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
+          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp})
           hadarprint(message,"script")
      elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
-          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
+          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp})
           hadarprint(message,"script")
      end
      
@@ -478,9 +478,13 @@ function doubleStop()
      
      expTimeDiff(os.time(),expTracker["DL"].startTime,"DL")
      expTracker["GL"].Type = "DL"
+     local exprate = expTracker["DL"].totexp
+     local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
+     expTracker["DL"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
      makeOutput()
      
      expTracker["DL"].Active = false
+     expTracker["DL"].totexp = 0
      expTracker["DL"].hourEXP = 0
      expTracker["DL"].bonusEXP = 0
      expTracker["DL"].rareExp = 0
