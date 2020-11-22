@@ -234,8 +234,8 @@ function buildInitial()
 -----------global exptracker vars----------------------------
      expTracker["GL"]["hour"] = true
      expTracker["GL"]["double"] = true
-     expTracker["GL"]["normal"] = true
-     expTracker["GL"]["Type"] =nil
+     expTracker["GL"]["normal"] = false
+     expTracker["GL"]["Type"] = nil
      expTracker["GL"]["Channel"] = "echo"
 -------------------------------------------------------------
 -----------Initilize Normal Variables------------------------
@@ -269,6 +269,11 @@ end
 ----------------------------------------------------------------------------------------------------
 function expMain(name,line,wc)
      local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
      
      first = string.lower(first)
      
@@ -339,7 +344,7 @@ function expGained(name, line, wc)
      for i,v in pairs(t) do
           buildMessage(tonumber(v))
           expTracker["HR"].hourEXP = tonumber(expTracker["HR"].hourEXP)+tonumber(v)
-          if expTracker["DL"].Active then
+          if expTracker["DL"].Active == true then
                expTracker["DL"].hourEXP = tonumber(expTracker["DL"].hourEXP)+tonumber(v)
           end
      end
@@ -350,7 +355,7 @@ local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(v)
           expTracker["HR"].bonusEXP = tonumber(expTracker["HR"].bonusEXP)+tonumber(v)
-          if expTracker["DL"].Active then
+          if expTracker["DL"].Active == true then
                expTracker["DL"].bonusEXP = tonumber(expTracker["DL"].bonusEXP)+tonumber(v)
           end
      end
@@ -361,7 +366,7 @@ local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(v)
           expTracker["HR"].rareExp = tonumber(expTracker["HR"].rareEXP)+tonumber(v)
-          if expTracker["DL"].Active then
+          if expTracker["DL"].Active == true then
                expTracker["DL"].rareExp = tonumber(expTracker["DL"].rareEXP)+tonumber(v)
           end
      end
@@ -372,7 +377,7 @@ function buildMessage(param)
 
      expTracker["NR"].totexp = tonumber(expTracker["NR"].totexp)+tonumber(param)
      expTracker["HR"].totexp = tonumber(expTracker["HR"].totexp)+tonumber(param)
-     if expTracker["DL"].Active then
+     if expTracker["DL"].Active == true then
           expTracker["DL"].totexp = tonumber(expTracker["DL"].totexp)+tonumber(param)
      end
      
@@ -411,14 +416,13 @@ end
 function makeOutput()
      local message
 
-     if expTracker["GL"].Type == "NR" then
+     if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == true then
           message = interp(expTracker["NR"].message, {exp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = expTracker["NR"].rate})
           hadarprint(message)
-     elseif expTracker["GL"].Type == "HR" then
+     elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
           message = interp(expTracker["HR"].message, {exp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
           hadarprint(message)
-          resethrvars()
-     elseif expTracker["GL"].Type == "DL" then
+     elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
           message = interp(expTracker["HR"].message, {exp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
           hadarprint(message)
      end
