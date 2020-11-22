@@ -423,7 +423,7 @@ function makeOutput()
      local message
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == true then
-          message = interp(expTracker["NR"].message, {exp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = expTracker["NR"].rate})
+          message = interp(expTracker["NR"].message, {exp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = string.format ("%2.5g", expTracker["NR"].rate)})
           hadarprint(message)
      elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
           message = interp(expTracker["HR"].message, {exp = expTracker["HR"].rate,totexp = expTracker["HR"].totexp})
