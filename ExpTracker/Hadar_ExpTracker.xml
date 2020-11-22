@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.10"
+   version="0.11"
    >
 
 </plugin>
@@ -481,7 +481,7 @@ end
 function doubleStop()
      
      expTimeDiff(os.time(),expTracker["DL"].startTime,"DL")
-     
+     expTracker["GL"].Type = "DL"
      makeOutput()
      
      expTracker["DL"].Active = false
