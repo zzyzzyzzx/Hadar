@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE muclient>
-
+<!--
+     Testers: Shotgun
+              Mousie
+              Tallimos
+-->
 <muclient>
 <plugin
    name="Hadar_Exp_Tacker"
@@ -164,7 +168,6 @@
      >
   </timer>
 </timers>
-
 <script>
 <![CDATA[
 require "serialize"
@@ -243,7 +246,7 @@ function buildInitial()
      expTracker["NR"].totexp = 0
      expTracker["NR"].sec = 0
      expTracker["NR"].min = 0
-     expTracker["NR"].message = "[Exp Tracker] Your kill earned you ${exprate}"
+     expTracker["NR"].message = "[Exp Tracker] Your kill earned you ${exprate} per second"
 -------------------------------------------------------------
 ------------Initilize hour variables-------------------------
      expTracker["HR"].hourEXP = 0
@@ -267,6 +270,13 @@ end
 --																								  --
 --								         Start Main Stuff										  --
 ----------------------------------------------------------------------------------------------------
+
+function round (x)
+  if x >= 0 then
+    return math.ceil (x + 0.05)
+  end
+end -- function round
+
 function expMain(name,line,wc)
      local first, rest = wc[1]:match("(%w+)%s*(.*)")
      
@@ -402,7 +412,7 @@ function makeOutputNormal()
      
      local expsec = tonumber(expTracker["NR"].sec)+tonumber(expTracker["NR"].min)*60
      
-     expTracker["NR"].rate = tonumber(exprate)/tonumber(expsec)
+     expTracker["NR"].rate = round(tonumber(exprate)/tonumber(expsec))
      expTracker["NR"].Type = "NR"
      
      makeOutput()
@@ -493,7 +503,7 @@ function hourReport()
      local expsec = 3600
      local exprate = expTracker["HR"].totexp
      
-     expTracker["HR"].rate = tonumber(exprate)/tonumber(expsec)
+     expTracker["HR"].rate = round(tonumber(exprate)/tonumber(expsec))
     
      expTracker["GL"].Type="HR"
      
@@ -528,7 +538,7 @@ function expSelectReport(param)
                expTracker["GL"]["hour"] = false
                hadarprint("You will now @Greport@c exp on the hour","script")
           end
-     elseif param == "dobule" then
+     elseif param == "double" then
           if expTracker["GL"]["double"] then
                expTracker["GL"]["double"] = false
                hadarprint("You will now @RNOT@c report exp after double","script")
@@ -558,6 +568,7 @@ function HadarHelp()
      hadarprint("hxp debug - shows debug messages")
      hadarprint("hxp help - shows this helpfile")
 end
+
 
 ]]>
 </script> 
