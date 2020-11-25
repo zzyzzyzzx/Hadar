@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.0"
+   version="1.1"
    >
 
 </plugin>
@@ -619,12 +619,12 @@ end
 
 function HadarHelp()
 hadarprint("@x086+----------------------------@g[@CE@cxp@CT@cracker@g]@x086------------------------------+")
-hadarprint("@x086|@x214hxp help              @x110- @x214Displays this helpfile@x086                        |")
-hadarprint("@x086|@x208hxp select <type>     @x110- @x208Toggles xp tracker (hour,double,kills)@x086        |")
-hadarprint("@x086|                        @REG@W.@G hxp select kills@x208 to turn it off@x086           |")
-hadarprint("@x086|@x214hxp channel <channel> @x110- @x214no arguments displays the channel             @x086|")
-hadarprint("@x086|                        @REG@W. @Ghxp channel spouse@x086                        @x086|")
-hadarprint("@x086|@x208hxp see <all|type>    @x110- @x208Shows you if type is active all shows all     @x086|")
+hadarprint("@x086| @x214hxp help              @x110- @x214Displays this helpfile@x086                       |")
+hadarprint("@x086| @x208hxp select <type>     @x110- @x208Toggles xp tracker (hour,double,kills)@x086       |")
+hadarprint("@x086|                         @REG@W.@G hxp select kills@x208 to turn it off@x086          |")
+hadarprint("@x086| @x214hxp channel <channel> @x110- @x214no arguments displays the channel            @x086|")
+hadarprint("@x086|                         @REG@W. @Ghxp channel spouse@x086                       @x086|")
+hadarprint("@x086| @x208hxp see <all|type>    @x110- @x208Shows you if type is active all shows all    @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
