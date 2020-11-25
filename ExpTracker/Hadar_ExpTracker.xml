@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.14"
+   version="1.0"
    >
 
 </plugin>
@@ -184,11 +184,11 @@ function interp(s, tab)
 end
 
 function hadarprint(str,level)
-	level = level or "script"
-	if level == "debug" and expTracker.Debug == 1 then
+
+	if level == "debug" and expTracker["GL"].Debug == 1 then
 		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
 	elseif level == "error" then
-          AnsiNote(ColoursToANSI("@R[@mxhp @rERROR@R]@W:@w"..str))
+          AnsiNote(ColoursToANSI("@R[@Mhxp @rERROR@R]@W:@w"..str))
      elseif level == "script" then
           AnsiNote(ColoursToANSI("@G[@CE@cxp@CT@cracker@G]@c"..str))
      else
@@ -198,10 +198,9 @@ function hadarprint(str,level)
 end
 
 function OnPluginSaveState ()
-	--SetVariable ("expTracker", "expTracker = " .. serialize.save_simple (expTracker))
-	SetVariable ("pastfirstinstall", "true")
+	SetVariable ("expTracker", "expTracker = " .. serialize.save_simple (expTracker))
+	SetVariable ("exppastfirstinstall", "true")
 end -- function OnPluginSaveState
-
 
 function OnPluginInstall ()
    	if GetVariable ("enabled") == "false" then
@@ -210,7 +209,7 @@ function OnPluginInstall ()
 		return
 	end -- they didn't enable us last time
 	
-	print("had help (to see all of hadar's plugin helpfiles), or !!!!!!!!!! to just see this one")
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or hxp help to just see this one","script")
   
 	OnPluginEnable ()
 end
@@ -222,45 +221,47 @@ function OnPluginEnable ()
      expTracker["DL"] = {}
      expTracker["HR"] = {}
      expTracker["GL"] = {}
-     expTracker.Debug = 1
 	
-	if GetVariable ("pastfirstinstall") == "true" and expTracker.Debug == 0 then
+	if GetVariable ("exppastfirstinstall") == "true" and expTracker["GL"].Debug == 0 then
 		assert (loadstring (GetVariable ("expTracker") or "")) ()
 	else
 		buildInitial()
 	end
      
-     buildInitial()
 end
 
 function buildInitial()
 -----------global exptracker vars----------------------------
      expTracker["GL"]["hour"] = true
      expTracker["GL"]["double"] = true
-     expTracker["GL"]["normal"] = false
+     expTracker["GL"]["normal"] = true
      expTracker["GL"]["Type"] = nil
      expTracker["GL"]["Channel"] = "echo"
+     expTracker["GL"]["Logo"] = "@G[@CE@cxp@CT@cracker@G]@c"
+     expTracker["GL"].Debug = 0
 -------------------------------------------------------------
 -----------Initilize Normal Variables------------------------
      expTracker["NR"].startTime = 0
      expTracker["NR"].totexp = 0
      expTracker["NR"].sec = 0
      expTracker["NR"].min = 0
-     expTracker["NR"].message = "Your kill earned you ${exprate} per second"
+     expTracker["NR"].message = "${logo}Your kill earned you @R${xp}@c for a @R${length}@c second fight for a total of - @R${totexp}@w"
 -------------------------------------------------------------
 ------------Initilize hour variables-------------------------
      expTracker["HR"].hourEXP = 0
      expTracker["HR"].rareEXP = 0
      expTracker["HR"].bonusEXP = 0
      expTracker["HR"].totexp = 0
-     expTracker["HR"].message = "last hour ${totexp} - ${xp} per second"
+     expTracker["HR"].mobsKilled = 0
+     expTracker["HR"].message = "${logo}Last Hour you killed @R${kills}@c for a total of @R${totexp}@c which is @R${xp}@c per second@w"
 -------------------------------------------------------------
 -----------Initilize Double variables------------------------
      expTracker["DL"].hourEXP = 0
      expTracker["DL"].rareEXP = 0
      expTracker["DL"].bonusEXP = 0
      expTracker["DL"].totexp = 0
-     expTracker["DL"].message = "last double total exp ${totexp} - ${xp} per second"
+     expTracker["DL"].mobsKilled = 0
+     expTracker["DL"].message = "${logo}Last double you got @R${kills}@c kills for a total of @R${totexp}@c which was @R${xp}@c a second@w"
 -------------------------------------------------------------
 end
 
@@ -288,17 +289,29 @@ function expMain(name,line,wc)
      elseif first == "channel" then
           expSetChannel(rest)
      elseif first == "debug" then
-          if expTracker.Debug == 1 then
-               expTracker.Debug = 0
+          if expTracker["GL"].Debug == 1 then
+               expTracker["GL"].Debug = 0
                hadarprint("@CD@cebug messages turned @Goff@w")
           else
-               expTracker.Debug = 1
+               expTracker["GL"].Debug = 1
                hadarprint("@CD@cebug messages turned @Gon@w")
           end
      elseif first == "help" then
           HadarHelp()
      elseif first == "see" then
           seeStatus(rest)
+     elseif first == "off" then
+          expTracker["GL"]["hour"] = false
+          expTracker["GL"]["double"] = false
+          expTracker["GL"]["normal"] = false
+          hadarprint("All Messages turned @ROFF@w","script")
+     elseif first == "on" then
+          expTracker["GL"]["hour"] = true
+          expTracker["GL"]["double"] = true
+          expTracker["GL"]["normal"] = true
+          hadarprint("All Messages turned @GON@w","script")
+     elseif first == "fullreset" then
+          buildInitial()
      else
           HadarHelp()
      end
@@ -354,6 +367,10 @@ function expGained(name, line, wc)
                expTracker["DL"].hourEXP = tonumber(expTracker["DL"].hourEXP)+tonumber(v)
           end
      end
+     expTracker["HR"].mobsKilled = tonumber(expTracker["HR"].mobsKilled)+1
+     if expTracker["DL"].Active == true then
+          expTracker["DL"].mobsKilled = tonumber(expTracker["DL"].mobsKilled)+1
+     end
 end
 
 function bonusExpGained(name, line, wc)
@@ -408,8 +425,10 @@ function makeOutputNormal()
      
      local expsec = tonumber(expTracker["NR"].sec)+tonumber(expTracker["NR"].min)*60
      
-     expTracker["NR"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
-     expTracker["NR"].Type = "NR"
+     expTracker["NR"].expsec = tonumber(expTracker["NR"].sec)+tonumber(expTracker["NR"].min)*60
+     expTracker["NR"].rate = tonumber(exprate)/tonumber(expsec)
+     expTracker["NR"].rate = tonumber(string.format("%g",expTracker["NR"].rate))
+     expTracker["GL"].Type = "NR"
      
      makeOutput()
      
@@ -423,16 +442,18 @@ function makeOutput()
      local message
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == true then
-          message = interp(expTracker["NR"].message, {xp = expTracker["NR"].session, sec = expTracker["NR"].second, min = expTracker["NR"].min, hour = expTracker["NR"].hour, day = expTracker["NR"].day, month = expTracker["NR"].month, year = expTracker["NR"].year, exprate = string.format ("%2.5g", expTracker["NR"].rate)})
-          hadarprint(message,"script")
+          message = interp(expTracker["NR"].message, {xp = expTracker["NR"].rate, totexp = expTracker["NR"].totexp, length = expTracker["NR"].expsec,logo = expTracker["GL"].Logo})
      elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
-          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp})
-          hadarprint(message,"script")
+          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp, kills = expTracker["HR"].mobsKilled,logo = expTracker["GL"].Logo})
      elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
-          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp})
-          hadarprint(message,"script")
+          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp, kills = expTracker["DL"].mobsKilled,logo = expTracker["GL"].Logo})
      end
      
+     if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
+          hadarprint(message)
+     else
+          SendSpecial(expTracker["GL"]["Channel"] .. " " ..message)
+     end
 end
 
 function expDoubleSet(param)
@@ -442,7 +463,7 @@ function expDoubleSet(param)
 		expTracker["NR"].message = utils.inputbox ("variables go here", "look of normal exp tracker", expTracker["NR"].message, "Courier", 9)
 		
 		if expTracker["NR"].message ~= nil then
-			hadarprint("@CV@corpal message will look like@W: @w"..expTracker["NR"].message)
+			hadarprint("Kills message will look like@W: @w"..expTracker["NR"].message,"script")
 		else
 			expTracker["NR"].message = HadarBackup
 		end
@@ -451,7 +472,7 @@ function expDoubleSet(param)
 		expTracker["DL"].message = utils.inputbox ("look of double exp tracker", "look of double exp tracker", vexpTracker["DL"].message, "Courier", 9)
 		
 		if expTracker["DL"].message ~= nil then
-			hadarprint("@CV@corpal message will look like@W: @w"..expTracker["DL"].message)
+			hadarprint("Double message will look like@W: @w"..expTracker["DL"].message,"script")
 		else
 			expTracker["DL"].message = HadarBackup
 		end
@@ -460,13 +481,23 @@ function expDoubleSet(param)
 		expTracker["HR"].message = utils.inputbox ("variables", "look of hour tracker", expTracker["HR"].message, "Courier", 9)
 		
 		if expTracker["NR"].message ~= nil then
-			hadarprint("@CV@corpal message will look like@W: @w"..expTracker["NR"].message)
+			hadarprint("Hourly message will look like@W: @w"..expTracker["NR"].message,"script")
 		else
 			expTracker["NR"].message = HadarBackup
 		end
+     elseif param == "logo" then
+          HadarBackup = expTracker["GL"]["Logo"]
+		expTracker["GL"]["Logo"] = utils.inputbox ("How you would like the logo to look if using it", "Logo", expTracker["GL"]["Logo"], "Courier", 9)
+		
+		if expTracker["GL"]["Logo"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..expTracker["NR"].message,"script")
+		else
+			expTracker["GL"]["Logo"] = HadarBackup
+		end
      else
-          hadarprint("@cYou need to input one of the following@w: @Gnormal@w, @Gdouble@w,@G hour @C.@c.@C. @YEG:@R xhp set normal@w","error")
+          hadarprint("@cYou need to input one of the following@w: @Gnormal@w, @Gdouble@w,@G hour@w, or @Glogo @C.@c.@C. @YEG:@R xhp set normal@w","error")
      end
+     SaveState()
 end
 
 function doubleStart()
@@ -488,6 +519,7 @@ function doubleStop()
      expTracker["DL"].hourEXP = 0
      expTracker["DL"].bonusEXP = 0
      expTracker["DL"].rareExp = 0
+     expTracker["DL"].mobsKilled = 0
 end
 
 function doubleDBStart()
@@ -513,6 +545,7 @@ function hourReport()
      expTracker["HR"].rareEXP = 0
      expTracker["HR"].bonusEXP = 0
      expTracker["HR"].totexp = 0
+     expTracker["HR"].mobsKilled = 0
 end
 
 
@@ -520,11 +553,13 @@ end
 function expSetChannel(str)
      if str ~= nil and str ~= "" and str ~= " " then
 		expTracker["GL"].Channel = str
-		hadarprint("Default channel set to@w: @G" .. expTracker.Channel,"script")
+		hadarprint("Default channel set to@w: @G" .. expTracker["GL"].Channel,"script")
 	else
-          hadarprint("Current Channel:"..expTracker["GL"],"error")
+          hadarprint("Current Channel:"..expTracker["GL"].Channel,script)
 		hadarprint("@cPlease use the following command@W:@Ghxp channel <channel you want to output to>@w","error")
 	end
+     
+     SaveState()
 end
 
 function expSelectReport(param)
@@ -558,32 +593,39 @@ function expSelectReport(param)
           hadarprint("@cPlease use the following command@W:@Ghxp select <hour or double or kill>@w","error")
      end
      
+     SaveState()
 end
 
 function seeStatus(param)
      if param == nil then
-          hadarprint("To see status it cant be blank please choose, hour or double","error")
+          hadarprint("To see status it cant be blank please choose, hour, double or kill","error")
           return
      end
      
      param = string.lower(param)
      
      if param == "hour" then
+          if expTracker["GL"]["hour"] then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
      elseif param == "double" then
+          if expTracker["GL"]["double"] then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
+     elseif param == "kill" or param == "kills" then
+          if expTracker["GL"]["normal"] then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
      else
+          if expTracker["GL"]["hour"] then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
+          if expTracker["GL"]["double"] then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
+          if expTracker["GL"]["normal"] then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
      end
-     
 end
 
 function HadarHelp()
-
-
-     hadarprint("TEMP HELP FILE FOR EXP TRACKER")
-     hadarprint("hxp - Main command shows this file")
-     hadarprint("hxp select <type>- sets the exp you will be tracking")
-     hadarprint("hxp channel <channel>- sets the default channel (WIP)")
-     hadarprint("hxp debug - shows debug messages")
-     hadarprint("hxp help - shows this helpfile")
+hadarprint("@x086+----------------------------@g[@CE@cxp@CT@cracker@g]@x086------------------------------+")
+hadarprint("@x086|@x214hxp help              @x110- @x214Displays this helpfile@x086                        |")
+hadarprint("@x086|@x208hxp select <type>     @x110- @x208Toggles xp tracker (hour,double,kills)@x086        |")
+hadarprint("@x086|                        @REG@W.@G hxp select kills@x208 to turn it off@x086           |")
+hadarprint("@x086|@x214hxp channel <channel> @x110- @x214no arguments displays the channel             @x086|")
+hadarprint("@x086|                        @REG@W. @Ghxp channel spouse@x086                        @x086|")
+hadarprint("@x086|@x208hxp see <all|type>    @x110- @x208Shows you if type is active all shows all     @x086|")
+hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
 
