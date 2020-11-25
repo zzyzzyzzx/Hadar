@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.02"
+   version="1.03"
    >
 
 </plugin>
@@ -174,7 +174,7 @@ require "serialize"
 require "gmcphelper"
 require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
-require "themed_miniwindows"
+--require "themed_miniwindows"
 
 --my_window = ThemedTextWindow("ExpWindow", 100, 100, 200, 150, "ExpTracker", "center", false, true)
 
@@ -412,7 +412,6 @@ function buildMessage(param)
      end
      
      expTracker["GL"].Type = "NR"
-    -- my_window:add_text("I have gained "..expTracker["NR"].totexp.." exp")
      
      AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
 end
@@ -439,6 +438,7 @@ function makeOutputNormal()
      expTracker["GL"].Type = "NR"
      
      makeOutput()
+     --setWindowText()
      
      expTracker["NR"].totexp = 0
      expTracker["NR"].startTime = 0
@@ -669,6 +669,11 @@ function showReport(report)
           end
      end
 end
+
+--[[function setWindowText()
+     my_window:clear()
+     my_window:add_text("I have gained "..expTracker["NR"].totexp.." exp")
+end]]
 
 function HadarHelp()
 hadarprint("@x086+----------------------------@g[@CE@cxp@CT@cracker@g]@x086------------------------------+")
