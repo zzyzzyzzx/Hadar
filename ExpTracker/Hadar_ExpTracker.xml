@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.1"
+   version="1.02"
    >
 
 </plugin>
@@ -174,6 +174,9 @@ require "serialize"
 require "gmcphelper"
 require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
+require "themed_miniwindows"
+
+--my_window = ThemedTextWindow("ExpWindow", 100, 100, 200, 150, "ExpTracker", "center", false, true)
 
 function interp(s, tab)
 	if s == nil then
@@ -312,9 +315,12 @@ function expMain(name,line,wc)
           hadarprint("All Messages turned @GON@w","script")
      elseif first == "fullreset" then
           buildInitial()
+     elseif first == "show" then
+          showReport(rest)
      else
           HadarHelp()
      end
+     
 end
 
 function expTimeDiff(t2,t1,script)
@@ -371,6 +377,7 @@ function expGained(name, line, wc)
      if expTracker["DL"].Active == true then
           expTracker["DL"].mobsKilled = tonumber(expTracker["DL"].mobsKilled)+1
      end
+     
 end
 
 function bonusExpGained(name, line, wc)
@@ -405,6 +412,7 @@ function buildMessage(param)
      end
      
      expTracker["GL"].Type = "NR"
+    -- my_window:add_text("I have gained "..expTracker["NR"].totexp.." exp")
      
      AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
 end
@@ -469,7 +477,7 @@ function expDoubleSet(param)
 		end
      elseif param == "double" then
           HadarBackup = expTracker["DL"].message
-		expTracker["DL"].message = utils.inputbox ("look of double exp tracker", "look of double exp tracker", vexpTracker["DL"].message, "Courier", 9)
+		expTracker["DL"].message = utils.inputbox ("look of double exp tracker", "look of double exp tracker", expTracker["DL"].message, "Courier", 9)
 		
 		if expTracker["DL"].message ~= nil then
 			hadarprint("Double message will look like@W: @w"..expTracker["DL"].message,"script")
@@ -596,6 +604,8 @@ function expSelectReport(param)
      SaveState()
 end
 
+--line 435
+
 function seeStatus(param)
      if param == nil then
           hadarprint("To see status it cant be blank please choose, hour, double or kill","error")
@@ -617,6 +627,49 @@ function seeStatus(param)
      end
 end
 
+function showReport(report)
+     local repchan
+     
+     if report == nil then
+          hadarprint("You need to supply a type, EG hxp show hour say","error")
+          return
+     end
+     
+     local first, second = report:match("(%w+)%s*(.*)")
+     
+     if second == nil or second == "" or second == " " then
+          repchan = expTracker["GL"].Channel
+     else
+          repchan = rest
+     end
+     
+     if first == "double" and expTracker["DL"].Active == true then
+          expTimeDiff(os.time(),expTracker["DL"].startTime,"DL")
+          expTracker["GL"].Type = "DL"
+          local exprate = expTracker["DL"].totexp
+          local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
+          expTracker["DL"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
+          local repmsg = "Your Double is currently at @R"..expTracker["DL"].mobsKilled .."@c for a total of @R"..expTracker["DL"].totexp.. " @cWith an avg of @R"..expTracker["DL"].rate.."@c exp/second@w"
+          
+          if repchan == "echo" or repchan == "print" then
+               hadarprint(repmsg,"script")
+          else
+               SendSpecial(repchan .. " " .. repmsg)
+          end
+     elseif first == "double" and expTracker["DL"].Active == false then
+          hadarprint("Double is not currently running","error")
+     end
+     
+     if first == "hour" and expTracker["GL"]["hour"] == true then
+          local repmsg = "Your Hour is currently at @R"..expTracker["HR"].mobsKilled .."@c for a total of @R"..expTracker["HR"].totexp
+           if repchan == "echo" or repchan == "print" then
+               hadarprint(repmsg,"script")
+          else
+               SendSpecial(repchan .. " " .. repmsg)
+          end
+     end
+end
+
 function HadarHelp()
 hadarprint("@x086+----------------------------@g[@CE@cxp@CT@cracker@g]@x086------------------------------+")
 hadarprint("@x086| @x214hxp help              @x110- @x214Displays this helpfile@x086                       |")
@@ -625,6 +678,7 @@ hadarprint("@x086|                         @REG@W.@G hxp select kills@x208 to tu
 hadarprint("@x086| @x214hxp channel <channel> @x110- @x214no arguments displays the channel            @x086|")
 hadarprint("@x086|                         @REG@W. @Ghxp channel spouse@x086                       @x086|")
 hadarprint("@x086| @x208hxp see <all|type>    @x110- @x208Shows you if type is active all shows all    @x086|")
+hadarprint("@x086| @x214hxp show <type>       @x110- @x214Shows current hour or double(if running)     @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
