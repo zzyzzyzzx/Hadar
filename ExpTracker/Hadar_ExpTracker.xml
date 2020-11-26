@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.03"
+   version="1.04"
    >
 
 </plugin>
@@ -451,16 +451,25 @@ function makeOutput()
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == true then
           message = interp(expTracker["NR"].message, {xp = expTracker["NR"].rate, totexp = expTracker["NR"].totexp, length = expTracker["NR"].expsec,logo = expTracker["GL"].Logo})
-     elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
-          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp, kills = expTracker["HR"].mobsKilled,logo = expTracker["GL"].Logo})
-     elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
-          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp, kills = expTracker["DL"].mobsKilled,logo = expTracker["GL"].Logo})
-     end
-     
-     if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
+          if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
           hadarprint(message)
      else
           SendSpecial(expTracker["GL"]["Channel"] .. " " ..message)
+     end
+     elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == true then
+          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp, kills = expTracker["HR"].mobsKilled,logo = expTracker["GL"].Logo})
+          if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
+          hadarprint(message)
+     else
+          SendSpecial(expTracker["GL"]["Channel"] .. " " ..message)
+     end
+     elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == true then
+          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp, kills = expTracker["DL"].mobsKilled,logo = expTracker["GL"].Logo})
+          if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
+          hadarprint(message)
+     else
+          SendSpecial(expTracker["GL"]["Channel"] .. " " ..message)
+     end
      end
 end
 
