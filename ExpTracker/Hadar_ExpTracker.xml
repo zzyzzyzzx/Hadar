@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.04"
+   version="1.05"
    >
 
 </plugin>
@@ -587,7 +587,7 @@ function expSelectReport(param)
                expTracker["GL"]["hour"] = false
                hadarprint("You will now @RNOT@c report exp on the hour","script")
           else
-               expTracker["GL"]["hour"] = false
+               expTracker["GL"]["hour"] = true
                hadarprint("You will now @Greport@c exp on the hour","script")
           end
      elseif param == "double" then
