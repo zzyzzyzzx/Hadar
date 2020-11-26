@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.05"
+   version="1.06"
    >
 
 </plugin>
@@ -172,7 +172,6 @@
 <![CDATA[
 require "serialize"
 require "gmcphelper"
-require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 --require "themed_miniwindows"
 
@@ -188,7 +187,7 @@ end
 
 function hadarprint(str,level)
 
-	if level == "debug" and expTracker["GL"].Debug == 1 then
+	if level == "debug" and expTracker["GL"].Debug == true then
 		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
 	elseif level == "error" then
           AnsiNote(ColoursToANSI("@R[@Mhxp @rERROR@R]@W:@w"..str))
@@ -224,10 +223,12 @@ function OnPluginEnable ()
      expTracker["DL"] = {}
      expTracker["HR"] = {}
      expTracker["GL"] = {}
-	
-	if GetVariable ("exppastfirstinstall") == "true" and expTracker["GL"].Debug == 0 then
+     
+     
+	if GetVariable ("exppastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("expTracker") or "")) ()
 	else
+          hadarprint("Looks like this is your first install, Lets get you setup! hxp for help","script")
 		buildInitial()
 	end
      
@@ -241,7 +242,7 @@ function buildInitial()
      expTracker["GL"]["Type"] = nil
      expTracker["GL"]["Channel"] = "echo"
      expTracker["GL"]["Logo"] = "@G[@CE@cxp@CT@cracker@G]@c"
-     expTracker["GL"].Debug = 0
+     expTracker["GL"].Debug = false
 -------------------------------------------------------------
 -----------Initilize Normal Variables------------------------
      expTracker["NR"].startTime = 0
@@ -292,12 +293,14 @@ function expMain(name,line,wc)
      elseif first == "channel" then
           expSetChannel(rest)
      elseif first == "debug" then
-          if expTracker["GL"].Debug == 1 then
-               expTracker["GL"].Debug = 0
+          if expTracker["GL"].Debug == true then
+               expTracker["GL"].Debug = false
                hadarprint("@CD@cebug messages turned @Goff@w")
+               SaveState()
           else
-               expTracker["GL"].Debug = 1
+               expTracker["GL"].Debug = true
                hadarprint("@CD@cebug messages turned @Gon@w")
+               SaveState()
           end
      elseif first == "help" then
           HadarHelp()
@@ -308,11 +311,13 @@ function expMain(name,line,wc)
           expTracker["GL"]["double"] = false
           expTracker["GL"]["normal"] = false
           hadarprint("All Messages turned @ROFF@w","script")
+          SaveState()
      elseif first == "on" then
           expTracker["GL"]["hour"] = true
           expTracker["GL"]["double"] = true
           expTracker["GL"]["normal"] = true
           hadarprint("All Messages turned @GON@w","script")
+          SaveState()
      elseif first == "fullreset" then
           buildInitial()
      elseif first == "show" then
@@ -477,7 +482,7 @@ function expDoubleSet(param)
      param = string.lower(param)
      if param == "normal" then
           HadarBackup = expTracker["NR"].message
-		expTracker["NR"].message = utils.inputbox ("variables go here", "look of normal exp tracker", expTracker["NR"].message, "Courier", 9)
+		expTracker["NR"].message = utils.inputbox ("${logo} - Shows the logo of the script\n${xp} - shows the rate of exp earned per second\n${totexp} - shows total exp earned\n${length} - how long in seconds the fight took", "look of normal exp tracker", expTracker["NR"].message, "Courier", 9)
 		
 		if expTracker["NR"].message ~= nil then
 			hadarprint("Kills message will look like@W: @w"..expTracker["NR"].message,"script")
@@ -486,7 +491,7 @@ function expDoubleSet(param)
 		end
      elseif param == "double" then
           HadarBackup = expTracker["DL"].message
-		expTracker["DL"].message = utils.inputbox ("look of double exp tracker", "look of double exp tracker", expTracker["DL"].message, "Courier", 9)
+		expTracker["DL"].message = utils.inputbox ("${logo} - Shows the logo of the script\n${xp} - shows the rate of exp earned per second\n${totexp} - shows total exp earned\n${kills} - shows how many kills you got", "look of double exp tracker", expTracker["DL"].message, "Courier", 9)
 		
 		if expTracker["DL"].message ~= nil then
 			hadarprint("Double message will look like@W: @w"..expTracker["DL"].message,"script")
@@ -495,7 +500,7 @@ function expDoubleSet(param)
 		end
      elseif param == "hour" then
           HadarBackup = expTracker["HR"].message
-		expTracker["HR"].message = utils.inputbox ("variables", "look of hour tracker", expTracker["HR"].message, "Courier", 9)
+		expTracker["HR"].message = utils.inputbox ("${logo} - Shows the logo of the script\n${xp} - shows the rate of exp earned per second\n${totexp} - shows total exp earned\n${kills} - shows how many kills you got", "look of hour tracker", expTracker["HR"].message, "Courier", 9)
 		
 		if expTracker["NR"].message ~= nil then
 			hadarprint("Hourly message will look like@W: @w"..expTracker["NR"].message,"script")
