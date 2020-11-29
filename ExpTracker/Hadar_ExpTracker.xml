@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.11"
+   version="1.12"
    >
 
 </plugin>
@@ -597,7 +597,6 @@ function expDoubleSet(param)
      elseif param == "session" then
           HadarBackup = expTracker["SN"].message
 		expTracker["SN"].message = utils.inputbox ("${month} - shows if session has been running a month\n${day} - shows if session has been running 1+ days\n${hour} - session hours\n${min} - session minutes\n${sec} - session seconds\n${totexp} - total exp over session\n${killexp} - how much exp from just kills\n${rareexp} - rare mobs exp\n${bonusexp} - bonus exp\n${kills} - how many kills\n${logo} - shows logo", "Logo", expTracker["GL"]["Logo"], "Courier", 9)
-     end
 		
 		if expTracker["SN"].message ~= nil then
 			hadarprint("Session message will look like@W: @w"..expTracker["SN"].message,"script")
@@ -748,8 +747,11 @@ function expSession(str)
           expTracker["GL"].Type = "SN"
           local exprate = expTracker["SN"].totexp
           
-          local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
-          local expmin = math.ceil(tonumber(expTracker["DL"].sec)/60)+tonumber(expTracker["DL"].min)+math.floor(tonumber(expTracker["DL"].hour)*60)
+          local expsec = tonumber(expTracker["SN"].sec)+tonumber(expTracker["SN"].min)*60
+          local expmin1 = math.ceil(tonumber(expTracker["SN"].sec)/60)
+          local expmin2 = tonumber(expTracker["SN"].min)
+          local expmin3 = math.floor(tonumber(expTracker["SN"].hour)*60)
+          local expmin = expmin1+expmin2+expmin3
           
           expTracker["SN"].expPerSecond = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
           expTracker["SN"].expPerMinute = string.format ("%2.5g", (tonumber(exprate)/tonumber(expmin)))
@@ -773,6 +775,13 @@ function expSession(str)
      elseif str == "status" then
      
           if expTracker["SN"].Active == true then
+               local exprate = expTracker["SN"].totexp
+          
+               local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
+               local expmin = math.ceil(tonumber(expTracker["DL"].sec)/60)+tonumber(expTracker["DL"].min)+math.floor(tonumber(expTracker["DL"].hour)*60)
+          
+               expTracker["SN"].expPerSecond = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
+               expTracker["SN"].expPerMinute = string.format ("%2.5g", (tonumber(exprate)/tonumber(expmin)))
                expTimeDiff(os.time(),expTracker["SN"].startTime,"SN")
                expTracker["GL"].Type = "SN"
 
