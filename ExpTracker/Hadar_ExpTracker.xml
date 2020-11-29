@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.12"
+   version="1.13"
    >
 
 </plugin>
@@ -499,7 +499,7 @@ function makeOutputNormal()
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
      
-     if myState == 8 then
+     if tonumber(myState) == 8 then
           expTracker["NR"].totexp = 0
      else
           expTracker["NR"].totexp = 0
@@ -904,7 +904,7 @@ hadarprint("@x086| @x214hxp channel <channel>   @x110- @x214no arguments display
 hadarprint("@x086|                           @REG@W.@G hxp channel spouse                     @x086|")
 hadarprint("@x086| @x208hxp see <all|type>      @x110- @x208Shows you if type is active all shows all@x086  |")
 hadarprint("@x086| @x214hxp show <type>         @x110- @x214Shows current hour or double(if running)@x086   |")
-hadarprint("@x086| @x208xp report <scren> <log> @x110- @x208screen main or comm, log = comm log@x086        |")
+hadarprint("@x086| @x208hxp report <scren> <log>@x110- @x208screen main or comm, log = comm log@x086        |")
 hadarprint("@x086|                           @REG@W.@G hxp report comm expTracker            @x086 |")
 hadarprint("@x086|                           @REG@W.@G hxp report main off                   @x086 |")
 hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status .. tracks exp/kill over@x086|")
@@ -927,6 +927,8 @@ end
 |                           EG. hxp report main off                    |
 | hxp session <command>   - Start, Stop, Status .. tracks exp/kill over|
 |                           a time between start and stop              |
+| hxp set <thing>         - Sets the message output for reports        |
+|                         - (kill,double,hour,logo,session)            |
 +----------------------------------------------------------------------+
 ]]
 
