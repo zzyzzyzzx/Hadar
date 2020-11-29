@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.13"
+   version="1.14"
    >
 
 </plugin>
@@ -489,7 +489,7 @@ function makeOutputNormal()
      
      expTracker["NR"].expsec = tonumber(expTracker["NR"].sec)+tonumber(expTracker["NR"].min)*60
      expTracker["NR"].rate = tonumber(exprate)/tonumber(expsec)
-     expTracker["NR"].rate = tonumber(string.format("%g",expTracker["NR"].rate))
+     expTracker["NR"].rate = tonumber(string.format("%2.2g",expTracker["NR"].rate))
      expTracker["GL"].Type = "NR"
      
      makeOutput()
