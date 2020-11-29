@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.10"
+   version="1.11"
    >
 
 </plugin>
@@ -289,6 +289,8 @@ function buildInitial()
      expTracker["SN"].rareexp = 0
      expTracker["SN"].bonusexp = 0
      expTracker["SN"].mobsKilled = 0
+     expTracker["SN"].expPerSecond = 0
+     expTracker["SN"].expPerMinute = 0
      expTracker["SN"].sec = 0
      expTracker["SN"].min = 0
      expTracker["SN"].message = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totexp}@G[@WK:@R${killexp}@W,B:@R${bonusexp}@W,R:@R${rareexp}@G]@c kills@W: @R${kills}@w"
@@ -528,6 +530,8 @@ function makeOutput()
           rareexp = expTracker["SN"].rareexp,
           bonusexp = expTracker["SN"].bonusexp,
           kills = expTracker["SN"].mobsKilled,
+          expsec = expTracker["SN"].expPerSecond,
+          expmin = expTracker["SN"].expPerMinute,
           logo = expTracker["GL"].Logo})
      end
      
@@ -592,7 +596,8 @@ function expDoubleSet(param)
 		end
      elseif param == "session" then
           HadarBackup = expTracker["SN"].message
-		expTracker["SN"].message = utils.inputbox ("How you would like your session message to be formated", "Logo", expTracker["GL"]["Logo"], "Courier", 9)
+		expTracker["SN"].message = utils.inputbox ("${month} - shows if session has been running a month\n${day} - shows if session has been running 1+ days\n${hour} - session hours\n${min} - session minutes\n${sec} - session seconds\n${totexp} - total exp over session\n${killexp} - how much exp from just kills\n${rareexp} - rare mobs exp\n${bonusexp} - bonus exp\n${kills} - how many kills\n${logo} - shows logo", "Logo", expTracker["GL"]["Logo"], "Courier", 9)
+     end
 		
 		if expTracker["SN"].message ~= nil then
 			hadarprint("Session message will look like@W: @w"..expTracker["SN"].message,"script")
@@ -738,9 +743,16 @@ function expSession(str)
      elseif str == "stop" then
      
           if expTracker["SN"].Active == true then
-     
+          
           expTimeDiff(os.time(),expTracker["SN"].startTime,"SN")
           expTracker["GL"].Type = "SN"
+          local exprate = expTracker["SN"].totexp
+          
+          local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
+          local expmin = math.ceil(tonumber(expTracker["DL"].sec)/60)+tonumber(expTracker["DL"].min)+math.floor(tonumber(expTracker["DL"].hour)*60)
+          
+          expTracker["SN"].expPerSecond = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
+          expTracker["SN"].expPerMinute = string.format ("%2.5g", (tonumber(exprate)/tonumber(expmin)))
 
           makeOutput()
           
@@ -749,6 +761,8 @@ function expSession(str)
           expTracker["SN"].rareexp = 0
           expTracker["SN"].bonusexp = 0
           expTracker["SN"].mobsKilled = 0
+          expTracker["SN"].expPerSecond = 0
+          expTracker["SN"].expPerMinute = 0
           expTracker["SN"].Active = false
           
           SaveState()
