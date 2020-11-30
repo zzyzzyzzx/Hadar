@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.14"
+   version="1.15"
    >
 
 </plugin>
@@ -909,6 +909,8 @@ hadarprint("@x086|                           @REG@W.@G hxp report comm expTracke
 hadarprint("@x086|                           @REG@W.@G hxp report main off                   @x086 |")
 hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status .. tracks exp/kill over@x086|")
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
+hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
+hadarprint("@x086|                         @x110- @G(@x208kill,double,hour,logo,session@G)@x086            |")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
