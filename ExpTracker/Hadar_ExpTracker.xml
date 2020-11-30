@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.16"
+   version="1.17"
    >
 
 </plugin>
@@ -918,8 +918,10 @@ function expConfig(str)
      str = string.lower(str)
      if str == "room" then
           expTracker["GL"]["xpReport"] = "room"
+          hadarprint("You will now track timer over the full room kills","script")
      elseif str == "mob" then
           expTracker["GL"]["xpReport"] = "mob"
+          hadarprint("You will reset timer after each mob is killed","script")
      end
 end
 
@@ -944,7 +946,7 @@ hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status 
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
 hadarprint("@x086|                         @x110- @G(@x208kill,double,hour,logo,session@G)@x086            |")
-hadarprint("@x086| @x214hhxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
+hadarprint("@x086| @x214hxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
