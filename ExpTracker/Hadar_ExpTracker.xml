@@ -7,7 +7,7 @@
               
               
 TODO:
-Add "sessions" hxp session start/stop (outputs exp over that time)
+
 -->
 <muclient>
 <plugin
@@ -19,7 +19,7 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.15"
+   version="1.16"
    >
 
 </plugin>
@@ -28,6 +28,16 @@ Add "sessions" hxp session start/stop (outputs exp over that time)
 <trigger
    enabled="y"
    match="^You receive (.*) experience points?\."
+   omit_from_output="n"
+   regexp="y"
+   group=""
+   script="expGained"
+   sequence="100"
+  >
+</trigger>
+<trigger
+   enabled="y"
+   match="^You receive \(halved\) (.*) experience points?\."
    omit_from_output="n"
    regexp="y"
    group=""
@@ -254,6 +264,7 @@ function buildInitial()
      expTracker["GL"]["commLog"] = false
      expTracker["GL"]["mainWindow"] = true
      expTracker["GL"]["commLogTab"] = nil
+     expTracker["GL"]["xpReport"] = "room"
      expTracker["GL"]["Channel"] = "echo"
      expTracker["GL"]["Logo"] = "@G[@CE@cxp@CT@cracker@G]@c"
      expTracker["GL"].Debug = false
@@ -355,6 +366,8 @@ function expMain(name,line,wc)
           expSession(rest)
      elseif first == "report" then
           expWindow(rest)
+     elseif first == "config" then
+          expConfig(rest)
      else
           HadarHelp()
      end
@@ -499,8 +512,13 @@ function makeOutputNormal()
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
      
-     if tonumber(myState) == 8 then
+     if tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
           expTracker["NR"].totexp = 0
+     elseif tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+          expTracker["NR"].totexp = 0
+          expTracker["NR"].startTime = os.time()
+          expTracker["NR"].sec = 0
+          expTracker["NR"].min = 0
      else
           expTracker["NR"].totexp = 0
           expTracker["NR"].startTime = 0
@@ -890,6 +908,21 @@ function expWindow(str)
      SaveState()
 end
 
+function expConfig(str)
+
+     if str == nil or str == "" or str == " " then
+          hadarprint("@cYou need to give an argument EG: @Ghxp config room","error")
+          return
+     end
+
+     str = string.lower(str)
+     if str == "room" then
+          expTracker["GL"]["xpReport"] = "room"
+     elseif str == "mob" then
+          expTracker["GL"]["xpReport"] = "mob"
+     end
+end
+
 --[[function setWindowText()
      my_window:clear()
      my_window:add_text("I have gained "..expTracker["NR"].totexp.." exp")
@@ -911,6 +944,7 @@ hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status 
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
 hadarprint("@x086|                         @x110- @G(@x208kill,double,hour,logo,session@G)@x086            |")
+hadarprint("@x086| @x214hhxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
@@ -931,6 +965,7 @@ end
 |                           a time between start and stop              |
 | hxp set <thing>         - Sets the message output for reports        |
 |                         - (kill,double,hour,logo,session)            |
+| hxp config <room|mob>   - Choose to reset timer after a mob or room  |
 +----------------------------------------------------------------------+
 ]]
 
