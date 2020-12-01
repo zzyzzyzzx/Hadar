@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.17"
+   version="1.18"
    >
 
 </plugin>
@@ -263,6 +263,7 @@ function buildInitial()
      expTracker["GL"]["Type"] = nil
      expTracker["GL"]["commLog"] = false
      expTracker["GL"]["mainWindow"] = true
+     expTracker["GL"]["multiKill"] = false
      expTracker["GL"]["commLogTab"] = nil
      expTracker["GL"]["xpReport"] = "room"
      expTracker["GL"]["Channel"] = "echo"
@@ -274,6 +275,8 @@ function buildInitial()
      expTracker["NR"].totexp = 0
      expTracker["NR"].sec = 0
      expTracker["NR"].min = 0
+     expTracker["NR"].kills = 0
+     expTracker["NR"].reportAfter = 1
      expTracker["NR"].message = "${logo}Your kill earned you @R${xp}@c for a @R${length}@c second fight for a total of - @R${totexp}@w"
 -------------------------------------------------------------
 ------------Initilize hour variables-------------------------
@@ -420,6 +423,7 @@ function expGained(name, line, wc)
      for i,v in pairs(t) do
           buildMessage(tonumber(v))
           expTracker["HR"].hourEXP = tonumber(expTracker["HR"].hourEXP)+tonumber(v)
+          expTracker["NR"].kills = expTracker["NR"].kills + 1
           if expTracker["DL"].Active == true then
                expTracker["DL"].hourEXP = tonumber(expTracker["DL"].hourEXP)+tonumber(v)
           end
@@ -505,25 +509,50 @@ function makeOutputNormal()
      expTracker["NR"].rate = tonumber(string.format("%2.2g",expTracker["NR"].rate))
      expTracker["GL"].Type = "NR"
      
-     makeOutput()
-     --setWindowText()
-     
-     
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
      
-     if tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+     if expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+          makeOutput()
           expTracker["NR"].totexp = 0
-     elseif tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+     elseif expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+          makeOutput()
           expTracker["NR"].totexp = 0
+          expTracker["NR"].kills = 0
           expTracker["NR"].startTime = os.time()
           expTracker["NR"].sec = 0
           expTracker["NR"].min = 0
-     else
-          expTracker["NR"].totexp = 0
-          expTracker["NR"].startTime = 0
-          expTracker["NR"].sec = 0
-          expTracker["NR"].min = 0
+     end
+     
+     if expTracker["GL"]["multiKill"] == true then
+          if expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+               makeOutput()
+               expTracker["NR"].totexp = 0
+          elseif expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+               makeOutput()
+               expTracker["NR"].totexp = 0
+               expTracker["NR"].kills = 0
+               expTracker["NR"].startTime = os.time()
+               expTracker["NR"].sec = 0
+               expTracker["NR"].min = 0
+          end
+     end
+     
+     if expTracker["GL"]["multiKill"] == false then
+     makeOutput()
+          if tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+               expTracker["NR"].totexp = 0
+          elseif tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+               expTracker["NR"].totexp = 0
+               expTracker["NR"].startTime = os.time()
+               expTracker["NR"].sec = 0
+               expTracker["NR"].min = 0
+          else
+               expTracker["NR"].totexp = 0
+               expTracker["NR"].startTime = 0
+               expTracker["NR"].sec = 0
+               expTracker["NR"].min = 0
+          end
      end
 end
 
@@ -914,14 +943,43 @@ function expConfig(str)
           hadarprint("@cYou need to give an argument EG: @Ghxp config room","error")
           return
      end
+     
+     local first, second = str:match("(%w+)%s*(.*)")
+     
+     first = string.lower(first)
+     
+     if second == " " or second == "" then
+          second = nil
+     end
 
-     str = string.lower(str)
-     if str == "room" then
+     if first == "room" then
           expTracker["GL"]["xpReport"] = "room"
           hadarprint("You will now track timer over the full room kills","script")
-     elseif str == "mob" then
+     elseif first == "mob" then
           expTracker["GL"]["xpReport"] = "mob"
           hadarprint("You will reset timer after each mob is killed","script")
+     elseif first == "report" then
+     
+          if second == "enable" then
+               expTracker["GL"]["multiKill"] = true
+               hadarprint("You have now @GENABLED@c multi kills","script")
+               return
+          elseif second == "disable" then
+               expTracker["GL"]["multiKill"] = false
+               hadarprint("You have now @RDISABLED@c multi kills","script")
+               return
+          end
+          second = tonumber(second)
+          
+          if second == nil then
+               hadarprint("You need to supply a number, EG. @Ghxp config report 3@w","error")
+               return
+          end
+          
+          if type(second) == "number" then
+               expTracker["NR"].reportAfter = second
+               hadarprint("@cYou will report exp gained per second after @R"..second.."@c kills@w","script")
+          end
      end
 end
 
