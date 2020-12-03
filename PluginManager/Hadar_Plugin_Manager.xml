@@ -232,17 +232,38 @@ function pmList()
      makeRawUrl()
      buildCache()
      
+     build_Len = tablelength(rawPluginUrl)
+     build_res = 0
      
           hadarprint("@x086+---------------------@g[@x051L@cist of @x051m@caintained @x051p@clugins@g]@x086---------------------+@w")
           
           for a,b in pairs (rawPluginUrl) do
                if b ~= "" then
                     async_ok, async = pcall (require, "async")
-                    ghName = async.request(b, "HTTPS")
-               
-                    retval, page, status, headers, full_status = ghName:join()
-               
-                    ghName = getName(page,true)
+                    ghName = async.doAsyncRemoteRequest(b, buildOutput, "HTTPS") 
+               end
+          end
+
+          
+end
+
+function buildOutput(retval, page, status, headers, full_status, request_url)
+     if status == 200 then
+          WName = getName(page,false)
+          rawname = string.match(page, '%s+name="([a-zA-Z0-9_]+)"')
+          ghVersion = string.match(page, '%s%s+version="(%d+%.?%d+)"')
+          pid = string.match(page, '%s+id="(%w+)"')
+          lVersion = GetPluginInfo(pid,19)
+          lname = GetPluginInfo(pid,6)
+          hpmVar["cache"][pid] = {}
+     else
+          hadarprint("Cant connect to github","error")
+     end --end if status 200
+     
+     build_res = build_res + 1
+     
+     if build_res >= build_Len then
+          ghName = getName(page,true)
                     local pid = string.match(page, '%s+id="(%w+)"')
                
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
@@ -255,18 +276,36 @@ function pmList()
                          Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
                     
                          if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
-                              --hadarprint(" @x011**@GPLUGIN UP TO DATE@x011**")
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
                          print("")
                     end
-                    print()
-               end
-          end
-
           hadarprint("@x086+----------------------------------------------------------------------+@w")
+     else
+
+          ghName = getName(page,true)
+                    local pid = string.match(page, '%s+id="(%w+)"')
+               
+                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
+                    if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
+                         if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
+                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                         else
+                              Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
+                         end
+                         Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
+                    
+                         if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
+                              ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
+                         end
+                    else
+                         Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         print("")
+                    end
+     end -- end counting if
+     print()
 end
 
 
