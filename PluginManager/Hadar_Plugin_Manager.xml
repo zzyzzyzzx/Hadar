@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.51"
+   version="1.6"
    >
 
 </plugin>
@@ -510,11 +510,12 @@ end
 
 function Raw_Update(retval, page, status, headers, full_status, request_url)
         if status == 200 then
-            raw_version = tonumber(string.match(page, '%s+version="([0-9%.]+)">'))
+            raw_version = tonumber(string.match(page, '%s%s+version="(%d+%.?%d+)"'))
         end
-        if raw_version == PLUGIN_VERSION then
+
+        if tonumber(raw_version) == tonumber(PLUGIN_VERSION) then
             hadarprint("@G"..PLUGIN_NAME .. "@c is up to date!","script")
-        elseif raw_version > PLUGIN_VERSION then
+        elseif tonumber(raw_version) > tonumber(PLUGIN_VERSION) then
             hadarprint("Updating from version @R"..PLUGIN_VERSION.."@c to @R"..raw_version.."@c Please stand by.","script")
             local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
             file:write(page)
@@ -524,6 +525,8 @@ function Raw_Update(retval, page, status, headers, full_status, request_url)
             end
             Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
             hadarprint("Updating is complete, Have a muddish day!","script")
+        elseif tonumber(raw_version) < tonumber(PLUGIN_VERSION) then
+          hadarprint("Your development is too quick!","error")
         end
         raw_version = nil
     end -- end Update code
