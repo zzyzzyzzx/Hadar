@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.22"
+   version="1.23"
    >
 
 </plugin>
@@ -264,7 +264,7 @@ function buildInitial()
      expTracker["HR"] = {}
      expTracker["GL"] = {}
      expTracker["SN"] = {}
------------global exptracker vars----------------------------
+-----------global expTracker vars----------------------------
      expTracker["GL"]["hour"] = true
      expTracker["GL"]["double"] = true
      expTracker["GL"]["normal"] = true
@@ -522,10 +522,10 @@ function makeOutputNormal()
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
      
-     if expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+     if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
           makeOutput()
           expTracker["NR"].totexp = 0
-     elseif expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+     elseif expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
           makeOutput()
           expTracker["NR"].totexp = 0
           expTracker["NR"].kills = 0
@@ -535,10 +535,10 @@ function makeOutputNormal()
      end
      
      if expTracker["GL"]["multiKill"] == true then
-          if expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+          if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
                makeOutput()
                expTracker["NR"].totexp = 0
-          elseif expTracker["NR"].kills >= exptracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
+          elseif expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
                makeOutput()
                expTracker["NR"].totexp = 0
                expTracker["NR"].kills = 0
