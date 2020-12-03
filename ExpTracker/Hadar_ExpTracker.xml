@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.21"
+   version="1.22"
    >
 
 </plugin>
@@ -294,7 +294,7 @@ function buildInitial()
      expTracker["HR"].totexp = 0
      expTracker["HR"].mobsKilled = 0
      expTracker["HR"].message = "${logo}Last Hour you killed @R${kills}@c for a total of @R${totexp}@c which is @R${xp}@c per second@w"
-     expTracker["HR"].repmessage = "${logo}Your Hour is currently at @R${kills}@c for a total of @R${totexp}@0w"
+     expTracker["HR"].repmessage = "${logo}Your Hour is currently at @R${kills}@c for a total of @R${totexp}@w"
 -------------------------------------------------------------
 -----------Initilize Double variables------------------------
      expTracker["DL"].hourEXP = 0
