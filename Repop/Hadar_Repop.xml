@@ -7,7 +7,7 @@
 
 <muclient>
 <plugin
-   name="HadarRepop"
+   name="Hadar_Repop"
    author="Hadar"
    id="d04caa4c8c9efbea17eab893"
    language="Lua"

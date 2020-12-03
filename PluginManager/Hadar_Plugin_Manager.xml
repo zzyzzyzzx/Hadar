@@ -248,14 +248,11 @@ function pmList()
 end
 
 function buildOutput(retval, page, status, headers, full_status, request_url)
+     local pid, ghName
+     
      if status == 200 then
-          WName = getName(page,false)
-          rawname = string.match(page, '%s+name="([a-zA-Z0-9_]+)"')
-          ghVersion = string.match(page, '%s%s+version="(%d+%.?%d+)"')
+          ghName = getName(page,true)
           pid = string.match(page, '%s+id="(%w+)"')
-          lVersion = GetPluginInfo(pid,19)
-          lname = GetPluginInfo(pid,6)
-          hpmVar["cache"][pid] = {}
      else
           hadarprint("Cant connect to github","error")
      end --end if status 200
@@ -263,9 +260,6 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
      build_res = build_res + 1
      
      if build_res >= build_Len then
-          ghName = getName(page,true)
-                    local pid = string.match(page, '%s+id="(%w+)"')
-               
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
@@ -284,10 +278,6 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                     end
           hadarprint("@x086+----------------------------------------------------------------------+@w")
      else
-
-          ghName = getName(page,true)
-                    local pid = string.match(page, '%s+id="(%w+)"')
-               
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
