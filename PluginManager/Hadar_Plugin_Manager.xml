@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.61"
+   version="1.62"
    >
 
 </plugin>
@@ -221,7 +221,7 @@ function pmMain(l, m, wc)
      if first == "check" then
           pmList()
      elseif first == "update" then
-          updatePlugin()
+          updatePluginThis()
      elseif first == "help" then
           HadarHelp()
      end
@@ -489,7 +489,7 @@ check him out on github
 https://github.com/AardCrowley/Aardwolf-Scripts
 ]]
 
-function updatePlugin()
+function updatePluginThis()
      raw = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/PluginManager/Hadar_Plugin_Manager.xml"
      async_ok, async = pcall (require, "async")
      if async_ok then
