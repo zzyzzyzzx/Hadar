@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.20"
+   version="1.21"
    >
 
 </plugin>
@@ -1034,8 +1034,8 @@ hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message out
 hadarprint("@x086|                         @x110  @G(@x208kill@W,@x208double@W,@x208hour@W,@x208logo@W,@x208session@W,@x208dblreport@G)  @x086|")
 hadarprint("@x086|                         @x110  @G(@x208hrreport@G)                                 @x086|")
 hadarprint("@x086| @x214hxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
-hadarprint("|  \"    \"    report       @x110  @x214enable|disable, # EG. @Ghxp config report 3@w  @x086|")
-hadarprint("|                         @x110  @x214will change the report from per mob to #   @x086|")
+hadarprint("@x086|  @x214\"    \"    report       @x110  @x214enable|disable, # EG. @Ghxp config report 3@w  @x086|")
+hadarprint("@x086|                         @x110  @x214will change the report from per mob to #   @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
