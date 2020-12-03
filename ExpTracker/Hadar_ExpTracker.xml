@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.18"
+   version="1.20"
    >
 
 </plugin>
@@ -249,6 +249,14 @@ function OnPluginEnable ()
      
 end
 
+function checkExist(tbl, idx, val) 
+     if not tbl[idx] then 
+          tbl[idx] = val
+          SetVariable("tbl", serialize.save("tbl")) 
+     end
+     return tbl[idx]
+end
+
 function buildInitial()
 	expTracker = {}
      expTracker["NR"] = {}
@@ -286,6 +294,7 @@ function buildInitial()
      expTracker["HR"].totexp = 0
      expTracker["HR"].mobsKilled = 0
      expTracker["HR"].message = "${logo}Last Hour you killed @R${kills}@c for a total of @R${totexp}@c which is @R${xp}@c per second@w"
+     expTracker["HR"].repmessage = "${logo}Your Hour is currently at @R${kills}@c for a total of @R${totexp}@0w"
 -------------------------------------------------------------
 -----------Initilize Double variables------------------------
      expTracker["DL"].hourEXP = 0
@@ -294,6 +303,7 @@ function buildInitial()
      expTracker["DL"].totexp = 0
      expTracker["DL"].mobsKilled = 0
      expTracker["DL"].message = "${logo}Last double you got @R${kills}@c kills for a total of @R${totexp}@c which was @R${xp}@c a second@w"
+     expTracker["DL"].repmessage = "${logo}Your Double is currently at @R${kills}@c for a total of @R${totexp} @cWith an avg of @R${xp}@c exp/second@w"
 -------------------------------------------------------------
 -----------Initilize Session variables------------------------
      expTracker["SN"].startTime = 0
@@ -650,6 +660,24 @@ function expDoubleSet(param)
 		else
 			expTracker["SN"].message = HadarBackup
 		end
+     elseif param == "hrreport" then
+          HadarBackup = expTracker["HR"]["repmessage"]
+		expTracker["HR"]["repmessage"] = utils.inputbox ("${kills} - shows how many kills you have so far\n${totexp} - shows how much total exp earned so far", "Hourly Report", expTracker["HR"]["repmessage"], "Courier", 9)
+		
+		if expTracker["HR"]["repmessage"] ~= nil then
+			hadarprint("Hour report will look like@W: @w"..expTracker["HR"]["repmessage"],"script")
+		else
+			expTracker["HR"]["repmessage"] = HadarBackup
+		end
+     elseif param == "dblreport" then
+          HadarBackup = expTracker["DL"]["repmessage"]
+		expTracker["DL"]["repmessage"] = utils.inputbox ("${kills} - shows how many kills you have so far\n${totexp} - shows how much total exp earned so far", "Hourly Report", expTracker["DL"]["repmessage"], "Courier", 9)
+		
+		if expTracker["DL"]["repmessage"] ~= nil then
+			hadarprint("Hour report will look like@W: @w"..expTracker["DL"]["repmessage"],"script")
+		else
+			expTracker["DL"]["repmessage"] = HadarBackup
+		end
      else
           hadarprint("@cYou need to input one of the following@w: @Gnormal@w, @Gdouble@w,@G hour@w, @Glogo @Wor @Gsession @C.@c.@C. @YEG:@R xhp set normal@w","error")
      end
@@ -863,7 +891,7 @@ function showReport(report)
           local exprate = expTracker["DL"].totexp
           local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
           expTracker["DL"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
-          local repmsg = "Your Double is currently at @R"..expTracker["DL"].mobsKilled .."@c for a total of @R"..expTracker["DL"].totexp.. " @cWith an avg of @R"..expTracker["DL"].rate.."@c exp/second@w"
+          local repmsg = interp(expTracker["DL"].repmessage, {xp = expTracker["DL"].rate,totexp = expTracker["DL"].totexp, kills = expTracker["DL"].mobsKilled,logo = expTracker["GL"].Logo})
           
           if repchan == "echo" or repchan == "print" then
                hadarprint(repmsg,"script")
@@ -875,8 +903,8 @@ function showReport(report)
      end
      
      if first == "hour" and expTracker["GL"]["hour"] == true then
-          local repmsg = "Your Hour is currently at @R"..expTracker["HR"].mobsKilled .."@c for a total of @R"..expTracker["HR"].totexp
-           if repchan == "echo" or repchan == "print" then
+          local repmsg = interp(expTracker["HR"].repmessage, {totexp = expTracker["HR"].totexp, kills = expTracker["HR"].mobsKilled,logo = expTracker["GL"].Logo})
+          if repchan == "echo" or repchan == "print" then
                hadarprint(repmsg,"script")
           else
                SendSpecial(repchan .. " " .. repmsg)
@@ -1003,8 +1031,11 @@ hadarprint("@x086|                           @REG@W.@G hxp report main off      
 hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status .. tracks exp/kill over@x086|")
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
-hadarprint("@x086|                         @x110- @G(@x208kill,double,hour,logo,session@G)@x086            |")
+hadarprint("@x086|                         @x110  @G(@x208kill@W,@x208double@W,@x208hour@W,@x208logo@W,@x208session@W,@x208dblreport@G)  @x086|")
+hadarprint("@x086|                         @x110  @G(@x208hrreport@G)                                 @x086|")
 hadarprint("@x086| @x214hxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
+hadarprint("|  \"    \"    report       @x110  @x214enable|disable, # EG. @Ghxp config report 3@w  @x086|")
+hadarprint("|                         @x110  @x214will change the report from per mob to #   @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
@@ -1024,8 +1055,11 @@ end
 | hxp session <command>   - Start, Stop, Status .. tracks exp/kill over|
 |                           a time between start and stop              |
 | hxp set <thing>         - Sets the message output for reports        |
-|                         - (kill,double,hour,logo,session)            |
+|                         = (kill,double,hour,logo,session,dblreport)  |
+|                         = (hrreport)                                 |
 | hxp config <room|mob>   - Choose to reset timer after a mob or room  |
+|  "    "    report       - enable|disable, # EG. hxp config report 3  |
+|                         - will change the report from per mob to #   |
 +----------------------------------------------------------------------+
 ]]
 
