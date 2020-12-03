@@ -470,7 +470,7 @@ https://github.com/AardCrowley/Aardwolf-Scripts
 ]]
 
 function updatePlugin()
-     raw = "https://raw.githubusercontent.com/AardCrowley/Aardwolf-Scripts/master/Aardwolf_Clock%20V2/Aardwolf_Clock.xml"
+     raw = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/PluginManager/Hadar_Plugin_Manager.xml"
      async_ok, async = pcall (require, "async")
      if async_ok then
           plugin_page = async.doAsyncRemoteRequest(raw, Raw_Update, "HTTPS")
