@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.6"
+   version="1.61"
    >
 
 </plugin>
@@ -255,12 +255,13 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
           pid = string.match(page, '%s+id="(%w+)"')
      else
           hadarprint("Cant connect to github","error")
+          return
      end --end if status 200
      
      build_res = build_res + 1
      
      if build_res >= build_Len then
-                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
+                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
                               Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
@@ -276,9 +277,10 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
                          print("")
                     end
+                    print()
           hadarprint("@x086+----------------------------------------------------------------------+@w")
      else
-                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", a ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
+                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
                               Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
@@ -444,7 +446,7 @@ end --end function buildCache()
 
 function raw_get_cache(retval, page, status, headers, full_status, request_url)
      
-          local WName, rawname, ghVersion, pid, lVersion, lname 
+     local WName, rawname, ghVersion, pid, lVersion, lname 
      
      if status == 200 then
           WName = getName(page,false)
@@ -459,11 +461,7 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
      end --end if status 200
      
      cache_res = cache_res + 1
-     
-          
-     
-     
-   
+
      if cache_res >= cache_Len then
           hpmVar["cache"][pid]["sname"] = WName
           hpmVar["cache"][pid]["rawname"] = rawname
@@ -472,11 +470,7 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           hpmVar["cache"][pid]["versionL"] = lVersion
           hpmVar["cache"][pid]["lname"] = lname
           hpmVar["cache"][pid]["url"] = request_url
-     
      else
-     
-     
- 
           hpmVar["cache"][pid]["sname"] = WName
           hpmVar["cache"][pid]["rawname"] = rawname
           hpmVar["cache"][pid]["versionW"] = ghVersion
@@ -484,9 +478,6 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           hpmVar["cache"][pid]["versionL"] = lVersion
           hpmVar["cache"][pid]["lname"] = lname
           hpmVar["cache"][pid]["url"] = request_url
-          
-     
-     
      end -- end counting if
      
      
