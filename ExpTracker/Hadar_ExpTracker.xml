@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.23"
+   version="1.24"
    >
 
 </plugin>
@@ -522,7 +522,7 @@ function makeOutputNormal()
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
      
-     if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
+     --[[if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
           makeOutput()
           expTracker["NR"].totexp = 0
      elseif expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
@@ -532,7 +532,7 @@ function makeOutputNormal()
           expTracker["NR"].startTime = os.time()
           expTracker["NR"].sec = 0
           expTracker["NR"].min = 0
-     end
+     end]]
      
      if expTracker["GL"]["multiKill"] == true then
           if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
