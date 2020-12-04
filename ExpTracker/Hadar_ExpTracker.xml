@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.25"
+   version="1.26"
    >
 
 </plugin>
@@ -242,85 +242,88 @@ function OnPluginEnable ()
      
 	if GetVariable ("exppastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("expTracker") or "")) ()
+          injectVars()
 	else
           hadarprint("Looks like this is your first install, Lets get you setup! hxp for help","script")
-		buildInitial()
+		injectVars()
 	end
-     
 end
 
 function checkExist(tbl, idx, val) 
-     if not tbl[idx] then 
-          tbl[idx] = val
-          SetVariable("tbl", serialize.save("tbl")) 
+     if not expTracker[tbl][idx] then 
+          expTracker[tbl][idx] = val
+          SetVariable("expTracker", serialize.save("expTracker")) 
      end
-     return tbl[idx]
+     --return tbl[idx]
 end
 
-function buildInitial()
-	expTracker = {}
-     expTracker["NR"] = {}
-     expTracker["DL"] = {}
-     expTracker["HR"] = {}
-     expTracker["GL"] = {}
-     expTracker["SN"] = {}
+function injectVars()
+     local v = {}
+     v["NR"] = {}
+     v["DL"] = {}
+     v["HR"] = {}
+     v["GL"] = {}
+     v["SN"] = {}
 -----------global expTracker vars----------------------------
-     expTracker["GL"]["hour"] = true
-     expTracker["GL"]["double"] = true
-     expTracker["GL"]["normal"] = true
-     expTracker["GL"]["Type"] = nil
-     expTracker["GL"]["commLog"] = false
-     expTracker["GL"]["mainWindow"] = true
-     expTracker["GL"]["multiKill"] = false
-     expTracker["GL"]["commLogTab"] = nil
-     expTracker["GL"]["xpReport"] = "room"
-     expTracker["GL"]["Channel"] = "echo"
-     expTracker["GL"]["Logo"] = "@G[@CE@cxp@CT@cracker@G]@c"
-     expTracker["GL"].Debug = false
--------------------------------------------------------------
+     v["GL"]["hour"] = true
+     v["GL"]["double"] = true
+     v["GL"]["normal"] = true
+     v["GL"]["Type"] = nil
+     v["GL"]["commLog"] = false
+     v["GL"]["mainWindow"] = true
+     v["GL"]["multiKill"] = false
+     v["GL"]["commLogTab"] = nil
+     v["GL"]["xpReport"] = "room"
+     v["GL"]["Channel"] = "echo"
+     v["GL"]["Logo"] = "@G[@CE@cxp@CT@cracker@G]@c"
+     v["GL"].Debug = false
 -----------Initilize Normal Variables------------------------
-     expTracker["NR"].startTime = 0
-     expTracker["NR"].totexp = 0
-     expTracker["NR"].sec = 0
-     expTracker["NR"].min = 0
-     expTracker["NR"].kills = 0
-     expTracker["NR"].reportAfter = 1
-     expTracker["NR"].message = "${logo}Your kill earned you @R${xp}@c for a @R${length}@c second fight for a total of - @R${totexp}@w"
--------------------------------------------------------------
+     v["NR"].startTime = 0
+     v["NR"].totexp = 0
+     v["NR"].sec = 0
+     v["NR"].min = 0
+     v["NR"].kills = 0
+     v["NR"].reportAfter = 1
+     v["NR"].message = "${logo}Your kill earned you @R${xp}@c for a @R${length}@c second fight for a total of - @R${totexp}@w"
 ------------Initilize hour variables-------------------------
-     expTracker["HR"].hourEXP = 0
-     expTracker["HR"].rareEXP = 0
-     expTracker["HR"].bonusEXP = 0
-     expTracker["HR"].totexp = 0
-     expTracker["HR"].mobsKilled = 0
-     expTracker["HR"].message = "${logo}Last Hour you killed @R${kills}@c for a total of @R${totexp}@c which is @R${xp}@c per second@w"
-     expTracker["HR"].repmessage = "${logo}Your Hour is currently at @R${kills}@c for a total of @R${totexp}@w"
--------------------------------------------------------------
+     v["HR"].hourEXP = 0
+     v["HR"].rareEXP = 0
+     v["HR"].bonusEXP = 0
+     v["HR"].totexp = 0
+     v["HR"].mobsKilled = 0
+     v["HR"].message = "${logo}Last Hour you killed @R${kills}@c for a total of @R${totexp}@c which is @R${xp}@c per second@w"
+     v["HR"].repmessage = "${logo}Your Hour is currently at @R${kills}@c for a total of @R${totexp}@w"
 -----------Initilize Double variables------------------------
-     expTracker["DL"].hourEXP = 0
-     expTracker["DL"].rareEXP = 0
-     expTracker["DL"].bonusEXP = 0
-     expTracker["DL"].totexp = 0
-     expTracker["DL"].mobsKilled = 0
-     expTracker["DL"].message = "${logo}Last double you got @R${kills}@c kills for a total of @R${totexp}@c which was @R${xp}@c a second@w"
-     expTracker["DL"].repmessage = "${logo}Your Double is currently at @R${kills}@c for a total of @R${totexp} @cWith an avg of @R${xp}@c exp/second@w"
--------------------------------------------------------------
+     v["DL"].hourEXP = 0
+     v["DL"].rareEXP = 0
+     v["DL"].bonusEXP = 0
+     v["DL"].totexp = 0
+     v["DL"].mobsKilled = 0
+     v["DL"].message = "${logo}Last double you got @R${kills}@c kills for a total of @R${totexp}@c which was @R${xp}@c a second@w"
+     v["DL"].repmessage = "${logo}Your Double is currently at @R${kills}@c for a total of @R${totexp} @cWith an avg of @R${xp}@c exp/second@w"
 -----------Initilize Session variables------------------------
-     expTracker["SN"].startTime = 0
-     expTracker["SN"].Active = false
-     expTracker["SN"].totexp = 0
-     expTracker["SN"].killexp = 0
-     expTracker["SN"].rareexp = 0
-     expTracker["SN"].bonusexp = 0
-     expTracker["SN"].mobsKilled = 0
-     expTracker["SN"].expPerSecond = 0
-     expTracker["SN"].expPerMinute = 0
-     expTracker["SN"].sec = 0
-     expTracker["SN"].min = 0
-     expTracker["SN"].message = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totexp}@G[@WK:@R${killexp}@W,B:@R${bonusexp}@W,R:@R${rareexp}@G]@c kills@W: @R${kills}@w"
+     v["SN"].startTime = 0
+     v["SN"].Active = false
+     v["SN"].totexp = 0
+     v["SN"].killexp = 0
+     v["SN"].rareexp = 0
+     v["SN"].bonusexp = 0
+     v["SN"].mobsKilled = 0
+     v["SN"].expPerSecond = 0
+     v["SN"].expPerMinute = 0
+     v["SN"].sec = 0
+     v["SN"].min = 0
+     v["SN"].message = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totexp}@G[@WK:@R${killexp}@W,B:@R${bonusexp}@W,R:@R${rareexp}@G]@c kills@W: @R${kills}@w"
 -------------------------------------------------------------
+
+
+for a,b in pairs(v) do
+     for c,d in pairs(b) do
+          checkExist(a,c,d)
+     end
 end
 
+end
 
 ----------------------------------------------------------------------------------------------------
 --										 End Standard Template	    							  --
@@ -371,7 +374,8 @@ function expMain(name,line,wc)
           hadarprint("All Messages turned @GON@w","script")
           SaveState()
      elseif first == "fullreset" then
-          buildInitial()
+          expTracker = {}
+          injectVars()
           hadarprint("All Variables have been reset to default","script")
      elseif first == "show" then
           showReport(rest)
