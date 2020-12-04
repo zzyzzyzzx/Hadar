@@ -24,7 +24,9 @@ This is my exp tracker,
 ```
 
 hxp report <scren> <log> is kind of unique, so you would use
+  
 hxp report comm to toggle the comm log
+
 hxp report main to toggle reports to the main window
 
 the way hxp report comm expTracker works, is if you have a tab on your commlog called exptracker, and put that in, it will send all the tracker stuff to that log
