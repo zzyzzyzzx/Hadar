@@ -507,10 +507,10 @@ function doubleRareKill(name, line, wc)
 local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(v)
-          expTracker["IN"].rareExp = tonumber(expTracker["IN"].rareEXP)+tonumber(v)
-          expTracker["HR"].rareExp = tonumber(expTracker["HR"].rareEXP)+tonumber(v)
+          expTracker["IN"].rareExp = tonumber(expTracker["IN"].rareExp)+tonumber(v)
+          expTracker["HR"].rareEXP = tonumber(expTracker["HR"].rareEXP)+tonumber(v)
           if expTracker["DL"].Active == true then
-               expTracker["DL"].rareExp = tonumber(expTracker["DL"].rareEXP)+tonumber(v)
+               expTracker["DL"].rareEXP = tonumber(expTracker["DL"].rareEXP)+tonumber(v)
           end
           if expTracker["SN"].Active == true then
                expTracker["SN"].totexp = tonumber(expTracker["SN"].totexp)+tonumber(v)
