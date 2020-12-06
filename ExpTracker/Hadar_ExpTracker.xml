@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.26"
+   version="1.27"
    >
 
 </plugin>
@@ -186,6 +186,7 @@ TODO:
 <![CDATA[
 require "serialize"
 require "gmcphelper"
+require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 --require "themed_miniwindows"
 
@@ -238,6 +239,7 @@ function OnPluginEnable ()
      expTracker["HR"] = {}
      expTracker["GL"] = {}
      expTracker["SN"] = {}
+     expTracker["IN"] = {}
      
      
 	if GetVariable ("exppastfirstinstall") == "true" then
@@ -247,14 +249,20 @@ function OnPluginEnable ()
           hadarprint("Looks like this is your first install, Lets get you setup! hxp for help","script")
 		injectVars()
 	end
+     
 end
 
 function checkExist(tbl, idx, val) 
-     if not expTracker[tbl][idx] then 
-          expTracker[tbl][idx] = val
-          SetVariable("expTracker", serialize.save("expTracker")) 
+
+     if not expTracker[tbl] then
+          expTracker[tbl] = {}
      end
-     --return tbl[idx]
+
+     if not expTracker[tbl][idx] then
+               expTracker[tbl][idx] = val
+               SetVariable("expTracker", serialize.save("expTracker")) 
+     end
+     
 end
 
 function injectVars()
@@ -264,6 +272,7 @@ function injectVars()
      v["HR"] = {}
      v["GL"] = {}
      v["SN"] = {}
+     v["IN"] = {}
 -----------global expTracker vars----------------------------
      v["GL"]["hour"] = true
      v["GL"]["double"] = true
@@ -314,8 +323,24 @@ function injectVars()
      v["SN"].sec = 0
      v["SN"].min = 0
      v["SN"].message = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totexp}@G[@WK:@R${killexp}@W,B:@R${bonusexp}@W,R:@R${rareexp}@G]@c kills@W: @R${kills}@w"
+-----------Initilize install variables-----------------------
+     v["IN"].Installed = os.time()
+     v["IN"].Date = os.date("*t")
+     v["IN"].kills = 0
+     v["IN"].Totexp = 0
+     v["IN"].killexp = 0
+     v["IN"].bonusEXP = 0
+     v["IN"].rareExp = 0
+     v["IN"].CombatStart = 0
+     v["IN"].CombatEnd = 0
+     v["IN"].TotalYears = 0
+     v["IN"].TotalMonths = 0
+     v["IN"].TotalDays = 0
+     v["IN"].TotalHours = 0
+     v["IN"].TotalMinutes = 0
+     v["IN"].TotalSeconds = 0
+     v["IN"].message = "${logo} @CI@cnstalled@W:@G${wday}@W,@G${month} ${day} ${year} @Ca@Ct @G${hour}@W:@G${min}@W:@G${sec} @CT@cotals@D[@CK@cills:@G${kills}@W, @CE@cxp@W:@G${totexp}@W, @CA@cvg@W:@G${avgkills}@D] @CB@creakDown@D[@CK@cill @CE@cxp@W:@G${killexp}@W, @CB@conus @CE@cxp@W:@G${bonusexp}@W, @CR@care @CE@cxp@W:@G${rareexp}@D]@W"
 -------------------------------------------------------------
-
 
 for a,b in pairs(v) do
      for c,d in pairs(b) do
@@ -385,6 +410,8 @@ function expMain(name,line,wc)
           expWindow(rest)
      elseif first == "config" then
           expConfig(rest)
+     elseif first == "alltime" then
+          expINReport(rest)
      else
           HadarHelp()
      end
@@ -421,6 +448,7 @@ function OnPluginBroadcast(msg, id, name, text)
                               if k == "state" and tonumber(l) == 8 then
                                    if expTracker["NR"].startTime == 0 then
                                         hadarprint("start timer","debug")
+                                        expTracker["IN"].CombatStart = os.time()
                                         expTracker["NR"].startTime = os.time()
                                    end
                               end
@@ -431,13 +459,14 @@ function OnPluginBroadcast(msg, id, name, text)
 	end
 end
 
-
 function expGained(name, line, wc)
      local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(tonumber(v))
+          expTracker["IN"].killexp = tonumber(expTracker["IN"].killexp)+tonumber(v)
           expTracker["HR"].hourEXP = tonumber(expTracker["HR"].hourEXP)+tonumber(v)
           expTracker["NR"].kills = expTracker["NR"].kills + 1
+          expTracker["IN"].kills = expTracker["IN"].kills + 1
           if expTracker["DL"].Active == true then
                expTracker["DL"].hourEXP = tonumber(expTracker["DL"].hourEXP)+tonumber(v)
           end
@@ -461,6 +490,7 @@ function bonusExpGained(name, line, wc)
 local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(v)
+          expTracker["IN"].bonusEXP = tonumber(expTracker["IN"].bonusEXP)+tonumber(v)
           expTracker["HR"].bonusEXP = tonumber(expTracker["HR"].bonusEXP)+tonumber(v)
           if expTracker["DL"].Active == true then
                expTracker["DL"].bonusEXP = tonumber(expTracker["DL"].bonusEXP)+tonumber(v)
@@ -477,6 +507,7 @@ function doubleRareKill(name, line, wc)
 local t = utils.split(wc[1],"+")
      for i,v in pairs(t) do
           buildMessage(v)
+          expTracker["IN"].rareExp = tonumber(expTracker["IN"].rareEXP)+tonumber(v)
           expTracker["HR"].rareExp = tonumber(expTracker["HR"].rareEXP)+tonumber(v)
           if expTracker["DL"].Active == true then
                expTracker["DL"].rareExp = tonumber(expTracker["DL"].rareEXP)+tonumber(v)
@@ -493,6 +524,7 @@ function buildMessage(param)
 
      expTracker["NR"].totexp = tonumber(expTracker["NR"].totexp)+tonumber(param)
      expTracker["HR"].totexp = tonumber(expTracker["HR"].totexp)+tonumber(param)
+     expTracker["IN"].Totexp = tonumber(expTracker["IN"].Totexp)+tonumber(param)
      if expTracker["DL"].Active == true then
           expTracker["DL"].totexp = tonumber(expTracker["DL"].totexp)+tonumber(param)
      end
@@ -506,9 +538,57 @@ function makeOutputNormal()
      if expTracker["NR"].startTime == 0 then
           expTracker["NR"].sec = 0
           expTracker["NR"].min = 0
+          expTracker["IN"].TotalSeconds = expTracker["IN"].TotalSeconds + 1
+          if expTracker["IN"].TotalSeconds > 60 then
+               local extra = expTracker["IN"].TotalSeconds - 60
+               expTracker["IN"].TotalSeconds = 0 + extra
+               expTracker["IN"].TotalMinutes = expTracker["IN"].TotalMinutes + 1
+          end
+               
      else
           expTimeDiff(os.time(),expTracker["NR"].startTime,"NR")
-     end
+          expTimeDiff(os.time(),expTracker["IN"].CombatStart,"IN")
+          
+          
+          --[[
+          Lets do some setting up the total time in combat score
+          ]]
+     
+          expTracker["IN"].TotalYears = expTracker["IN"].TotalYears + expTracker["IN"].year
+          expTracker["IN"].TotalMonths = expTracker["IN"].TotalMonths + expTracker["IN"].month
+          expTracker["IN"].TotalDays = expTracker["IN"].TotalDays + expTracker["IN"].day
+          expTracker["IN"].TotalHours = expTracker["IN"].TotalHours + expTracker["IN"].hour
+          expTracker["IN"].TotalMinutes = expTracker["IN"].TotalMinutes + expTracker["IN"].min
+          expTracker["IN"].TotalSeconds = expTracker["IN"].TotalSeconds + expTracker["IN"].sec
+     
+          if expTracker["IN"].TotalSeconds > 60 then
+               local extra = expTracker["IN"].TotalSeconds - 60
+               expTracker["IN"].TotalSeconds = 0 + extra
+               expTracker["IN"].TotalMinutes = expTracker["IN"].TotalMinutes + 1
+          end
+          if expTracker["IN"].TotalMinutes > 60 then
+               local extra = expTracker["IN"].TotalMinutes - 60
+               expTracker["IN"].TotalMinutes = 0 + extra
+               expTracker["IN"].TotalHours = expTracker["IN"].TotalHours + 1
+          end
+          if expTracker["IN"].TotalHours > 24 then
+               local extra = expTracker["IN"].TotalHours - 24
+               expTracker["IN"].TotalHours = 0 + extra
+               expTracker["IN"].TotalDays = expTracker["IN"].TotalDays + 1
+          end
+          if expTracker["IN"].TotalDays > 30 then
+               local extra = expTracker["IN"].TotalDays - 30
+               expTracker["IN"].TotalDays = 0 + extra
+               expTracker["IN"].TotalMonths = expTracker["IN"].TotalMonths + 1
+          end
+          if expTracker["IN"].TotalMonths > 12 then
+               local extra = expTracker["IN"].TotalMonths - 12
+               expTracker["IN"].TotalMonths = 0 + extra
+               expTracker["IN"].TotalYears = expTracker["IN"].TotalYears + 1
+          end
+          
+     end--end if starttime == 0
+     
      
      local exprate = expTracker["NR"].totexp
      
@@ -525,18 +605,6 @@ function makeOutputNormal()
      
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      myState = tonumber(charstatus.state)
-     
-     --[[if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
-          makeOutput()
-          expTracker["NR"].totexp = 0
-     elseif expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
-          makeOutput()
-          expTracker["NR"].totexp = 0
-          expTracker["NR"].kills = 0
-          expTracker["NR"].startTime = os.time()
-          expTracker["NR"].sec = 0
-          expTracker["NR"].min = 0
-     end]]
      
      if expTracker["GL"]["multiKill"] == true then
           if expTracker["NR"].kills >= expTracker["NR"].reportAfter and tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
@@ -682,6 +750,16 @@ function expDoubleSet(param)
 		else
 			expTracker["DL"]["repmessage"] = HadarBackup
 		end
+     elseif param == "alltime" then
+          HadarBackup = expTracker["IN"]["message"]
+		expTracker["IN"]["repmessage"] = utils.inputbox ("${logo} - Displays logo\n${wday} - Displays day of the week\n${month} - Displays month of install\n${year} - Displays year of install\n${day} - displays day of install\n${hour} - Displays hour of install\n${min} - displays minute of install\n${sec} - displays second of install\n${kills} - shows kills exp\n${totexp} - shows total exp\n${avgkills} - shows average exp of all kills\n${killexp} - shows exp of only kills\n${bonusexp} - shows bonus exp\n${rareexp} - shows rare exp", "All Time Report", expTracker["IN"]["message"], "Courier", 9)
+		
+		if expTracker["IN"]["message"] ~= nil then
+			hadarprint("Hour report will look like@W: @w"..expTracker["IN"]["message"],"script")
+		else
+			expTracker["IN"]["repmessage"] = HadarBackup
+		end
+          
      else
           hadarprint("@cYou need to input one of the following@w: @Gnormal@w, @Gdouble@w,@G hour@w, @Glogo @Wor @Gsession @C.@c.@C. @YEG:@R xhp set normal@w","error")
      end
@@ -1015,6 +1093,123 @@ function expConfig(str)
      end
 end
 
+local function getDay(val)
+     local str
+     if val == 1 then
+          str = "@CS@cunday"
+     elseif val == 2 then
+          str = "@CM@conday"
+     elseif val == 3 then
+          str = "@CT@cuesday"
+     elseif val == 4 then
+          str = "@CW@cednesday"
+     elseif val == 5 then
+          str = "@CT@chursday"
+     elseif val == 6 then
+          str = "@CF@criday"
+     elseif val == 7 then
+          str = "@CS@caturday"
+     end
+          
+     return str
+end
+     
+function getMonth(val)
+     local str
+     if val == 1 then
+          str = "@CJ@can@W."
+     elseif val == 2 then
+          str = "@CF@ceb@W."
+     elseif val == 3 then
+          str = "@CM@car@W."
+     elseif val == 4 then
+          str = "@CA@cpr@W."
+     elseif val == 5 then
+          str = "@CM@cay"
+     elseif val == 6 then
+          str = "@CJ@cun@W."
+     elseif val == 7 then
+          str = "@CJ@cul@W."
+     elseif val == 8 then
+          str = "@CA@cug@W."
+     elseif val == 9 then
+          str = "@CS@cept@W."
+     elseif val == 10 then
+          str = "@CO@cct@W."
+     elseif val == 11 then
+          str = "@CN@cov@W."
+     elseif val == 12 then
+          str = "@CD@cec@W."
+     end
+         
+     return str
+end
+
+function expINReport(str)
+     if str == nil or str == "" or str == " " then 
+     
+     local expdate = getDay(expTracker["IN"].Date.wday) .. "@W, " .. getMonth(expTracker["IN"].Date.month) .. " @G" .. expTracker["IN"].Date.day .. " @G" .. expTracker["IN"].Date.year
+     local exptime = "@G"..expTracker["IN"].Date.hour.."@W:@G"..expTracker["IN"].Date.min.."@W:@G"..expTracker["IN"].Date.sec
+     local expdatetime = expdate .. " @Dat " .. exptime .. "@w"
+     local DTlen = string.len(strip_colours(expdatetime))
+     local math1 = 50-DTlen
+     
+     local years = expTracker["IN"].TotalYears
+     local months = expTracker["IN"].TotalMonths
+     local days = expTracker["IN"].TotalDays
+     local hours = expTracker["IN"].TotalHours
+     local minutes = expTracker["IN"].TotalMinutes
+     local seconds = expTracker["IN"].TotalSeconds
+     
+     local kills = expTracker["IN"].kills
+     local totexp = expTracker["IN"].Totexp
+     local bonusxp = expTracker["IN"].bonusEXP
+     local rarexp = expTracker["IN"].rareExp
+     
+     local avgkills = totexp/kills
+     
+     hadarprint("@x165+@x247----------------------------@x046[@CE@cxp @CR@ceport@x046]@x247------------------------------@x165+@w")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|                     @CT@Dracker @CS@Dtarted @CT@Dracking @Co@Dn@W:                     @x165|")
+     hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",expdatetime," ").."@x165|")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|     @CK@Dills@W: @x156"..string.format("%-10s",expTracker["IN"].kills).."  @CT@Dotal @CE@Dxp@W: @x156"..string.format("%-10g",totexp).."   @CA@Dvg @CE@Dxp@W: @x156"..string.format("%-5g",avgkills).."        @x165|")
+     hadarprint("@x165|            @CB@Donus @CE@Dxp@W: @x156"..string.format("%-10s",bonusxp).."    @CR@Dare @CE@Dxp@W: @x156"..string.format("%-10s",rarexp).."             @x165|")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|                    @CY@Dou @CH@Dave @Cb@Deen @Ci@Dn @Cc@Dombat @Cf@Dor@W:                      @x165|")
+     hadarprint("@x165|   @CY@Dears@W: @x156"..string.format("%-3s",years).." @CM@Donths@W: @x156"..string.format("%-2s",months).." @CD@Days@W: @x156"..string.format("%-2s",days).." @CH@Dours@W: @x156"..string.format("%-2s",hours).." @CM@Dinutes@W: @x156"..string.format("%-2s",minutes).." @CS@Deconds@W: @x156"..string.format("%-2s",seconds).."   @x165|")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
+     
+     else
+     
+          local kills = expTracker["IN"].kills
+          local totexp = expTracker["IN"].Totexp
+     
+          local avgkills = totexp/kills
+     
+          local repmsg = interp(expTracker["IN"].message, {
+          wday = getDay(expTracker["IN"].Date.wday),
+          month = getMonth(expTracker["IN"].Date.month),
+          year = expTracker["IN"].Date.year,
+          day = expTracker["IN"].Date.day,
+          hour = expTracker["IN"].Date.hour,
+          min = expTracker["IN"].Date.min,
+          sec = expTracker["IN"].Date.sec,
+          kills = expTracker["IN"].kills,
+          totexp = totexp,
+          avgkills = avgkills,
+          killexp = expTracker["IN"].killexp,
+          bonusexp = expTracker["IN"].bonusEXP,
+          rareexp = expTracker["IN"].rareExp,
+          logo = expTracker["GL"].Logo
+          })
+          
+          SendSpecial(str.." "..repmsg)
+     end
+     
+end
+
 --[[function setWindowText()
      my_window:clear()
      my_window:add_text("I have gained "..expTracker["NR"].totexp.." exp")
@@ -1036,10 +1231,11 @@ hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status 
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
 hadarprint("@x086|                         @x110  @G(@x208kill@W,@x208double@W,@x208hour@W,@x208logo@W,@x208session@W,@x208dblreport@G)  @x086|")
-hadarprint("@x086|                         @x110  @G(@x208hrreport@G)                                 @x086|")
+hadarprint("@x086|                         @x110  @G(@x208hrreport@W,@x208alltime@G)                                 @x086|")
 hadarprint("@x086| @x214hxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
 hadarprint("@x086|  @x214\"    \"    report       @x110  @x214enable|disable, # EG. @Ghxp config report 3@w  @x086|")
 hadarprint("@x086|                         @x110  @x214will change the report from per mob to #   @x086|")
+hadarprint("@x086| @x214hxp alltime <channel>   @x110-without channel displays info use channel to edit   @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
