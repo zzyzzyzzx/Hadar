@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.27"
+   version="1.28"
    >
 
 </plugin>
@@ -1231,11 +1231,12 @@ hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status 
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
 hadarprint("@x086|                         @x110  @G(@x208kill@W,@x208double@W,@x208hour@W,@x208logo@W,@x208session@W,@x208dblreport@G)  @x086|")
-hadarprint("@x086|                         @x110  @G(@x208hrreport@W,@x208alltime@G)                                 @x086|")
+hadarprint("@x086|                         @x110  @G(@x208hrreport@W,@x208alltime@G)                         @x086|")
 hadarprint("@x086| @x214hxp config <room|mob>   @x110- @x214Choose to reset timer after a mob or room  @x086|")
 hadarprint("@x086|  @x214\"    \"    report       @x110  @x214enable|disable, # EG. @Ghxp config report 3@w  @x086|")
 hadarprint("@x086|                         @x110  @x214will change the report from per mob to #   @x086|")
-hadarprint("@x086| @x214hxp alltime <channel>   @x110-without channel displays info use channel to edit   @x086|")
+hadarprint("@x086| @x208hxp alltime <channel>   @x110- @x208without channel displays info              @x086|")
+hadarprint("@x086|                           @x208use channel to edit                        @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
