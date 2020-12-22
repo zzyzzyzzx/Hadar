@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.64"
+   version="1.65"
    >
 
 </plugin>
@@ -117,6 +117,7 @@ dofile(GetInfo(60) .. "aardwolf_colors.lua")
 local aSlist = "plugin"
 
 local gitHubRaw = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ZZZZZZ(Repo)/github.list"
+local gitHubBeta = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/Dev/ZZZZZZ(Repo)/github.list"
 local rawPluginUrl
   
 
@@ -525,6 +526,8 @@ hadarprint("@x086+--------------------------@g[@CP@clugin @CM@canager@g]@x086---
 hadarprint("@x086| @x214hpm help                @x110- @x214Displays this helpfile @x086                    |")
 hadarprint("@x086| @x208hpm check               @x110- @x208Checks to see if there is any updates @x086     |")
 hadarprint("@x086| @x214hpm update              @x110- @x214Checks for updates on this script@x086          |")
+hadarprint("@x086|                          @WONLY PLUGIN THAT WILL ASK                   @x086|")
+hadarprint("@x086|  @x208https://www.paypal.com/donate?hosted_button_id=Q93B59ZGWHETA        @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
