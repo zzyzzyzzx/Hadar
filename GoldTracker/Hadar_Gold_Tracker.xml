@@ -159,8 +159,7 @@ function OnPluginInstall()
   
 	OnPluginEnable ()
      
-     AddTimer ("Gold_timer_0", 0, 0, 0, "", 3, "hourReport")
-     for i = 24,1,-1 do 
+     for i = 23,0,-1 do 
           AddTimer ("Gold_timer_"..i, i, 0, 0, "", 3, "hourReport")
      end
 end
@@ -534,7 +533,7 @@ end
 function hourReport()
 
 
-     if GoldTrack["GL"]["Hour"] = "yes" then
+     if GoldTrack["GL"]["Hour"] == "yes" then
      local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
      local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell)
      local goldtotal = tonumber(gainedGold-goldLost)
