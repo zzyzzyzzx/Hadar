@@ -521,9 +521,7 @@ function buildMessage(param)
      
      expTracker["GL"].Type = "NR"
      
-     if expTracker["GL"]["normal"] == "yes" then
-          AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
-     end
+     AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
 end
 
 function makeOutputNormal()
@@ -634,6 +632,8 @@ end
 
 function makeOutput()
      local message
+     
+     if expTracker["GL"]["normal"] == "no" and expTracker["GL"]["hour"] == "no" and expTracker["GL"]["double"] == "no" then return end
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == "yes" then
           message = interp(expTracker["NR"].message, {xp = expTracker["NR"].rate, totexp = expTracker["NR"].totexp, length = expTracker["NR"].expsec,logo = expTracker["GL"].Logo})
@@ -773,9 +773,7 @@ function doubleStop()
      local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
      expTracker["DL"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
      
-     if expTracker["GL"]["double"] == "yes" then
-          makeOutput()
-     end
+     makeOutput()
      
      expTracker["DL"].Active = "no"
      expTracker["DL"].totexp = 0
@@ -802,9 +800,7 @@ function hourReport()
     
      expTracker["GL"].Type="HR"
           
-       if expTracker["GL"]["hour"] == "yes" then
-          makeOutput()
-     end
+     makeOutput()
      
      expTracker["HR"].hourEXP = 0
      expTracker["HR"].rareEXP = 0

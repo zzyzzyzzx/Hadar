@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.3"
+   version="2.4"
    >
 
 </plugin>
@@ -179,7 +179,7 @@ function hadarprint(str,level)
 	elseif level == "error" then
           AnsiNote(ColoursToANSI("@R[@Mhxp @rERROR@R]@W:@w"..str))
      elseif level == "script" then
-          AnsiNote(ColoursToANSI("@G[@CE@cxp@CT@cracker@G]@c"..str))
+          AnsiNote(ColoursToANSI("@G[@CG@cold@CT@cracker@G]@c"..str))
      else
 		AnsiNote(ColoursToANSI(str))
 	end
