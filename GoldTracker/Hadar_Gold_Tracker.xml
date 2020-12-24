@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.1"
+   version="2.2"
    >
 
 </plugin>
@@ -418,6 +418,10 @@ function makeOutput()
      local message
 
      if GoldTrack["GL"]["Type"] == "HR" then
+          local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
+          local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell)
+          local goldtotal = tonumber(gainedGold-goldLost)
+          
           message = interp(GoldTrack["HR"].message, {
                goldin = gainedGold,
                goldout = goldLost,
@@ -534,9 +538,7 @@ function hourReport()
 
 
      if GoldTrack["GL"]["Hour"] == "yes" then
-     local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
-     local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell)
-     local goldtotal = tonumber(gainedGold-goldLost)
+     
      
      GoldTrack["GL"]["Type"] = "HR"
      
