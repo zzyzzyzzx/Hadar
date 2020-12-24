@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.4"
+   version="2.5"
    >
 
 </plugin>
@@ -177,7 +177,7 @@ function hadarprint(str,level)
 	if level == "debug" and GoldTrack["GL"].Debug == true then
 		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
 	elseif level == "error" then
-          AnsiNote(ColoursToANSI("@R[@Mhxp @rERROR@R]@W:@w"..str))
+          AnsiNote(ColoursToANSI("@R[@Mhgt @rERROR@R]@W:@w"..str))
      elseif level == "script" then
           AnsiNote(ColoursToANSI("@G[@CG@cold@CT@cracker@G]@c"..str))
      else
