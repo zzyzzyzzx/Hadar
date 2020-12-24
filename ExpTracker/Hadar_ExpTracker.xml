@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.5"
+   version="1.6"
    >
 
 </plugin>
@@ -521,7 +521,17 @@ function buildMessage(param)
      
      expTracker["GL"].Type = "NR"
      
-     AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
+     if expTracker["NR"].startTime == 0 then
+          expTracker["IN"].TotalSeconds = expTracker["IN"].TotalSeconds + 1
+          if expTracker["IN"].TotalSeconds > 60 then
+               local extra = expTracker["IN"].TotalSeconds - 60
+               expTracker["IN"].TotalSeconds = 0 + extra
+               expTracker["IN"].TotalMinutes = expTracker["IN"].TotalMinutes + 1
+          end
+          --hadarprint("Combat too short, nothing to report","script")
+     else
+          AddTimer ("makeexpoutput", 0, 0, .1, "", timer_flag.Enabled + timer_flag.OneShot, "makeOutputNormal") 
+     end
 end
 
 function makeOutputNormal()
