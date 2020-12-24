@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.3"
+   version="1.4"
    >
 
 </plugin>
@@ -216,11 +216,11 @@ end
 
 function OnPluginSaveState ()
 	SetVariable ("expTracker", "expTracker = " .. serialize.save_simple (expTracker))
-	SetVariable ("exppastfirstinstall", ""yes"")
+	SetVariable ("exppastfirstinstall", "true")
 end -- function OnPluginSaveState
 
 function OnPluginInstall ()
-   	if GetVariable ("enabled") == ""no"" then
+   	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
 		check (EnablePlugin(GetPluginID (), "no"))
 		return
@@ -242,7 +242,7 @@ function OnPluginEnable ()
      expTracker["IN"] = {}
      
      
-	if GetVariable ("exppastfirstinstall") == ""yes"" then
+	if GetVariable ("exppastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("expTracker") or "")) ()
           injectVars()
 	else
@@ -782,6 +782,7 @@ function doubleStop()
      local exprate = expTracker["DL"].totexp
      local expsec = tonumber(expTracker["DL"].sec)+tonumber(expTracker["DL"].min)*60
      expTracker["DL"].rate = string.format ("%2.5g", (tonumber(exprate)/tonumber(expsec)))
+     
      if expTracker["GL"]["double"] == "yes" then
           makeOutput()
      end
@@ -877,15 +878,15 @@ function seeStatus(param)
      param = string.lower(param)
      
      if param == "hour" then
-          if expTracker["GL"]["hour"] = "yes" then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
+          if expTracker["GL"]["hour"] == "yes" then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
      elseif param == "double" then
-          if expTracker["GL"]["double"] = "yes" then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
+          if expTracker["GL"]["double"] == "yes" then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
      elseif param == "kill" or param == "kills" then
-          if expTracker["GL"]["normal"] = "yes" then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
+          if expTracker["GL"]["normal"] == "yes" then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
      else
-          if expTracker["GL"]["hour"] = "yes" then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
-          if expTracker["GL"]["double"] = "yes" then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
-          if expTracker["GL"]["normal"] = "yes" then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
+          if expTracker["GL"]["hour"] == "yes" then hadarprint("Hour is @Gactive@w","script") else hadarprint("Hour is @Rinactive@w","script") end
+          if expTracker["GL"]["double"] == "yes" then hadarprint("Double is @Gactive@w","script") else hadarprint("Double is @Rinactive@w","script") end
+          if expTracker["GL"]["normal"] == "yes" then hadarprint("Kills is @Gactive@w","script") else hadarprint("Kills is @Rinactive@w","script") end
      end
 end
 
