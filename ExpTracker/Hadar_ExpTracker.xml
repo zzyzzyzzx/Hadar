@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.4"
+   version="1.5"
    >
 
 </plugin>
@@ -169,19 +169,6 @@ TODO:
 	</send>
      </alias>
 </aliases>
-
-<timers>
-  <timer
-     enabled="y"
-     hour="1"
-     minute="0"
-     second="0.00"
-     offset_second="0.00"
-     send_to="12"
-     script="hourReport"
-     >
-  </timer>
-</timers>
 <script>
 <![CDATA[
 require "serialize"
@@ -229,6 +216,10 @@ function OnPluginInstall ()
 	hadarprint("had help (to see all of hadar's plugin helpfiles), or hxp help to just see this one","script")
   
 	OnPluginEnable ()
+     
+     for i = 23,0,-1 do 
+          AddTimer ("Exp_timer_"..i, i, 0, 0, "", 3, "hourReport")
+     end
 end
 
 function OnPluginEnable ()
@@ -447,7 +438,6 @@ function OnPluginBroadcast(msg, id, name, text)
                          for k,l in pairs(v) do
                               if k == "state" and tonumber(l) == 8 then
                                    if expTracker["NR"].startTime == 0 then
-                                        hadarprint("start timer","debug")
                                         expTracker["IN"].CombatStart = os.time()
                                         expTracker["NR"].startTime = os.time()
                                    end
