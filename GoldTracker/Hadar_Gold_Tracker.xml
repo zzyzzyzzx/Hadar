@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.2"
+   version="2.3"
    >
 
 </plugin>
@@ -258,10 +258,9 @@ function GoldTracked(str)
      hadarprint("@x165|      @CT@caxed@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Taxed"])).." @CG@civen Away@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["lostGive"])).." @CB@cought@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Buy"])).."@x165     |")
      hadarprint("@x165|                                                                      |")
      hadarprint("@x165|     @cAll @CTime @cTracked @CGold @W- @RGained@W:@x165                                  |")
-     hadarprint("@x165|      @CC@crumble@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Crumble"])).." @CM@cob@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Mob"])).." @CG@civen@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Give"])).." @x165          |")
+     hadarprint("@x165|      @CC@crumble@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Crumble"])).." @CM@cob@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Mob"])).." @CG@civen@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Give"])).." @x165  |")
      hadarprint("@x165|      @CS@cold@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Sell"])).."@x165                                                |")
      hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
-     hadarprint("+----------------------------------------------------------------------+")
      else
           local ATmessage = interp(GoldTrack["AT"].Message, {
                     crumble = GoldTrack["AT"].Crumble,
