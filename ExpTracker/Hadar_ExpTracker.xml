@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.6"
+   version="1.7"
    >
 
 </plugin>
@@ -546,9 +546,13 @@ function makeOutputNormal()
           end
                
      else
-          expTimeDiff(os.time(),expTracker["NR"].startTime,"NR")
-          expTimeDiff(os.time(),expTracker["IN"].CombatStart,"IN")
-          
+          if os.time() == expTracker["NR"].startTime then
+               expTimeDiff(os.time()+1,expTracker["NR"].startTime,"NR")
+               expTimeDiff(os.time()+1,expTracker["IN"].CombatStart,"IN")
+          else
+               expTimeDiff(os.time(),expTracker["NR"].startTime,"NR")
+               expTimeDiff(os.time(),expTracker["IN"].CombatStart,"IN")
+          end
           
           --[[
           Lets do some setting up the total time in combat score
