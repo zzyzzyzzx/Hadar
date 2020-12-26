@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.5"
+   version="2.6"
    >
 
 </plugin>
@@ -263,13 +263,13 @@ function GoldTracked(str)
      hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
      else
           local ATmessage = interp(GoldTrack["AT"].Message, {
-                    crumble = GoldTrack["AT"].Crumble,
-                    mob = GoldTrack["AT"].Mob,
-                    give = GoldTrack["AT"].Give,
-                    sell = GoldTrack["AT"].Sell,
-                    taxed = GoldTrack["AT"].Taxed,
-                    gave = GoldTrack["AT"].lostGive,
-                    bought = GoldTrack["AT"].Buy,
+                    crumble = comma_value(GoldTrack["AT"].Crumble),
+                    mob = comma_value(GoldTrack["AT"].Mob),
+                    give = comma_value(GoldTrack["AT"].Give),
+                    sell = comma_value(GoldTrack["AT"].Sell),
+                    taxed = comma_value(GoldTrack["AT"].Taxed),
+                    gave = comma_value(GoldTrack["AT"].lostGive),
+                    bought = comma_value(GoldTrack["AT"].Buy),
                     logo = GoldTrack["GL"].Logo,
                     wday = getDay(GoldTrack["AT"]["Date"].wday),
                     month = getMonth(GoldTrack["AT"]["Date"].month),
@@ -412,7 +412,6 @@ function goldFullReset()
      injectVars()
      hadarprint("Have fully reset all variables","script")
 end
-
 function makeOutput()
      local message
 
@@ -422,17 +421,17 @@ function makeOutput()
           local goldtotal = tonumber(gainedGold-goldLost)
           
           message = interp(GoldTrack["HR"].message, {
-               goldin = gainedGold,
-               goldout = goldLost,
-               crumble = GoldTrack["HR"].Crumble,
-               mob = GoldTrack["HR"].Mob,
-               given = GoldTrack["HR"].Give,
-               sold = GoldTrack["HR"].Sell,
-               taxed = GoldTrack["HR"].Taxed,
-               gave = GoldTrack["HR"].lostGive,
-               bought = GoldTrack["HR"].Buy,
+               goldin = comma_value(gainedGold),
+               goldout = comma_value(goldLost),
+               crumble = comma_value(GoldTrack["HR"].Crumble),
+               mob = comma_value(GoldTrack["HR"].Mob),
+               given = comma_value(GoldTrack["HR"].Give),
+               sold = comma_value(GoldTrack["HR"].Sell),
+               taxed = comma_value(GoldTrack["HR"].Taxed),
+               gave = comma_value(GoldTrack["HR"].lostGive),
+               bought = comma_value(GoldTrack["HR"].Buy),
                logo = GoldTrack["GL"].Logo,
-               goldtotal = goldtotal
+               goldtotal = comma_value(goldtotal)
           })
      elseif GoldTrack["GL"]["Type"] == "SN" then
           local goldLost = tonumber(GoldTrack["SN"].Taxed) + tonumber(GoldTrack["SN"].lostGive) + tonumber(GoldTrack["SN"].Buy)
@@ -440,21 +439,21 @@ function makeOutput()
           local goldtotal = tonumber(gainedGold-goldLost)
           
           message = interp(GoldTrack["SN"].Message, {
-                    goldin = gainedGold,
-                    goldout = goldLost,
-                    crumble = GoldTrack["SN"].Crumble,
-                    mob = GoldTrack["SN"].Mob,
-                    given = GoldTrack["SN"].Give,
-                    sold = GoldTrack["SN"].Sell,
-                    taxed = GoldTrack["SN"].Taxed,
-                    gave = GoldTrack["SN"].lostGive,
-                    bought = GoldTrack["SN"].Buy,
+                    goldin = comma_value(gainedGold),
+                    goldout = comma_value(goldLost),
+                    crumble = comma_value(GoldTrack["SN"].Crumble),
+                    mob = comma_value(GoldTrack["SN"].Mob),
+                    given = comma_value(GoldTrack["SN"].Give),
+                    sold = comma_value(GoldTrack["SN"].Sell),
+                    taxed = comma_value(GoldTrack["SN"].Taxed),
+                    gave = comma_value(GoldTrack["SN"].lostGive),
+                    bought = comma_value(GoldTrack["SN"].Buy),
                     logo = GoldTrack["GL"].Logo,
                     day = GoldTrack["SN"].day,
                     hour = GoldTrack["SN"].hour,
                     min = GoldTrack["SN"].min,
                     sec = GoldTrack["SN"].sec,
-                    totalgold = goldtotal
+                    totalgold = comma_value(goldtotal)
                })
      elseif GoldTrack["GL"]["Type"] == "AT" then
      end
@@ -638,6 +637,7 @@ local gold = tonumber(NoMoreComma(wildcards[1]))
      SaveState()
 end
 
+
 function GoldSet(str)
      if str == nil or str == " " or str == "" then
           hadarprint("Set Cannot be blank, please input something @GEG. @Whgt set hour","error")
@@ -646,26 +646,26 @@ function GoldSet(str)
           str = string.lower(str)
           
      if str == "session" then
-          HadarBackup = GoldTrack["SN"].message
-		GoldTrack["SN"].message = utils.inputbox ("", "", GoldTrack["SN"].message, "Courier", 9)
+          HadarBackup = GoldTrack["SN"].Message
+		GoldTrack["SN"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Look for Gold Session", GoldTrack["SN"].Message, "Courier", 9)
 		
-		if GoldTrack["SN"].message ~= nil then
-			hadarprint("message will look like@W: @w"..GoldTrack["SN"].message,"script")
+		if GoldTrack["SN"].Message ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["SN"].Message,"script")
 		else
-			GoldTrack["SN"].message = HadarBackup
+			GoldTrack["SN"].Message = HadarBackup
 		end
      elseif str == "alltime" then
-          HadarBackup = GoldTrack["AT"].message
-		GoldTrack["AT"].message = utils.inputbox ("", "", GoldTrack["AT"].message, "Courier", 9)
+          HadarBackup = GoldTrack["AT"].Message
+		GoldTrack["AT"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo\n${wday} - day of week installed\n${month} - mon can change with year day hour min sec for respective time", "Look for alltime", GoldTrack["AT"].Message, "Courier", 9)
 		
-		if GoldTrack["AT"].message ~= nil then
-			hadarprint("message will look like@W: @w"..GoldTrack["AT"].message,"script")
+		if GoldTrack["AT"].Message ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["AT"].Message,"script")
 		else
-			GoldTrack["AT"].message = HadarBackup
+			GoldTrack["AT"].Message = HadarBackup
 		end
      elseif str == "hour" then
           HadarBackup = GoldTrack["HR"].message
-		GoldTrack["HR"].message = utils.inputbox ("", "", GoldTrack["HR"].message, "Courier", 9)
+		GoldTrack["HR"].message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Change Look for Gold Hour Message", GoldTrack["HR"].message, "Courier", 9)
 		
 		if GoldTrack["HR"].message ~= nil then
 			hadarprint("message will look like@W: @w"..GoldTrack["HR"].message,"script")
@@ -674,7 +674,7 @@ function GoldSet(str)
 		end
      elseif str == "logo" then
           HadarBackup = GoldTrack["GL"].Logo
-		GoldTrack["GL"].Logo = utils.inputbox ("", "", GoldTrack["GL"].Logo, "Courier", 9)
+		GoldTrack["GL"].Logo = utils.inputbox ("Change the look for the logo", "Change Logo", GoldTrack["GL"].Logo, "Courier", 9)
 		
 		if GoldTrack["GL"].Logo ~= nil then
 			hadarprint("message will look like@W: @w"..GoldTrack["GL"].Logo,"script")
