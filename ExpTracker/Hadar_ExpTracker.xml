@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.81"
+   version="1.82"
    >
 
 </plugin>
@@ -1205,7 +1205,7 @@ function expINReport(str)
           hour = expTracker["IN"].Date.hour,
           min = expTracker["IN"].Date.min,
           sec = expTracker["IN"].Date.sec,
-          kills = expTracker["IN"].kills,
+          kills = comma_value(expTracker["IN"].kills),
           totexp = comma_value(totexp),
           avgkills = string.format("%.1f",avgkills),
           killexp = comma_value(expTracker["IN"].killexp),
