@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.8"
+   version="1.81"
    >
 
 </plugin>
@@ -650,11 +650,11 @@ function makeOutput()
      if expTracker["GL"]["normal"] == "no" and expTracker["GL"]["hour"] == "no" and expTracker["GL"]["double"] == "no" then return end
 
      if expTracker["GL"].Type == "NR" and expTracker["GL"]["normal"] == "yes" then
-          message = interp(expTracker["NR"].message, {xp = expTracker["NR"].rate, totexp = expTracker["NR"].totexp, length = expTracker["NR"].expsec,logo = expTracker["GL"].Logo})
+          message = interp(expTracker["NR"].message, {xp = comma_value(expTracker["NR"].rate), totexp = comma_value(expTracker["NR"].totexp), length = expTracker["NR"].expsec,logo = expTracker["GL"].Logo})
      elseif expTracker["GL"].Type == "HR" and expTracker["GL"]["hour"] == "yes" then
-          message = interp(expTracker["HR"].message, {xp = expTracker["HR"].rate, totexp = expTracker["HR"].totexp, kills = expTracker["HR"].mobsKilled,logo = expTracker["GL"].Logo})
+          message = interp(expTracker["HR"].message, {xp = comma_value(expTracker["HR"].rate), totexp = comma_value(expTracker["HR"].totexp), kills = comma_value(expTracker["HR"].mobsKilled),logo = expTracker["GL"].Logo})
      elseif expTracker["GL"].Type == "DL" and expTracker["GL"]["double"] == "yes" then
-          message = interp(expTracker["DL"].message, {xp = expTracker["DL"].rate, totexp = expTracker["DL"].totexp, kills = expTracker["DL"].mobsKilled,logo = expTracker["GL"].Logo})
+          message = interp(expTracker["DL"].message, {xp = comma_value(expTracker["DL"].rate), totexp = comma_value(expTracker["DL"].totexp), kills = comma_value(expTracker["DL"].mobsKilled),logo = expTracker["GL"].Logo})
      elseif expTracker["GL"].Type == "SN" then
           message = interp(expTracker["SN"].message, {
           month = expTracker["SN"].month,
@@ -662,11 +662,11 @@ function makeOutput()
           hour = expTracker["SN"].hour,
           min = expTracker["SN"].min,
           sec = expTracker["SN"].sec,
-          totexp = expTracker["SN"].totexp,
-          killexp = expTracker["SN"].killexp,
-          rareexp = expTracker["SN"].rareexp,
-          bonusexp = expTracker["SN"].bonusexp,
-          kills = expTracker["SN"].mobsKilled,
+          totexp = comma_value(expTracker["SN"].totexp),
+          killexp = comma_value(expTracker["SN"].killexp),
+          rareexp = comma_value(expTracker["SN"].rareexp),
+          bonusexp = comma_value(expTracker["SN"].bonusexp),
+          kills = comma_value(expTracker["SN"].mobsKilled),
           expsec = expTracker["SN"].expPerSecond,
           expmin = expTracker["SN"].expPerMinute,
           logo = expTracker["GL"].Logo})
@@ -1182,8 +1182,8 @@ function expINReport(str)
      hadarprint("@x165|                     @CT@Dracker @CS@Dtarted @CT@Dracking @Co@Dn@W:                     @x165|")
      hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",expdatetime," ").."@x165|")
      hadarprint("@x165|                                                                      |")
-     hadarprint("@x165|     @CK@Dills@W: @x156"..string.format("%-10s",expTracker["IN"].kills).."  @CT@Dotal @CE@Dxp@W: @x156"..string.format("%-10g",totexp).."   @CA@Dvg @CE@Dxp@W: @x156"..string.format("%.1f",avgkills).."        @x165|")
-     hadarprint("@x165|            @CB@Donus @CE@Dxp@W: @x156"..string.format("%-10s",bonusxp).."    @CR@Dare @CE@Dxp@W: @x156"..string.format("%-10s",rarexp).."             @x165|")
+     hadarprint("@x165|     @CK@Dills@W: @x156"..string.format("%-10s",comma_value(expTracker["IN"].kills)).."  @CT@Dotal @CE@Dxp@W: @x156"..string.format("%-10s",comma_value(totexp)).."   @CA@Dvg @CE@Dxp@W: @x156"..string.format("%.1f",avgkills).."        @x165|")
+     hadarprint("@x165|            @CB@Donus @CE@Dxp@W: @x156"..string.format("%-10s",comma_value(bonusxp)).."    @CR@Dare @CE@Dxp@W: @x156"..string.format("%-10s",comma_value(rarexp)).."             @x165|")
      hadarprint("@x165|                                                                      |")
      hadarprint("@x165|                    @CY@Dou @CH@Dave @Cb@Deen @Ci@Dn @Cc@Dombat @Cf@Dor@W:                      @x165|")
      hadarprint("@x165|   @CY@Dears@W: @x156"..string.format("%-3s",years).." @CM@Donths@W: @x156"..string.format("%-2s",months).." @CD@Days@W: @x156"..string.format("%-2s",days).." @CH@Dours@W: @x156"..string.format("%-2s",hours).." @CM@Dinutes@W: @x156"..string.format("%-2s",minutes).." @CS@Deconds@W: @x156"..string.format("%-2s",seconds).."   @x165|")
@@ -1206,17 +1206,22 @@ function expINReport(str)
           min = expTracker["IN"].Date.min,
           sec = expTracker["IN"].Date.sec,
           kills = expTracker["IN"].kills,
-          totexp = totexp,
+          totexp = comma_value(totexp),
           avgkills = string.format("%.1f",avgkills),
-          killexp = expTracker["IN"].killexp,
-          bonusexp = expTracker["IN"].bonusEXP,
-          rareexp = expTracker["IN"].rareExp,
+          killexp = comma_value(expTracker["IN"].killexp),
+          bonusexp = comma_value(expTracker["IN"].bonusEXP),
+          rareexp = comma_value(expTracker["IN"].rareExp),
           logo = expTracker["GL"].Logo
           })
           
           SendSpecial(str.." "..repmsg)
      end
      
+end
+
+function comma_value(n) -- credit http://richard.warburton.it
+	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
 end
 
 --[[function setWindowText()
