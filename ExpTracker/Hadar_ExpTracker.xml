@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.7"
+   version="1.8"
    >
 
 </plugin>
@@ -1182,7 +1182,7 @@ function expINReport(str)
      hadarprint("@x165|                     @CT@Dracker @CS@Dtarted @CT@Dracking @Co@Dn@W:                     @x165|")
      hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",expdatetime," ").."@x165|")
      hadarprint("@x165|                                                                      |")
-     hadarprint("@x165|     @CK@Dills@W: @x156"..string.format("%-10s",expTracker["IN"].kills).."  @CT@Dotal @CE@Dxp@W: @x156"..string.format("%-10g",totexp).."   @CA@Dvg @CE@Dxp@W: @x156"..string.format("%-5g",avgkills).."        @x165|")
+     hadarprint("@x165|     @CK@Dills@W: @x156"..string.format("%-10s",expTracker["IN"].kills).."  @CT@Dotal @CE@Dxp@W: @x156"..string.format("%-10g",totexp).."   @CA@Dvg @CE@Dxp@W: @x156"..string.format("%.1f",avgkills).."        @x165|")
      hadarprint("@x165|            @CB@Donus @CE@Dxp@W: @x156"..string.format("%-10s",bonusxp).."    @CR@Dare @CE@Dxp@W: @x156"..string.format("%-10s",rarexp).."             @x165|")
      hadarprint("@x165|                                                                      |")
      hadarprint("@x165|                    @CY@Dou @CH@Dave @Cb@Deen @Ci@Dn @Cc@Dombat @Cf@Dor@W:                      @x165|")
@@ -1207,7 +1207,7 @@ function expINReport(str)
           sec = expTracker["IN"].Date.sec,
           kills = expTracker["IN"].kills,
           totexp = totexp,
-          avgkills = avgkills,
+          avgkills = string.format("%.1f",avgkills),
           killexp = expTracker["IN"].killexp,
           bonusexp = expTracker["IN"].bonusEXP,
           rareexp = expTracker["IN"].rareExp,
