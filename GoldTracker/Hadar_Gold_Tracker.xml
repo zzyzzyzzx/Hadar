@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.6"
+   version="2.7"
    >
 
 </plugin>
@@ -542,13 +542,13 @@ function hourReport()
      
      makeOutput()
      
-     
      GoldTrack["HR"].Mob = 0
      GoldTrack["HR"].Give = 0
      GoldTrack["HR"].Sell = 0
      GoldTrack["HR"].Taxed = 0
      GoldTrack["HR"].lostGive = 0
      GoldTrack["HR"].Buy = 0
+     GoldTrack["HR"].Crumble = 0
      end
 end
 
