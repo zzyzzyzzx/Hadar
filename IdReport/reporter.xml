@@ -1247,7 +1247,7 @@ helpfile = [[
 @x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
 @x086|                          @x130default is 20                               @x086|
 @x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
-@x086|                          @x142type hid help2 for a helpfile with variables@x086|
+@x086|                          @x142type hid help 2 for a helpfile with variable@x086|
 @x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
 @x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
 @x086|                                                                      @x086|
