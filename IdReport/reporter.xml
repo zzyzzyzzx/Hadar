@@ -1229,142 +1229,177 @@ end
 function HadarHelp(param)
 local helpfile
 
-print(GetInfo(281))
+local param, rest = param:match("(%w+)%s*(.*)")
+
+rest = nil
 
 if param == "1" or param == "" or param == " " or param == nil then
 helpfile = [[
-@x086+----------------------------------@g[@x051I@cdentify@g]@x086---------------------------------+
-@x086|                                                                             @x086|
-@x086| @x130hid <paramaters> @x123- @x136command to use the script                                @x086|
-@x086| @x142hid channel <channel> @x123- @x154set channel for default reporting                   @x086|
-@x086| @x130hid autoid @x123- @x136toggles auto identifing bids, rauction and market              @x086|
-@x086| @x142hid beep @x123- @x154toggles trigger words for beeps/icon flashing                    @x086|
-@x086| @x130hid words @x123- @x136lets you make a list of words for idbeeps                       @x086|
-@x086| @x142hid <id|all> <channel> @x123- @x154Lets you see past Ids use with hid max             @x086|
-@x086|                          @x154all shows all IDS                                  @x086|
-@x086| @x130hid max <number> @x123- @x136change the max ids to keep in history, default is 20     @x086|
-@x086| @x142hid set @x123- @x154will let you hadarmagic the output, type hid help2 for a helpfile @x086|
-@x086|           @x154with all variables                                                @x086|
-@x086| @x130hid reset @x123- @x136sets hadarmagic output back to the original default             @x086|
-@x086| @x142hid fullreset @x123- @x154resets the script to install status (no coming back)        @x086|
-@x086|                                                                             @x086|
-@x086|                                                                             @x086|
-@x086| To Customize the script please read the following:                          @x086|
-@x086| @x130hid help 2 @x123- @x136shows the second helpfile with all the variables               @x086|
-@x086| @x142hid help 3 @x123- @x154shows the third helpfile with variables                        @x086|
-@x086| @x130hid help 4 @x123- @x136shows the third helpfile with variables                        @x086|
-@x086| @x142hid help 5 @x123- @x154shows the third helpfile with variables                        @x086|
-@x086| @x130hid help 6 @x123- @x136shows the third helpfile with variables                        @x086|
-@x086| @x142hid help examples @x123- @x154shows the second helpfile with all the variables        @x086|
-@x086|                                                                             @x086|
-@x086|    @WIf you have any issues please contact me via note/tell or on discord     @x086|
-@x086+-----------------------------------------------------------------------------+
+@x086+-------------------------------@g[@x051I@cdentify@g]@x086-----------------------------+
+@x086|                                                                      @x086|
+@x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
+@x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
+@x086| @x130hid autoid             @x123- @x130toggle auto iding bids, rauction and market @x086|
+@x086| @x142hid beep               @x123- @x142toggle trigger words for beeps/icon flashing@x086|
+@x086| @x130hid words              @x123- @x130lets you make a list of words for idbeeps   @x086|
+@x086| @x142hid <id|all> <channel> @x123- @x142Lets you see past Ids use with hid max      @x086|
+@x086|                          @x142all shows all IDS                           @x086|
+@x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
+@x086|                          @x130default is 20                               @x086|
+@x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
+@x086|                          @x142type hid help2 for a helpfile with variables@x086|
+@x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
+@x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
+@x086|                                                                      @x086|
+@x086|                                                                      @x086|
+@x086| @cTo Customize the script please read the following@w:                   @x086|
+@x086| @x130hid help 2 - @x130shows the second helpfile with all the variables        @x086|
+@x086| @x142hid help 3 - @x142shows the third helpfile with variables                 @x086|
+@x086| @x130hid help 4 - @x130shows the fourth helpfile with variables                @x086|
+@x086| @x142hid help 5 - @x142shows the fifth helpfile with variables                 @x086|
+@x086| @x130hid help 6 - @x130shows the sixth helpfile with variables                 @x086|
+@x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
+@x086|                                                                      @x086|
+@x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
+@x086+----------------------------------------------------------------------+@w
 ]]
 elseif param == "2" then
 helpfile = [[
-@x086+----------------------------------@g[@x051I@cdentify@g]@x086---------------------------------+
- 
-@x099| @x009Variable:         @x099-@x222 @x009Description:                       @x099|
-@x099| @x002id                @x099-@x214 id number of the item                   @x099|
-@x099| @x010name              @x099-@x222 name of the item (in color)             @x099|
-@x099| @x002lvl               @x099-@x214 the level of the item                   @x099|
-@x099| @x010weight            @x099-@x222 total weight of the item                @x099|
-@x099| @x002wearable          @x099-@x214 location item can be worn               @x099|
-@x099| @x010score             @x099-@x222 the score of an item based off your     @x099|
-                                    @x222settings                                 @x099|
-@x099| @x002keywords          @x099-@x214 item keywords                           @x099|
-@x099| @x010type              @x099-@x222 what is the type of item                @x099|
-                                    @x222(eg armor, weapon, scroll)               @x099|
-@x099| @x002worth             @x099-@x214 total cost of the item                  @x099|
-@x099| @x010totalstat         @x099-@x222 total stats of the item                 @x099|
-@x099| @x002material          @x099-@x214 what the material is made out of        @x099|
-@x099| @x002foundat           @x099-@x214 what area the item is from              @x099|
-@x099|                                                                            @x099|
-@x099|@WIf you have any issues please contact me via note/tell or on discord      @x099|
-@x086+-----------------------------------------------------------------------------+
+@x099+-----------------------------@g[@CI@cdentify @R2@g]@x099-----------------------------+
+@x099| @x009Variable:  @x099- @x009Description:                                            @x099|
+@x099| @x002id         @x099- @x002id number of the item                                   @x099|
+@x099| @x010name       @x099- @x010name of the item (in color)                             @x099|
+@x099| @x002lvl        @x099- @x002the level of the item                                   @x099|
+@x099| @x010weight     @x099- @x010total weight of the item                                @x099|
+@x099| @x002wearable   @x099- @x002location item can be worn                               @x099|
+@x099| @x010score      @x099- @x010the score of an item based off your settings            @x099|
+@x099| @x002keywords   @x099- @x002item keywords                                           @x099|
+@x099| @x010type       @x099- @x010what is the type of item(eg armor, weapon, scroll)      @x099|
+@x099| @x002worth      @x099- @x002total cost of the item                                  @x099|
+@x099| @x010totalstat  @x099- @x010total stats of the item                                 @x099|
+@x099| @x002material   @x099- @x002what the material is made out of                        @x099|
+@x099| @x010foundat    @x099- @x010what area the item is from                              @x099|
+@x099|                                                                      @x099|
+@x099| @WIf you have any issues please contact me via note/tell or on discord @x099|
+@x099+----------------------------------------------------------------------+@w
 ]]
 elseif param == "3" then
      helpfile = [[
-@x099| @x010int               @x099-@x222 shows Strength on the item                                                   @x099|
-@x099| @x002wis               @x099-@x214 shows Wisdom on the item                                                     @x099|
-@x099| @x010dex               @x099-@x222 shows Dexterity on the item                                                  @x099|
-@x099| @x002con               @x099-@x214 shows Constitution stat on the item                                          @x099|
-@x099| @x010luck              @x099-@x222 shows Luck on the item                                                       @x099|
-@x099| @x002hp                @x099-@x214 shows additional health points added from an item                            @x099|
-@x099| @x010mana              @x099-@x222 shows additional mana added from an item                                     @x099|
-@x099| @x002move              @x099-@x214 shows additional moves added from an item                                    @x099|
-@x099| @x010hr                @x099-@x222 shows hit roll of an item                                                    @x099|
-@x099| @x002dr                @x099-@x214 shows damage roll of an item                                                 @x099|
-@x099| @x010allphys           @x099-@x222 shows resistance for all physical attacks                                    @x099|
-@x099| @x002allmagic          @x099-@x214 shows resistance for all magic attacks                                       @x099|
-@x099| @x010tempint           @x099-@x222 shows temporary Strength on the item                                         @x099|
-@x099| @x002tempwis           @x099-@x214 shows temporary Wisdom on the item                                           @x099|
-@x099| @x010tempdex           @x099-@x222 shows temporary Dexterity on the item                                        @x099|
-@x099| @x002tempcon           @x099-@x214 shows temporary Constitution stat on the item                                @x099|
-@x099| @x010templuck          @x099-@x222 shows temporary Luck on the item                                             @x099|
-@x099| @x010avedam            @x099-@x222 reports a weapons average damage                                             @x099|
-@x099| @x002tmpAvedam         @x099-@x214 reports an average damage that is temperary(like temper)                     @x099|
+@x099+-----------------------------@g[@CI@cdentify @R3@g]@x099-----------------------------+
+@x099| @x010int        @x099-@x222 shows Strength on the item                              @x099|
+@x099| @x002wis        @x099-@x214 shows Wisdom on the item                                @x099|
+@x099| @x010dex        @x099-@x222 shows Dexterity on the item                             @x099|
+@x099| @x002con        @x099-@x214 shows Constitution stat on the item                     @x099|
+@x099| @x010luck       @x099-@x222 shows Luck on the item                                  @x099|
+@x099| @x002hp         @x099-@x214 shows additional health points added from an item       @x099|
+@x099| @x010mana       @x099-@x222 shows additional mana added from an item                @x099|
+@x099| @x002move       @x099-@x214 shows additional moves added from an item               @x099|
+@x099| @x010hr         @x099-@x222 shows hit roll of an item                               @x099|
+@x099| @x002dr         @x099-@x214 shows damage roll of an item                            @x099|
+@x099| @x010allphys    @x099-@x222 shows resistance for all physical attacks               @x099|
+@x099| @x002allmagic   @x099-@x214 shows resistance for all magic attacks                  @x099|
+@x099| @x010tempint    @x099-@x222 shows temporary Strength on the item                    @x099|
+@x099| @x002tempwis    @x099-@x214 shows temporary Wisdom on the item                      @x099|
+@x099| @x010tempdex    @x099-@x222 shows temporary Dexterity on the item                   @x099|
+@x099| @x002tempcon    @x099-@x214 shows temporary Constitution stat on the item           @x099|
+@x099| @x010templuck   @x099-@x222 shows temporary Luck on the item                        @x099|
+@x099| @x010avedam     @x099-@x222 reports a weapons average damage                        @x099|
+@x099| @x002tmpAvedam  @x099-@x214 reports an average damage that is temperary(like temper)@x099|
+@x099+----------------------------------------------------------------------+@w
 ]]
 elseif param == "4" then
      helpfile = [[
-@x099| @x010flagsenchant      @x099-@x222 only shows enchanting flags                                                  @x099|
-@x099| @x010enchantsolid      @x099-@x222 pre colors the item based on solidify green for go red for no                @x099|
-@x099| @x002enchantsolidyes   @x099-@x214 lets you color your own solidify if you can solidify the item                @x099|
-@x099| @x010enchantsolidno    @x099-@x222 lets you color your own solidify if you cant solidify the item               @x099|
-@x099| @x002enchantreso       @x099-@x214 pre colors the item based on resonating green for go red for no              @x099|
-@x099| @x010enchantresoyes    @x099-@x222 lets you color your own resonate if you can resonate the item                @x099|
-@x099| @x002enchantresono     @x099-@x214 lets you color your own resonate if you cant resonate the item               @x099|
-@x099| @x010enchantillum      @x099-@x222 pre colors the item based on illumination either green for go or red for no  @x099|
-@x099| @x002enchantillumyes   @x099-@x214 lets you color your own illumination if you can illuminate the item          @x099|
-@x099| @x010enchantillumno    @x099-@x222 lets you color your own illumination if you cant illuminate the item         @x099|
+@x099+-----------------------------@g[@CI@cdentify @R4@g]@x099-----------------------------+
+@x099| @x010flagsenchant    @x099-@x222 only shows enchanting flags                                                  @x099|
+@x099| @x010enchantsolid    @x099-@x222 pre colors the item based on solidify green for go red for no                @x099|
+@x099| @x002enchantsolidyes @x099-@x214 lets you color your own solidify if you can solidify the item                @x099|
+@x099| @x010enchantsolidno  @x099-@x222 lets you color your own solidify if you cant solidify the item               @x099|
+@x099| @x002enchantreso     @x099-@x214 pre colors the item based on resonating green for go red for no              @x099|
+@x099| @x010enchantresoyes  @x099-@x222 lets you color your own resonate if you can resonate the item                @x099|
+@x099| @x002enchantresono   @x099-@x214 lets you color your own resonate if you cant resonate the item               @x099|
+@x099| @x010enchantillum    @x099-@x222 pre colors the item based on illumination either green for go or red for no  @x099|
+@x099| @x002enchantillumyes @x099-@x214 lets you color your own illumination if you can illuminate the item          @x099|
+@x099| @x010enchantillumno  @x099-@x222 lets you color your own illumination if you cant illuminate the item         @x099|
+@x099+----------------------------------------------------------------------+@w
 ]]
 elseif param == "5" then
      helpfile = [[
-@x099| @x010spelluse          @x099-@x222 what the first spell on a potion/scroll does                                 @x099|
-@x099| @x002spellname         @x099-@x214 name of the first spell on a potion/scroll                                   @x099|
-@x099| @x010spelllevel        @x099-@x222 level of the first spell on a potion/scroll                                  @x099|
-@x099| @x002inflicts          @x099-@x214 shows temporary what the weapon inflicts                                     @x099|
-@x099| @x010damtype           @x099-@x222 shows the damage type of a weapon                                            @x099|
-@x099| @x002weaponyype        @x099-@x214 reports a wepons type                                                        @x099|
-@x099| @x010specials          @x099-@x222 reports a special flag on a weapon                                           @x099|
+@x099+-----------------------------@g[@CI@cdentify @R5@g]@x099-----------------------------+
+@x099| @x010spelluse    @x099-@x222 what the first spell on a potion/scroll does           @x099|
+@x099| @x002spellname   @x099-@x214 name of the first spell on a potion/scroll             @x099|
+@x099| @x010spelllevel  @x099-@x222 level of the first spell on a potion/scroll            @x099|
+@x099| @x002inflicts    @x099-@x214 shows temporary what the weapon inflicts               @x099|
+@x099| @x010damtype     @x099-@x222 shows the damage type of a weapon                      @x099|
+@x099| @x002weaponyype  @x099-@x214 reports a wepons type                                  @x099|
+@x099| @x010specials    @x099-@x222 reports a special flag on a weapon                     @x099|
+@x099+----------------------------------------------------------------------+@w
 ]]
 elseif param == "6" then
      helpfile = [[
-@x099| @x010affmod            @x099-@x222 the modifiers affecting the item                                             @x099|
-@x099| @x002leadsto           @x099-@x214 where a portal goes                                                          @x099|
-@x099| @x010capacity          @x099-@x222 max amount of items the container can hold                                   @x099|
-@x099| @x002holding           @x099-@x214 how many items that are in the container                                     @x099|
-@x099| @x010heavyitem         @x099-@x222 heaviest item in the container                                               @x099|
-@x099| @x002itemsinside       @x099-@x214 how many items in a container                                                @x099|
-@x099| @x010totweight         @x099-@x222 total weight of the container                                                @x099|
-@x099| @x002itemburden        @x099-@x214 shows how many items are in a container                                      @x099|
-@x099| @x010weightred         @x099-@x222 shows weight reduction from a container                                      @x099|
-@x099| @x002clan              @x099-@x214 reports what clan its from                                                   @x099|
-@x099| @x002flagsall          @x099-@x214 shows all flags on the item                                                  @x099|
-@x099| @x002<resistance name> @x099-@x214 shows resistance of an item just use its name, EG bash or pierce             @x099|
+@x099+-----------------------------@g[@CI@cdentify @R6@g]@x099-----------------------------+
+@x099| @x010affmod            @x099-@x222 the modifiers affecting the item                 @x099|
+@x099| @x002leadsto           @x099-@x214 where a portal goes                              @x099|
+@x099| @x010capacity          @x099-@x222 max amount of items the container can hold       @x099|
+@x099| @x002holding           @x099-@x214 how many items that are in the container         @x099|
+@x099| @x010heavyitem         @x099-@x222 heaviest item in the container                   @x099|
+@x099| @x002itemsinside       @x099-@x214 how many items in a container                    @x099|
+@x099| @x010totweight         @x099-@x222 total weight of the container                    @x099|
+@x099| @x002itemburden        @x099-@x214 shows how many items are in a container          @x099|
+@x099| @x010weightred         @x099-@x222 shows weight reduction from a container          @x099|
+@x099| @x002clan              @x099-@x214 reports what clan its from                       @x099|
+@x099| @x002flagsall          @x099-@x214 shows all flags on the item                      @x099|
+@x099| @x002<resistance name> @x099-@x214 shows resistance of an item just use its name,   @x099|
+@x099+----------------------------------------------------------------------+@w
 ]]
 elseif param == "examples" then
+helpfile = [[
++---------------------------[Identify Examples]------------------------+
+Default:
+${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w
+
+Bid Number and name only:
+${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum} ${name} 
+
+Stats Only (for use without autobid:
+[@CID@w:@R${repid}@c]@w ${name} ${@CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w
+
+you can even get more complicated or less, if you have any questions feel free to ask!
++----------------------------------------------------------------------+
+]]
+else
+helpfile = [[
+@x086+-------------------------------@g[@x051I@cdentify@g]@x086-----------------------------+
+@x086|                                                                      @x086|
+@x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
+@x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
+@x086| @x130hid autoid             @x123- @x130toggle auto iding bids, rauction and market @x086|
+@x086| @x142hid beep               @x123- @x142toggle trigger words for beeps/icon flashing@x086|
+@x086| @x130hid words              @x123- @x130lets you make a list of words for idbeeps   @x086|
+@x086| @x142hid <id|all> <channel> @x123- @x142Lets you see past Ids use with hid max      @x086|
+@x086|                          @x142all shows all IDS                           @x086|
+@x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
+@x086|                          @x130default is 20                               @x086|
+@x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
+@x086|                          @x142type hid help2 for a helpfile with variables@x086|
+@x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
+@x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
+@x086|                                                                      @x086|
+@x086|                                                                      @x086|
+@x086| @cTo Customize the script please read the following@w:                   @x086|
+@x086| @x130hid help 2 - @x130shows the second helpfile with all the variables        @x086|
+@x086| @x142hid help 3 - @x142shows the third helpfile with variables                 @x086|
+@x086| @x130hid help 4 - @x130shows the fourth helpfile with variables                @x086|
+@x086| @x142hid help 5 - @x142shows the fifth helpfile with variables                 @x086|
+@x086| @x130hid help 6 - @x130shows the sixth helpfile with variables                 @x086|
+@x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
+@x086|                                                                      @x086|
+@x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
+@x086+----------------------------------------------------------------------+@w
+]]
 end
 hadarprint(helpfile)
 end
 
-
-function HadarHelpTwo()
-	local s = [[
-@x099+------------------------------------------[Identify Set]------------------------------------------+
-@x099| @x009hid help examples    @x099-@x222 Will show you different examples  @x099|
-@x099|                                                                                                  @x099|
-@x099| @x015                       to use a variable just do it like this: ${variable}                       @x099|
-@x099| @x015            EG: ${name} will display item name, you can also do something like this:             @x099|
-@x099| @x015           ${Name:|name} or ${name|:Name} ... will auto hide the field when not in use           @x099|
-@x099|                                                                                                  @x099|
-@x099| @x009Variable:         @x099-@x222 @x009Description:                                                                 @x099|   
-
-
-@x099+--------------------------------------------------------------------------------------------------+@x000
-]]
-	hadarprint(s)
-end
 
 ]]>
 </script> 
