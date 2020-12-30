@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="3.3"
+   version="3.4"
    save_state="y"
    >
 <description trim="y">
@@ -168,6 +168,10 @@ function OnPluginEnable ()
 	else
           injectVars()
 	end
+     
+     vorpalInfo["SN"]["killCount"] = 0
+     vorpalInfo["SN"]["sessionCount"] = 0
+     vorpalInfo["SN"]["startTime"] = os.time()
 
 end
 
