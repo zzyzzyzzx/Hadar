@@ -627,7 +627,7 @@ function makeOutputNormal()
      
      if expTracker["GL"]["multiKill"] == "no" then
           if tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "room" then
-               expTracker["NR"].totexp = 0
+               --expTracker["NR"].totexp = 0
           elseif tonumber(myState) == 8 and expTracker["GL"]["xpReport"] == "mob" then
                makeOutput()
                expTracker["NR"].totexp = 0
