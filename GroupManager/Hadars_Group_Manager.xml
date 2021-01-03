@@ -216,6 +216,8 @@ function hgmMain(n,l,wc)
           hgmtrusted(rest)
      elseif first == "autoinvite" then
           hgmAutoInvite(rest)
+     else
+          HadarHelp()
      end
 end
 
