@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.13"
+   version="1.00"
    >
 
 </plugin>
@@ -674,6 +674,7 @@ function hgmConfig(args)
      else
           hadarprint("Please do a valid selection which is@W:@R Invite@W,@R Leader@W,@R Rename@W,@R Flag@W,@R Cancel@W,@R Kick@w","script")
      end
+     SaveState()
 end
 
 function HadarHelp()
