@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="0.12"
+   version="0.13"
    >
 
 </plugin>
@@ -628,7 +628,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["invite"] = "no"
                hadarprint("Setting invite to all","script")
           else
-               HGMVariable["TR"]["invite"] = "no"
+               HGMVariable["TR"]["invite"] = "yes"
                hadarprint("Setting invite to trusted","script")
           end
      elseif one == "leader" then
@@ -636,7 +636,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["leader"] = "no"
                hadarprint("Setting leader to all","script")
           else
-               HGMVariable["TR"]["leader"] = "no"
+               HGMVariable["TR"]["leader"] = "yes"
                hadarprint("Setting leader to trusted","script")
           end
      elseif one == "rename" then
@@ -644,7 +644,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["rename"] = "no"
                hadarprint("Setting rename to all","script")
           else
-               HGMVariable["TR"]["rename"] = "no"
+               HGMVariable["TR"]["rename"] = "yes"
                hadarprint("Setting rename to trusted","script")
           end
      elseif one == "flag" then
@@ -652,7 +652,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["flag"] = "no"
                hadarprint("Setting flag to all","script")
           else
-               HGMVariable["TR"]["flag"] = "no"
+               HGMVariable["TR"]["flag"] = "yes"
                hadarprint("Setting flag to trusted","script")
           end
      elseif one == "cancel" then
@@ -660,7 +660,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["cancel"] = "no"
                hadarprint("Setting cancel to all","script")
           else
-               HGMVariable["TR"]["cancel"] = "no"
+               HGMVariable["TR"]["cancel"] = "yes"
                hadarprint("Setting cancel to trusted","script")
           end
      elseif one == "kick" then
@@ -668,7 +668,7 @@ function hgmConfig(args)
                HGMVariable["TR"]["kick"] = "no"
                hadarprint("Setting kick to all","script")
           else
-               HGMVariable["TR"]["kick"] = "no"
+               HGMVariable["TR"]["kick"] = "yes"
                hadarprint("Setting kick to trusted","script")
           end
      else
