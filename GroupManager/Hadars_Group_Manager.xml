@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadar_Group_Manager"
+   author="Hadar"
+   id="0ead71b983b6c832102d0808"
+   language="Lua"
+   purpose="Let Us fix groups, and manage them seemlessly"
+   save_state="y"
+   date_written="2020-01-01 00:00:00"
+   requires="4.00"
+   version="0.10"
+   >
+
+</plugin>
+
+<!--  Triggers
+
+<trigger
+   enabled="y"
+   match=""
+   omit_from_output="y"
+   regexp="y"
+   group=""
+   script=""
+   sequence="100"
+  >
+</trigger>
+You must be a group leader to invite another player.
+You are not in a group.
+Scars is a member of another group.
+Hadar is already a member of this group.
+Altere tried to invite you to join group: {-=Masaki=-} and Friends.
+Slacktar does not want to talk to you!
+you dont see a player with that name.
+
+blacklist set per person, with message to group/person
+
+kick,cancel,leader,flag,invite
+  -->
+
+<triggers>
+
+  <trigger
+   enabled="y"
+   match="^\(Friend\)\: (.+) has entered Aardwolf\.$"
+   regexp="y"
+   script="hgmfriendjoined"
+   keep_evaluating="n"
+   sequence="99"
+  >
+  </trigger>
+
+</triggers>
+
+
+<aliases>
+     <alias
+     match="^hgm ?(.*)?"
+     enabled="y"
+     regexp="y"
+     sequence="100"
+     send_to="12"
+     script="hgmMain"
+     >
+     </alias>
+     <alias match="^had help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+     </alias>
+</aliases>
+
+<script>
+<![CDATA[
+require "serialize"
+require "gmcphelper"
+require "tprint"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+
+function interp(s, tab)
+	return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
+function hadarprint(str,level)
+
+	if level == "debug" and expTracker["GL"].Debug == "yes" then
+		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
+	elseif level == "error" then
+          AnsiNote(ColoursToANSI("@R[@Mhgm @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CG@croup@CM@canager@G]@c"..str))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
+
+function OnPluginSaveState ()
+	SetVariable ("HGMVariable", "HGMVariable = " .. serialize.save_simple (HGMVariable))
+	SetVariable ("HGMpastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or hgm help to just see this one","script")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+
+	HGMVariable = {}
+     HGMVariable["GL"] = {} --global
+     HGMVariable["GT"] = {} --group tell
+     HGMVariable["BL"] = {} --blacklist
+     HGMVariable["AI"] = {} --Auto Invite
+     HGMVariable["TR"] = {} --Trusted
+	
+	if GetVariable ("HGMpastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("HGMVariable") or "")) ()
+          injectVars()
+	else
+          hadarprint("Looks like this is your first install, Lets get you setup! hgm for help","script")
+		injectVars()
+	end
+     AddTrigger("ClannieJoins", HGMVariable["GL"]["ClanTrigger"], "", 3 , -1, 1, "", "HGMautoinvitetrigger")
+end
+
+function checkExist(tbl, idx, val) 
+
+     if not HGMVariable[tbl] then
+          HGMVariable[tbl] = {}
+     end
+
+     if not HGMVariable[tbl][idx] then
+               HGMVariable[tbl][idx] = val
+               SetVariable("HGMVariable", serialize.save("HGMVariable")) 
+     end
+     
+end
+
+function injectVars()
+     local v = {}
+     v["GL"] = {} --global
+     v["GT"] = {} --group tell
+     v["BL"] = {} --blacklist
+     v["AI"] = {} --auto invite
+     v["TR"] = {} --Trusted
+     
+     v["GL"]["Logo"] = "@G[@CI@cn@Cv@ci@Ct@ce@Cr@G]@c "
+     v["GL"]["ClanTrigger"] = "CLAN: * has returned from the depths of * meditation, to the realm of Tao."
+     v["GL"]["ClanTriggerNum"] = 1
+     v["GL"]["name"] = nil
+     v["GL"]["Leader"] = nil
+     v["GL"]["Tell"] = nil
+     v["GL"]["Phrase"] = "invite"
+     
+     
+     v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
+     v["GT"]["Name"] = nil
+     
+     v["BL"]["Remove"] = 0
+     
+     v["AI"]["Remove"] = 0
+     v["AI"]["Clan"] = "no"
+     v["AI"]["Friend"] = "no"
+     
+     v["TR"]["Remove"] = 0
+
+     for a,b in pairs(v) do
+          for c,d in pairs(b) do
+               checkExist(a,c,d)
+          end
+     end
+
+end
+
+
+----------------------------------------------------------------------------------------------------
+--										 End Standard Template	    				   --
+--																			   --
+--								         Start Main Stuff					        --
+----------------------------------------------------------------------------------------------------
+
+function hgmMain(n,l,wc)
+     local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     if first == "set" then
+          hgmsetmsg(rest)
+     elseif first == "blacklist" then
+          hgmblacklist(rest)
+     elseif first == "pass" then
+          hgmchangepass(rest)
+     elseif first == "trust" then
+          hgmtrusted(rest)
+     elseif first == "autoinvite" then
+          hgmAutoInvite(rest)
+     end
+end
+
+function OnPluginBroadcast (msg, id, name, text)
+
+     if (id == '3e7dedbe37e44942dd46d264') then              -- GMCP Handler plugin
+          if (text == "char.base") then
+               HGMVariable["GL"]["Name"] = gmcp("char.base.name")
+          elseif (text == "group") then
+               HGMVariable["GL"]["Leader"] = gmcp("group.leader")
+               HGMVariable["GT"]["Name"] = gmcp("group.groupname")
+          elseif (text == "comm.channel") then
+               local channel = gmcp("comm.channel.chan")
+			local msg = strip_colours(gmcp("comm.channel.msg"))
+
+               if channel == "gtell" then
+                    hgmGroupMessage(msg)
+               end
+               if channel == "tell" then
+                    local playerName, message = string.match(msg, "^(.+) tells you '(.+)'")
+                    hgmTellMessage(playerName,message)
+               end
+		end
+	end
+end
+
+function hgmTellMessage(p,m)
+     if p == nil then return end
+     if m == nil then return end
+     
+     local command, args = m:match("(%w+)%s*(.*)")
+     p = string.lower(p)
+     
+     if command == HGMVariable["GL"]["Phrase"] and args == "" then
+          if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["name"] then
+               if ismember(p,"BL") then
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..p.." Has asked to join the party, @Dblacklisted @Rno invite sent@w")
+               else
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..p.." Has asked to join the party, @Ginvite sent@w")
+                    SendSpecial("group invite "..p)
+               end
+          else
+               SendSpecial("tell "..p.." "..HGMVariable["GL"]["Logo"].." The current leader is@W: @G"..HGMVariable["GL"]["Leader"].."@w")
+          end
+     end
+end
+
+function hgmGroupMessage(msg)
+     local player, message = msg:match("^%(Group%) (.+): '(.+)'")
+     local command
+     local args
+     local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick"
+     
+     if message == nil then
+          return
+     end
+     
+     if message ~= nil then
+          command, args = message:match("(%w+)%s*(.*)")
+          command = string.lower(command)
+          args = string.lower(args)
+     end
+     
+     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["name"] then
+     
+          if command == "ihelp" and args == "" then
+               local helpmsg = interp(HGMVariable["GT"]["message"], {
+               commands = listCmds,
+               logo = HGMVariable["GL"]["Logo"]
+               })
+               SendSpecial("gtell "..helpmsg)
+          elseif command == "ihelp" and args == "leader" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."leader - promotes a person to leader of the group @W(@YTrusted@W)@w")
+          elseif command == "ihelp" and args == "invite" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."invite - invites a person to this group @C(@GALL@C)@w")
+          elseif command == "ihelp" and args == "rename" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."rename - renames the group @W(@YTrusted@W)@w")
+          elseif command == "ihelp" and args == "flag" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."flag - flag group public or private @W(@YTrusted@W)@w")
+          elseif command == "ihelp" and args == "cancel" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."cancel - cancels a sent invite @C(@GALL@C)")
+          elseif command == "ihelp" and args == "kick" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick - kicks a person @W(@YTrusted@W)@w")
+          end
+     
+          --make actual blacklist code
+          args = string.lower(args)
+          if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..args.." is blacklisted - no invite sent")
+          elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(args,"BL")) then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
+               SendSpecial("group invite "..args)
+               SendSpecial("tell "..args.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GL"]["name"])
+          end
+          if command == "leader" and ismember(player,"TR") then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
+               SendSpecial("group leader "..args)
+          end
+          if command == "rename" and ismember(player,"TR") then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change group name to "..args)
+               SendSpecial("group rename "..args)
+          end
+          if command == "flag" and ismember(player,"TR") then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change flag name to "..args)
+               SendSpecial("group flag "..args)
+          end
+          if command == "cancel" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Wants to cancel invite sent to "..args)
+               SendSpecial("group cancel "..args)
+          end
+          if command == "kick" and ismember(player,"TR") then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to kick "..args)
+               SendSpecial("group kick "..args)
+          end
+     
+     end
+     
+end
+
+function hgmsetmsg(msg)
+     msg = string.lower(msg)
+     
+     if msg == "logo" then
+          local HadarBackup = HGMVariable["GL"]["Logo"]
+		HGMVariable["GL"]["Logo"] = utils.inputbox ("Change how the logo looks", "look of logo for group messanger", HGMVariable["GL"]["Logo"], "Courier", 9)
+		
+		if HGMVariable["GL"]["Logo"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..HGMVariable["GL"]["Logo"],"script")
+		else
+			HGMVariable["GL"]["Logo"] = HadarBackup
+		end
+     elseif msg == "help" then
+          local HadarBackup = HGMVariable["GT"]["message"]
+		HGMVariable["GT"]["message"] = utils.inputbox ("Format the help message 2 variables\n${logo} add the logo\n${commands} - show list of commands", "set look of gt helpfile", HGMVariable["GT"]["message"], "Courier", 9)
+		
+		if HGMVariable["GT"]["message"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..HGMVariable["GT"]["message"],"script")
+		else
+			HGMVariable["GT"]["message"] = HadarBackup
+		end
+     else
+     end
+     SaveState()
+end
+
+function ismember(set,key)
+     if HGMVariable[key] == nil then
+          return false
+     end
+     
+     if HGMVariable["GL"]["name"] == HGMVariable["GL"]["Leader"] and key == "TR" then return true end
+       
+     for i,v in pairs(HGMVariable[key]) do
+          if v == set then
+               HGMVariable[key]["Remove"] = i
+               return true
+          end
+     end
+end
+
+function hgmAutoInvite(msg)
+     if msg == nil or msg == "" or msg == " " then
+          return
+     end
+     
+     msg = string.lower(msg)
+     local one, two = msg:match("(%w+)%s*(.*)")
+     
+     if two == "" or two == " " then
+          two = nil
+     end
+     
+     if one == "set" then
+          local HadarBackup = HGMVariable["GL"]["ClanTrigger"]
+		HGMVariable["GL"]["ClanTrigger"] = utils.inputbox ("Your clan entrance trigger\nPut * for variables\n EG\nCLAN: * has returned from the depths of * meditation, to the realm of Tao.", "Set clan trigger", HGMVariable["GL"]["ClanTrigger"], "Courier", 9)
+		
+		if HGMVariable["GL"]["ClanTrigger"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..HGMVariable["GL"]["ClanTrigger"],"script")
+		else
+			HGMVariable["GL"]["ClanTrigger"] = HadarBackup
+		end
+          return
+     elseif one == "setposition" then
+          local HadarBackup = HGMVariable["GL"]["ClanTriggerNum"]
+		HGMVariable["GL"]["ClanTriggerNum"] = utils.inputbox ("set position where persons name is, default is 1", "Set clan trigger number", HGMVariable["GL"]["ClanTriggerNum"], "Courier", 9)
+		
+		if HGMVariable["GL"]["ClanTriggerNum"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..HGMVariable["GL"]["ClanTriggerNum"],"script")
+		else
+			HGMVariable["GL"]["ClanTriggerNum"] = HadarBackup
+		end
+          return
+     elseif one == "clan" and two == nil then
+          if HGMVariable["AI"]["Clan"] == "yes" then
+               HGMVariable["AI"]["Clan"] = "no"
+               hadarprint("Auto clan inviting:@RDISBALED@w","script")
+          else
+               HGMVariable["AI"]["Clan"] = "yes"
+               hadarprint("Auto clan inviting:@GENABLED@w","script")
+          end
+     elseif one == "clan" and two == "on" then
+          HGMVariable["AI"]["Clan"] = "yes"
+          hadarprint("Auto clan inviting:@GENABLED@w","script")
+     elseif one == "clan" and two == "off" then
+          HGMVariable["AI"]["Clan"] = "no"
+          hadarprint("Auto clan inviting:@RDISBALED@w","script")
+     elseif one == "friend" and two == nil then
+          if HGMVariable["AI"]["Friend"] == "yes" then
+               HGMVariable["AI"]["Friend"] = "no"
+               hadarprint("Auto Friend inviting:@RDISBALED@w","script")
+          else
+               HGMVariable["AI"]["Friend"] = "yes"
+               hadarprint("Auto Friend inviting:@GENABLED@w","script")
+          end
+     elseif one == "friend" and two == "on" then
+          HGMVariable["AI"]["Friend"] = "yes"
+          hadarprint("Auto Friend inviting:@GENABLED@w","script")
+     elseif one == "friend" and two == "off" then
+          HGMVariable["AI"]["Friend"] = "no"
+          hadarprint("Auto Friend inviting:@RDISBALED@w","script")
+     end
+     
+     if one == "add" and two ~= nil then
+          if ismember(msg,"AI") then
+               hadarprint(msg.." is on the autoinvite list please use hgm autoinvite remove person")
+          else
+               table.insert(HGMVariable["BL"],string.lower(msg))
+               hadarprint("Added @R"..msg.."@c into the blacklist","script")
+          end
+     elseif one == "remove" and two ~= nil then
+          if ismember(msg,"AI") then
+             table.remove(HGMVariable["AI"],HGMVariable["AI"]["Remove"])
+             hadarprint("Removed @G"..msg.."@c from the auto invite list","script")  
+          else
+               hadarprint(msg.." was not on the autoinvite list")
+          end
+     elseif one == "add" or one == "remove" and two == nil then
+          hadarprint("You need to specify a name, EG. hgm autoinvite add hadar")
+     end
+     
+    
+     SaveState()
+end
+
+function hgmblacklist(msg)
+     if msg == "clear" then
+        HGMVariable["BL"] = nil
+        HGMVariable["BL"] = {}
+        hadarprint("Cleared all names from the blacklist","script")
+        SaveState()
+        return
+     end
+     if msg == "show" then
+          hadarprint("@D+@x244======@D[@CB@clacklist@D]@x244======@D+")
+          for i,v in pairs(HGMVariable["BL"]) do
+               if type(i) == "number" then
+               str = v:gsub("^%l", string.upper)
+                    hadarprint("@D|@c "..string.format("%-22s",str).."@D|")
+               end
+          end
+          hadarprint("@D+@x244=======================@D+@w")
+          return
+     end
+     if ismember(msg,"TR") then
+          hadarprint("Why would you want to blacklist someone you have trusted, please remove them from trusted and try again","error")
+          return
+     end
+     if ismember(msg,"BL") then
+          table.remove(HGMVariable["BL"],HGMVariable["BL"]["Remove"])
+          hadarprint("Removed @G"..msg.."@c from the blacklist","script")
+     else
+          table.insert(HGMVariable["BL"],string.lower(msg))
+          hadarprint("Added @R"..msg.."@c into the blacklist","script")
+     end
+     SaveState()
+end
+
+function hgmtrusted(msg)
+     if msg == "clear" then
+          HGMVariable["TR"] = nil
+          HGMVariable["TR"] = {}
+          hadarprint("Cleared all names from the Trusted List","script")
+          SaveState()
+          return
+     end
+     if msg == "show" then
+          hadarprint("@D+@x244=======@D[@CT@crusted@D]@x244=======@D+")
+          for i,v in pairs(HGMVariable["TR"]) do
+               if type(i) == "number" then
+               str = v:gsub("^%l", string.upper)
+                    hadarprint("@D|@c "..string.format("%-22s",str).."@D|")
+               end
+          end
+          hadarprint("@D+@x244=======================@D+@w")
+          return
+     end
+     if ismember(msg,"BL") then
+          hadarprint("Why would you want to trust someone you have blacklisted, please remove them from blacklist and try again","error")
+          return
+     end
+     if ismember(msg,"TR") then
+          table.remove(HGMVariable["TR"],HGMVariable["TR"]["Remove"])
+          hadarprint("Removed @G"..msg.."@c from the Trusted List","script")
+     else
+          table.insert(HGMVariable["TR"],string.lower(msg))
+          hadarprint("Added @R"..msg.."@c into the Trusted List","script")
+     end
+     SaveState()
+end
+
+function hgmchangepass(msg)
+     if msg ~= nil and msg ~= "" and msg ~= " " then
+		HGMVariable["GL"]["Phrase"] = msg
+		hadarprint("Default passphrase set to@w: @G" .. HGMVariable["GL"]["Phrase"],"script")
+	else
+          hadarprint("Current passphrase:"..HGMVariable["GL"]["Phrase"],script)
+		hadarprint("@cPlease use the following command@W:@Ghgm pass <what you want>@w","error")
+	end
+     
+     SaveState()
+end
+
+function HGMautoinvitetrigger(n,l,wc)
+     if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["AI"]["Clan"] == "yes" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
+          SendSpecial("group invite "..wc[HGMVariable["GL"]["ClanTriggerNum"]])
+     end
+end
+
+function hgmfriendjoined(n,l,wc)
+     if ismember(wc[1],"AI") and HGMVariable["AI"]["Friend"] == "yes" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..wc[1].." logged in adding to group")
+          SendSpecial("group invite "..wc[1])
+     end
+end
+
+function HadarHelp()
+hadarprint("@x086+---------------------------@G[@CG@croup@CM@canager@G]@x086-----------------------------+")
+hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|")
+hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|")
+hadarprint("@x086|                  @x208Default set to: invite                              @x086|")
+hadarprint("@x086| @x214hgm trust      @x110- @x214add a person to trusted commands in grouptalk       @x086|")
+hadarprint("@x086|                  @Gshow@W: @x214shows your current trusted people             @x086|")
+hadarprint("@x086|                  @Gclear@W: @x214clear your current trusted people            @x086|")
+hadarprint("@x086| @x208hgm blacklist  @x110- @x208stop a person from being added to the group         @x086|")
+hadarprint("@x086|                  @Gshow@W: @x208shows your current blacklist                  @x086|")
+hadarprint("@x086|                  @Gclear@W: @x208clears your current blacklist                @x086|")
+hadarprint("@x086| @x214hgm autoinvite @x110- @Gset@W: @x214setup your clan trigger, read for info         @x086|")
+hadarprint("@x086|                  @Gsetposition@W:@x214 sets position member name is in def. 1 @x086|")
+hadarprint("@x086|                  @Gclan@W:@x214 activates autoinviting clan members if addded @x086|")
+hadarprint("@x086|                        @x214to the autoinvite list                        @x086|")
+hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friends                @x086|")
+hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|")
+hadarprint("@x086|                  @Gremove@W: @x214removes percon from autoinvite              @x086|")
+hadarprint("@x086| @x208gt ihelp       @x110- @x208shows commands avilable in the group                @x086|")
+hadarprint("@x086+----------------------------------------------------------------------+")
+
+end
+
+]]>
+</script> 
+
+</muclient>

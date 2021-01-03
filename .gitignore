@@ -1,2 +1,12 @@
 Template/
 HadarPrivate/
+.ftpconfig
+home/hadar/aardtao/blegh
+home/hadar/aardtao/extensions/AccessControl/AccessControl.cs.xml
+home/hadar/aardtao/extensions/AccessControl/AccessControl.hooks.php
+home/hadar/aardtao/extensions/AccessControl/AccessControl.php
+home/hadar/aardtao/extensions/AccessControl/i18n/ba.json
+home/hadar/aardtao/extensions/AccessControl/README
+home/hadar/aardtao/extensions/Lockdown/README
+home/hadar/aardtao/extensions/RestrictAccessByCategoryAndGroup/RestrictAccessByCategoryAndGroup.php
+home/hadar/aardtao/LocalSettings.php
