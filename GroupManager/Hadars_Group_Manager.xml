@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.01"
+   version="1.03"
    >
 
 </plugin>
@@ -227,6 +227,8 @@ function hgmMain(n,l,wc)
           hgmWhereAmi()
      elseif first == "config" then
           hgmConfig(rest)
+     elseif first == "refresh" then
+          hgmrefresh()
      else
           HadarHelp()
      end
@@ -251,7 +253,9 @@ function OnPluginBroadcast (msg, id, name, text)
 			local msg = strip_colours(gmcp("comm.channel.msg"))
 
                if channel == "gtell" then
-                    hgmGroupMessage(msg)
+                    if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
+                         hgmGroupMessage(msg)
+                    end
                end
                if channel == "tell" then
                     local playerName, message = string.match(msg, "^(.+) tells you '(.+)'")
@@ -267,6 +271,7 @@ function hgmTellMessage(p,m)
      
      local command, args = m:match("(%w+)%s*(.*)")
      p = string.lower(p)
+     command = string.lower(command)
      
      if command == HGMVariable["GL"]["Phrase"] and args == "" then
           if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["name"] then
@@ -298,60 +303,60 @@ function hgmGroupMessage(msg)
           args = string.lower(args)
      end
      
-     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
-     
-          if command == "ihelp" and args == "" then
-               local helpmsg = interp(HGMVariable["GT"]["message"], {
-               commands = listCmds,
-               logo = HGMVariable["GL"]["Logo"]
-               })
-               SendSpecial("gtell "..helpmsg)
-          elseif command == "ihelp" and args == "leader" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."leader - promotes a person to leader of the group "..hgmcheckSettings("leader"))
-          elseif command == "ihelp" and args == "invite" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."invite - invites a person to this group "..hgmcheckSettings("invite"))
-          elseif command == "ihelp" and args == "rename" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."rename - renames the group "..hgmcheckSettings("rename"))
-          elseif command == "ihelp" and args == "flag" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."flag - flag group public or private "..hgmcheckSettings("flag"))
-          elseif command == "ihelp" and args == "cancel" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."cancel - cancels a sent invite "..hgmcheckSettings("cancel"))
-          elseif command == "ihelp" and args == "kick" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick - kicks a person "..hgmcheckSettings("kick"))
-          end
-     
-          --make actual blacklist code
-          args = string.lower(args)
-          if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..args.." is blacklisted - no invite sent")
-          elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(args,"BL")) then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
-               SendSpecial("group invite "..args)
-               SendSpecial("tell "..args.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
-          end
-          if command == "leader" and ismember(player,"TR") then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
-               SendSpecial("group leader "..args)
-          end
-          if command == "rename" and ismember(player,"TR") then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change group name to "..args)
-               SendSpecial("group rename "..args)
-          end
-          if command == "flag" and ismember(player,"TR") then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change flag name to "..args)
-               SendSpecial("group flag "..args)
-          end
-          if command == "cancel" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Wants to cancel invite sent to "..args)
-               SendSpecial("group cancel "..args)
-          end
-          if command == "kick" and ismember(player,"TR") then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to kick "..args)
-               SendSpecial("group kick "..args)
-          end
-     
+     if command == "ihelp" and args == "" then
+          local helpmsg = interp(HGMVariable["GT"]["message"], {
+          commands = listCmds,
+          logo = HGMVariable["GL"]["Logo"]
+          })
+          SendSpecial("gtell "..helpmsg)
+     elseif command == "ihelp" and args == "leader" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."leader - promotes a person to leader of the group "..hgmcheckSettings("leader"))
+     elseif command == "ihelp" and args == "invite" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."invite - invites a person to this group "..hgmcheckSettings("invite"))
+     elseif command == "ihelp" and args == "rename" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."rename - renames the group "..hgmcheckSettings("rename"))
+     elseif command == "ihelp" and args == "flag" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."flag - flag group public or private "..hgmcheckSettings("flag"))
+     elseif command == "ihelp" and args == "cancel" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."cancel - cancels a sent invite "..hgmcheckSettings("cancel"))
+     elseif command == "ihelp" and args == "kick" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick - kicks a person "..hgmcheckSettings("kick"))
      end
      
+     --make actual blacklist code
+     args = string.lower(args)
+     if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..args.." is blacklisted - no invite sent")
+     elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(args,"BL")) then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
+          SendSpecial("group invite "..args)
+          SendSpecial("tell "..args.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
+     end
+     if command == "leader" and ismember(player,"TR") then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
+          SendSpecial("group leader "..args)
+     end
+     if command == "rename" and ismember(player,"TR") then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change group name to "..args)
+          SendSpecial("group rename "..args)
+     end
+     if command == "flag" and ismember(player,"TR") then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change flag name to "..args)
+          SendSpecial("group flag "..args)
+     end
+     if command == "cancel" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Wants to cancel invite sent to "..args)
+          SendSpecial("group cancel "..args)
+     end
+     if command == "kick" and ismember(player,"TR") then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to kick "..args)
+          SendSpecial("group kick "..args)
+     end
+end
+
+function hgmrefresh()
+     Send_GMCP_Packet("request char")
+     Send_GMCP_Packet("request group")
 end
 
 function hgmsetmsg(msg)
