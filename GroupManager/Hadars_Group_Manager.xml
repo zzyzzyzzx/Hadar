@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.04"
+   version="1.05"
    >
 
 </plugin>
@@ -273,7 +273,11 @@ function hgmTellMessage(p,m)
      p = string.lower(p)
      command = string.lower(command)
      
-     if command == HGMVariable["GL"]["Phrase"] and args == "" or args " " then
+     if args == "" or args == " " then
+          args = nil
+     end
+     
+     if command == HGMVariable["GL"]["Phrase"] and args == nil then
           if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["name"] then
                if ismember(p,"BL") then
                     SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..p.." Has asked to join the party, @Dblacklisted @Rno invite sent@w")
