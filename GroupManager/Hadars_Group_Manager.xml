@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.06"
+   version="1.07"
    >
 
 </plugin>
@@ -292,6 +292,9 @@ function hgmTellMessage(p,m)
 end
 
 function hgmGroupMessage(msg)
+
+     if msg == nil then return end
+     
      local player, message = msg:match("^%(Group%) (.+): '(.+)'")
      local command
      local args
@@ -301,8 +304,10 @@ function hgmGroupMessage(msg)
           return
      end
      
+     
      if message ~= nil then
           command, args = message:match("(%w+)%s*(.*)")
+          if command == nil then return end
           command = string.lower(command)
           args = string.lower(args)
      end
