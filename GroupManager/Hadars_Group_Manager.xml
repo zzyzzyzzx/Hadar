@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.07"
+   version="1.08"
    >
 
 </plugin>
@@ -334,12 +334,20 @@ function hgmGroupMessage(msg)
      
      --make actual blacklist code
      args = string.lower(args)
+     local one, two = args:match("(%w+)%s*(.*)")
+     
+     if two == "" or two == " " then two = nil end
+     
      if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..args.." is blacklisted - no invite sent")
      elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(args,"BL")) then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
           SendSpecial("group invite "..args)
-          SendSpecial("tell "..args.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
+          if two == nil then
+               SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
+          else
+               SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"].."("..two..")")
+          end
      end
      if command == "leader" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
