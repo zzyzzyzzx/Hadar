@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.14"
+   version="1.15"
    >
 
 </plugin>
@@ -341,10 +341,13 @@ function hgmGroupMessage(msg)
      
      --make actual blacklist code
      args = string.lower(args)
-     local one, two = args:match("(%w+)%s*(.*)")
+     local one, two = args:match("(%w+)%s*(.*)") or nil
      
      if two == "" or two == " " then two = nil end
-     
+     if one == nil then 
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
+     return
+     end
      
      if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..args.." is blacklisted - no invite sent")
@@ -378,10 +381,10 @@ function hgmGroupMessage(msg)
      elseif command == "rename" and HGMVariable["TR"]["rename"] == "no" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
-     elseif command == "flag" and HGMVariable["TR"]["flag"] == "yes" and ismember(player,"TR") then
+     elseif command == "flag" and HGMVariable["TR"]["flag"] == "yes" and ismember(player,"TR") and one == "public" or one == "private" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change flag name to "..args)
           SendSpecial("group flag "..args)
-     elseif command == "flag" and HGMVariable["TR"]["flag"] == "no" then
+     elseif command == "flag" and HGMVariable["TR"]["flag"] == "no" and one == "public" or one == "private" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change flag name to "..args)
           SendSpecial("group flag "..args)
      elseif command == "cancel" and HGMVariable["TR"]["cancel"] == "yes" and ismember(player,"TR") then
