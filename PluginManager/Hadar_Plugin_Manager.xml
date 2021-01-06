@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.66"
+   version="1.67"
    >
 
 </plugin>
@@ -273,6 +273,8 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                     
                          if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
+                         else
+                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["cache"][pid]["versionL"].." to " .. hpmVar["cache"][pid]["versionW"],"Red","","**")
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
@@ -283,7 +285,7 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
-                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]"..hpmVar["cache"][pid]["versionW"], "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
                               Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
@@ -291,6 +293,8 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                     
                          if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
+                         else
+                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["cache"][pid]["versionL"].." to " .. hpmVar["cache"][pid]["versionW"],"Red","","**")
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
