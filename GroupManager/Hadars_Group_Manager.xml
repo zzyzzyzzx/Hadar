@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.17"
+   version="1.18"
    >
 
 </plugin>
@@ -372,12 +372,12 @@ function hgmGroupMessage(msg)
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
           elseif HGMVariable["TR"]["invite"] == "no" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..one)
                SendSpecial("group invite "..args)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"].."("..two..")")
+                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"]")
                end
           end
      elseif command == "leader" and HGMVariable["TR"]["leader"] == "yes" and ismember(player,"TR") then
