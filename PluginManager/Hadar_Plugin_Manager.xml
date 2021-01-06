@@ -283,7 +283,7 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
                          if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
-                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]"..hpmVar["cache"][pid]["versionW"], "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
                               Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
