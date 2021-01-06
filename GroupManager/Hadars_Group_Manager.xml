@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.09"
+   version="1.10"
    >
 
 </plugin>
@@ -337,7 +337,7 @@ function hgmGroupMessage(msg)
      local one, two = args:match("(%w+)%s*(.*)")
      
      if two == "" or two == " " then two = nil end
-     if one == nil or one == "" or one == " " then SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Paramaters cannot be blank")
+     if one == nil or one == "" or one == " " then SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Paramaters cannot be blank") end
      
      
      if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
@@ -351,7 +351,7 @@ function hgmGroupMessage(msg)
                else
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"].."("..two..")")
                end
-          elseif HGMVariable["TR"]["invite"] == "no"
+          elseif HGMVariable["TR"]["invite"] == "no" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." Sending out invite to "..args)
                SendSpecial("group invite "..args)
                if two == nil then
@@ -364,7 +364,7 @@ function hgmGroupMessage(msg)
      if command == "leader" and HGMVariable["TR"]["leader"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
           SendSpecial("group leader "..args)
-     elseif command == "leader" HGMVariable["TR"]["leader"] == "no" then
+     elseif command == "leader" and HGMVariable["TR"]["leader"] == "no" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." "..player.." asked to change leader to "..args)
           SendSpecial("group leader "..args)
      end
