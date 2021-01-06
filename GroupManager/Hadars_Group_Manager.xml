@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.13"
+   version="1.14"
    >
 
 </plugin>
@@ -344,7 +344,6 @@ function hgmGroupMessage(msg)
      local one, two = args:match("(%w+)%s*(.*)")
      
      if two == "" or two == " " then two = nil end
-     if one == nil or one == "" or one == " " then SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Paramaters cannot be blank") end
      
      
      if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
