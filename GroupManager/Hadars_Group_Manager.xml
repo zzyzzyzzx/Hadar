@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.15"
+   version="1.16"
    >
 
 </plugin>
@@ -291,6 +291,19 @@ function hgmTellMessage(p,m)
      end
 end
 
+function hgmiscommand(cmd)
+     cmd = string.lower(cmd)
+     if cmd == "leader" then return true
+     elseif cmd == "invite" then return true
+     elseif cmd == "rename" then return true
+     elseif cmd == "flag" then return true
+     elseif cmd == "cancel" then return true
+     elseif cmd == "kick" then return true
+     else return false
+     end
+     
+end
+
 function hgmGroupMessage(msg)
 
      if msg == nil then return end
@@ -339,12 +352,10 @@ function hgmGroupMessage(msg)
           return
      end
      
-     --make actual blacklist code
-     args = string.lower(args)
      local one, two = args:match("(%w+)%s*(.*)") or nil
      
      if two == "" or two == " " then two = nil end
-     if one == nil then 
+     if hgmiscommand(command) and one == nil then 
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
      return
      end
