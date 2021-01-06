@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.18"
+   version="1.19"
    >
 
 </plugin>
@@ -377,7 +377,7 @@ function hgmGroupMessage(msg)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"]")
+                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
           end
      elseif command == "leader" and HGMVariable["TR"]["leader"] == "yes" and ismember(player,"TR") then
@@ -745,6 +745,8 @@ end
 
 function HadarHelp()
 hadarprint("@x086+---------------------------@G[@CG@croup@CM@canager@G]@x086-----------------------------+")
+hadarprint("@x086|                            @CV@cersion@W: "..GetPluginInfo (GetPluginID (), 19).."@x086                             |")
+hadarprint("@x086+----------------------------------------------------------------------+")
 hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|")
 hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|")
 hadarprint("@x086|                  @x208Default set to: invite                              @x086|")
