@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.21"
+   version="1.22"
    >
 
 </plugin>
@@ -230,7 +230,12 @@ function hgmMain(n,l,wc)
      elseif first == "refresh" then
           hgmrefresh()
      elseif first == "print" then
-          
+          local one, two = rest:match("(%w+)%s*(.*)")
+          tprint(HGMVariable[one][two])
+     elseif first == "fullreset"
+          HGMVariable = {}
+          injectVars()
+          hadarprint("All Variables have been reset to default","script")
      else
           HadarHelp()
      end
