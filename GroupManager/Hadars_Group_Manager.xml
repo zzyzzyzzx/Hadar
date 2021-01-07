@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.25"
+   version="1.26"
    >
 
 </plugin>
@@ -596,15 +596,28 @@ function hgmAutoInvite(msg)
 end
 
 function hgmblacklist(msg)
-     if msg == "clear" then
+     local one, two = msg:match("(%w+)%s*(.*)")
+     one = string.lower(one)
+     if two == "" or two == " " then
+          two = nil
+     end
+     if two ~= nil then
+          two = string.lower(two)
+          
+          if ismember(two,"TR") then
+               hadarprint("Why would you want to blacklist someone you have trusted, please remove them from trusted and try again","error")
+          return
+          end
+     end
+     
+     if one == "clear" then
         HGMVariable["BL"] = nil
         HGMVariable["BL"] = {}
         hadarprint("Cleared all names from the blacklist","script")
         SaveState()
         return
      end
-     msg = string.lower(msg)
-     if msg == "show" then
+     if one == "show" then
           hadarprint("@D+@x244======@D[@CB@clacklist@D]@x244======@D+")
           for i,v in pairs(HGMVariable["BL"]) do
                if type(i) == "number" then
@@ -615,30 +628,46 @@ function hgmblacklist(msg)
           hadarprint("@D+@x244=======================@D+@w")
           return
      end
-     if ismember(msg,"TR") then
-          hadarprint("Why would you want to blacklist someone you have trusted, please remove them from trusted and try again","error")
-          return
+     
+     if one == "add" and not(ismember(two,"BL")) then
+          table.insert(HGMVariable["BL"],two)
+          hadarprint("Added @R"..two.."@c into the blacklist","script")
+     elseif one == "add" and ismember(two,"BL") then
+          hadarprint("You have already added "..two.." to the blacklist","script")
      end
-     if ismember(msg,"BL") then
+     if one == "remove" and ismember(two,"BL") then
           table.remove(HGMVariable["BL"],HGMVariable["BL"]["Remove"])
-          hadarprint("Removed @G"..msg.."@c from the blacklist","script")
-     else
-          table.insert(HGMVariable["BL"],string.lower(msg))
-          hadarprint("Added @R"..msg.."@c into the blacklist","script")
+          hadarprint("Removed @G"..two.."@c from the blacklist","script")
+     elseif one == "remove" and not(ismember(two,"BL")) then
+          hadarprint("You have not added "..two.." to the blacklist","script")
      end
      SaveState()
 end
 
 function hgmtrusted(msg)
-     if msg == "clear" then
+
+     local one, two = msg:match("(%w+)%s*(.*)")
+     one = string.lower(one)
+     if two == "" or two == " " then
+          two = nil
+     end
+     if two ~= nil then
+          two = string.lower(two)
+          
+          if ismember(two,"BL") then
+               hadarprint("Why would you want to trust someone you have blacklisted, please remove them from blacklist and try again","error")
+          return
+     end
+     end
+
+     if one == "clear" then
           HGMVariable["TR"] = nil
           HGMVariable["TR"] = {}
           hadarprint("Cleared all names from the Trusted List","script")
           SaveState()
           return
      end
-     msg = string.lower(msg)
-     if msg == "show" then
+     if one == "show" then
           hadarprint("@D+@x244=======@D[@CT@crusted@D]@x244=======@D+")
           for i,v in pairs(HGMVariable["TR"]) do
                if type(i) == "number" then
@@ -649,16 +678,18 @@ function hgmtrusted(msg)
           hadarprint("@D+@x244=======================@D+@w")
           return
      end
-     if ismember(msg,"BL") then
-          hadarprint("Why would you want to trust someone you have blacklisted, please remove them from blacklist and try again","error")
-          return
+     
+     if one == "add" and not(ismember(two,"TR")) then
+          table.insert(HGMVariable["TR"],two)
+          hadarprint("Added @R"..two.."@c into the Trusted List","script")
+     elseif one == "add" and ismember(two,"TR") then
+          hadarprint("You have already added "..two.." to the trust list","script")
      end
-     if ismember(msg,"TR") then
+     if one == "remove" and ismember(two,"TR") then
           table.remove(HGMVariable["TR"],HGMVariable["TR"]["Remove"])
-          hadarprint("Removed @G"..msg.."@c from the Trusted List","script")
-     else
-          table.insert(HGMVariable["TR"],string.lower(msg))
-          hadarprint("Added @R"..msg.."@c into the Trusted List","script")
+          hadarprint("Removed @G"..two.."@c from the trust list","script")
+     elseif one == "remove" and not(ismember(two,"TR")) then
+          hadarprint("You have not added "..two.." to the trustlist","script")
      end
      SaveState()
 end
@@ -763,9 +794,13 @@ hadarprint("@x086|                  @x208Default set to: invite                 
 hadarprint("@x086| @x214hgm trust      @x110- @x214add a person to trusted commands in grouptalk       @x086|")
 hadarprint("@x086|                  @Gshow@W: @x214shows your current trusted people             @x086|")
 hadarprint("@x086|                  @Gclear@W: @x214clear your current trusted people            @x086|")
+hadarprint("@x086|                  @Gadd@W: @x214add person to you your current trustlist       @x086|")
+hadarprint("@x086|                  @Gremove@W: @x214removes person from your current trustlist  @x086|")
 hadarprint("@x086| @x208hgm blacklist  @x110- @x208stop a person from being added to the group         @x086|")
 hadarprint("@x086|                  @Gshow@W: @x208shows your current blacklist                  @x086|")
 hadarprint("@x086|                  @Gclear@W: @x208clears your current blacklist                @x086|")
+hadarprint("@x086|                  @Gadd@W: @x208add person to you your current blacklist       @x086|")
+hadarprint("@x086|                  @Gremove@W: @x208removes person from your current blacklist  @x086|")
 hadarprint("@x086| @x214hgm autoinvite @x110- @Gset@W: @x214setup your clan trigger, read for info         @x086|")
 hadarprint("@x086|                  @Gsetposition@W:@x214 sets position member name is in def. 1 @x086|")
 hadarprint("@x086|                  @Gclan@W:@x214 activates autoinviting clan members if addded @x086|")
