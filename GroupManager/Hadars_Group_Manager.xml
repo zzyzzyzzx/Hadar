@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.20"
+   version="1.21"
    >
 
 </plugin>
@@ -229,6 +229,8 @@ function hgmMain(n,l,wc)
           hgmConfig(rest)
      elseif first == "refresh" then
           hgmrefresh()
+     elseif first == "print" then
+          
      else
           HadarHelp()
      end
@@ -447,12 +449,13 @@ function hgmsetmsg(msg)
 end
 
 function ismember(set,key)
+     set = string.lower(set)
      if HGMVariable[key] == nil then
           return false
      end
      
      if HGMVariable["GL"]["Name"] == HGMVariable["GL"]["Leader"] and key == "TR" then return true end
-       
+     
      for i,v in pairs(HGMVariable[key]) do
           if v == set then
                HGMVariable[key]["Remove"] = i
@@ -595,6 +598,7 @@ function hgmblacklist(msg)
         SaveState()
         return
      end
+     msg = string.lower(msg)
      if msg == "show" then
           hadarprint("@D+@x244======@D[@CB@clacklist@D]@x244======@D+")
           for i,v in pairs(HGMVariable["BL"]) do
@@ -628,6 +632,7 @@ function hgmtrusted(msg)
           SaveState()
           return
      end
+     msg = string.lower(msg)
      if msg == "show" then
           hadarprint("@D+@x244=======@D[@CT@crusted@D]@x244=======@D+")
           for i,v in pairs(HGMVariable["TR"]) do
