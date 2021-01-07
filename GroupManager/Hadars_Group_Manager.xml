@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.23"
+   version="1.24"
    >
 
 </plugin>
@@ -230,8 +230,8 @@ function hgmMain(n,l,wc)
      elseif first == "refresh" then
           hgmrefresh()
      elseif first == "print" then
-          tprint(HGMVariable[one])
-     elseif first == "fullreset"
+          tprint(HGMVariable[rest])
+     elseif first == "fullreset" then
           HGMVariable = {}
           injectVars()
           hadarprint("All Variables have been reset to default","script")
