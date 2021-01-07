@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.22"
+   version="1.23"
    >
 
 </plugin>
@@ -230,8 +230,7 @@ function hgmMain(n,l,wc)
      elseif first == "refresh" then
           hgmrefresh()
      elseif first == "print" then
-          local one, two = rest:match("(%w+)%s*(.*)")
-          tprint(HGMVariable[one][two])
+          tprint(HGMVariable[one])
      elseif first == "fullreset"
           HGMVariable = {}
           injectVars()
