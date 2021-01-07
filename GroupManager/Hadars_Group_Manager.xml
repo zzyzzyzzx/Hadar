@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.28"
+   version="1.29"
    >
 
 </plugin>
@@ -649,7 +649,7 @@ function hgmblacklist(msg)
           return
      end
      
-     if one == "add" and not(ismember(two,"BL")) then
+     if one == "add" and ismember(two,"BL") ~= true then
           table.insert(HGMVariable["BL"],two)
           hadarprint("Added @R"..two.."@c into the blacklist","script")
      elseif one == "add" and ismember(two,"BL") then
@@ -676,8 +676,8 @@ function hgmtrusted(msg)
           
           if ismember(two,"BL") then
                hadarprint("Why would you want to trust someone you have blacklisted, please remove them from blacklist and try again","error")
-          return
-     end
+               return
+          end
      end
 
      if one == "clear" then
@@ -699,7 +699,7 @@ function hgmtrusted(msg)
           return
      end
      
-     if one == "add" and not(ismember(two,"TR")) then
+     if one == "add" and ismember(two,"TR") ~= true then
           table.insert(HGMVariable["TR"],two)
           hadarprint("Added @R"..two.."@c into the Trusted List","script")
      elseif one == "add" and ismember(two,"TR") then
