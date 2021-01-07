@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.67"
+   version="1.68"
    >
 
 </plugin>
@@ -278,6 +278,7 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["cache"][pid]["versionW"],"Red","","]]")
                     end
                     print()
           hadarprint("@x086+----------------------------------------------------------------------+@w")
@@ -298,6 +299,7 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["cache"][pid]["versionW"],"Red","","]]")
                     end
      end -- end counting if
      print()
