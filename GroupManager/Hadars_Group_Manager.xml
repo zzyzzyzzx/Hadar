@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.27"
+   version="1.28"
    >
 
 </plugin>
@@ -425,18 +425,6 @@ function hgmGroupMessage(msg)
      elseif command == "kick" and HGMVariable["GT"]["kick"] == "no" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
-     --elseif command == "trust" and HGMVariable["GT"]["trust"] == "yes" and ismember(player,"TR") and two == "add" then
-          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
-          --SendSpecial("group kick "..args)
-     --elseif command == "trust" and HGMVariable["GT"]["trust"] == "no" and two == "add" then
-          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
-          --SendSpecial("group kick "..args)
-     --elseif command == "trust" and HGMVariable["GT"]["trust"] == "yes" and ismember(player,"TR") and two == "remove" then
-          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
-          --SendSpecial("group kick "..args)
-     --elseif command == "trust" and HGMVariable["GT"]["trust"] == "no" and two == "remove" then
-          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
-          --SendSpecial("group kick "..args)
      else
           --dont put shit here, causes a loop
      end
@@ -505,37 +493,37 @@ function hgmcheckSettings(arg)
                return trusted
           end
      elseif arg == "rename" then
-     if HGMVariable["GT"]["rename"] == "no" then
+          if HGMVariable["GT"]["rename"] == "no" then
                return untrusted
           else
                return trusted
           end
      elseif arg == "flag" then
-     if HGMVariable["GT"]["flag"] == "no" then
+          if HGMVariable["GT"]["flag"] == "no" then
                return untrusted
           else
                return trusted
           end
      elseif arg == "cancel" then
-     if HGMVariable["GT"]["cancel"] == "no" then
+          if HGMVariable["GT"]["cancel"] == "no" then
                return untrusted
           else
                return trusted
           end
      elseif arg == "kick" then
-     if HGMVariable["GT"]["kick"] == "no" then
+          if HGMVariable["GT"]["kick"] == "no" then
                return untrusted
           else
                return trusted
           end
-     end
-     if HGMVariable["GT"]["trust"] == "no" then
+     elseif arg == "trust" then
+          if HGMVariable["GT"]["trust"] == "no" then
                return untrusted
           else
                return trusted
           end
-     end
-     if HGMVariable["GT"]["blacklist"] == "no" then
+     elseif arg == "blacklist" then
+          if HGMVariable["GT"]["blacklist"] == "no" then
                return untrusted
           else
                return trusted
