@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.29"
+   version="1.30"
    >
 
 </plugin>
@@ -35,6 +35,7 @@ Hadar is already a member of this group.
 Altere tried to invite you to join group: {-=Masaki=-} and Friends.
 Slacktar does not want to talk to you!
 you dont see a player with that name.
+You invite Rakiso to join group: {-=Masaki=-} and Friends.
 
 blacklist set per person, with message to group/person
 
@@ -475,6 +476,8 @@ function ismember(set,key)
                return true
           end
      end
+     
+     return false
 end
 
 function hgmcheckSettings(arg)
