@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.32"
+   version="1.33"
    >
 
 </plugin>
@@ -568,6 +568,16 @@ function hgmAutoInvite(msg)
 			HGMVariable["GL"]["ClanTriggerNum"] = HadarBackup
 		end
           return
+     elseif one == "show" then
+          hadarprint("@D+@x244======@D[@YA@Wuto@YI@Wnvite@D]@x244======@D+")
+          for i,v in pairs(HGMVariable["AI"]) do
+               if type(i) == "number" then
+               str = v:gsub("^%l", string.upper)
+                    hadarprint("@D|@c "..string.format("%-22s",str).."@D|")
+               end
+          end
+          hadarprint("@D+@x244=======================@D+@w")
+          return
      elseif one == "clan" and two == nil then
           if HGMVariable["AI"]["Clan"] == "yes" then
                HGMVariable["AI"]["Clan"] = "no"
@@ -600,17 +610,17 @@ function hgmAutoInvite(msg)
      
      if one == "add" and two ~= nil then
           if ismember(msg,"AI") then
-               hadarprint(msg.." is on the autoinvite list please use hgm autoinvite remove person")
+               hadarprint(two.." is on the autoinvite list please use hgm autoinvite remove person")
           else
                table.insert(HGMVariable["BL"],string.lower(msg))
-               hadarprint("Added @R"..msg.."@c into the auto invite list","script")
+               hadarprint("Added @R"..two.."@c into the auto invite list","script")
           end
      elseif one == "remove" and two ~= nil then
           if ismember(msg,"AI") then
              table.remove(HGMVariable["AI"],HGMVariable["AI"]["Remove"])
-             hadarprint("Removed @G"..msg.."@c from the auto invite list","script")  
+             hadarprint("Removed @G"..two.."@c from the auto invite list","script")  
           else
-               hadarprint(msg.." was not on the autoinvite list")
+               hadarprint(two.." was not on the autoinvite list")
           end
      elseif one == "add" or one == "remove" and two == nil then
           hadarprint("You need to specify a name, EG. hgm autoinvite add hadar")
