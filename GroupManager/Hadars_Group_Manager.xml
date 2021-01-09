@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.33"
+   version="1.34"
    >
 
 </plugin>
@@ -172,6 +172,8 @@ function injectVars()
      v["GL"]["Leader"] = nil
      v["GL"]["Tell"] = nil
      v["GL"]["Phrase"] = "invite"
+     v["GL"]["Clan"] = "no"
+     v["GL"]["Friend"] = "no"
      
      
      v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
@@ -188,8 +190,6 @@ function injectVars()
      v["BL"]["Remove"] = 0
      
      v["AI"]["Remove"] = 0
-     v["AI"]["Clan"] = "no"
-     v["AI"]["Friend"] = "no"
      
      v["TR"]["Remove"] = 0
      
@@ -576,47 +576,54 @@ function hgmAutoInvite(msg)
                     hadarprint("@D|@c "..string.format("%-22s",str).."@D|")
                end
           end
-          hadarprint("@D+@x244=======================@D+@w")
+          hadarprint("@D+@x244========================@D+@w")
+          return
+     elseif one == "clear" then
+          HGMVariable["AI"] = nil
+          HGMVariable["AI"] = {}
+          hadarprint("Cleared all names from the Auto Invite list","script")
+          SaveState()
           return
      elseif one == "clan" and two == nil then
-          if HGMVariable["AI"]["Clan"] == "yes" then
-               HGMVariable["AI"]["Clan"] = "no"
+          if HGMVariable["GL"]["Clan"] == "yes" then
+               HGMVariable["GL"]["Clan"] = "no"
                hadarprint("Auto clan inviting:@RDISBALED@w","script")
           else
-               HGMVariable["AI"]["Clan"] = "yes"
+               HGMVariable["GL"]["Clan"] = "yes"
                hadarprint("Auto clan inviting:@GENABLED@w","script")
           end
+          return
      elseif one == "clan" and two == "on" then
-          HGMVariable["AI"]["Clan"] = "yes"
+          HGMVariable["GL"]["Clan"] = "yes"
           hadarprint("Auto clan inviting:@GENABLED@w","script")
      elseif one == "clan" and two == "off" then
-          HGMVariable["AI"]["Clan"] = "no"
+          HGMVariable["GL"]["Clan"] = "no"
           hadarprint("Auto clan inviting:@RDISBALED@w","script")
      elseif one == "friend" and two == nil then
-          if HGMVariable["AI"]["Friend"] == "yes" then
-               HGMVariable["AI"]["Friend"] = "no"
+          if HGMVariable["GL"]["Friend"] == "yes" then
+               HGMVariable["GL"]["Friend"] = "no"
                hadarprint("Auto Friend inviting:@RDISBALED@w","script")
           else
-               HGMVariable["AI"]["Friend"] = "yes"
+               HGMVariable["GL"]["Friend"] = "yes"
                hadarprint("Auto Friend inviting:@GENABLED@w","script")
           end
      elseif one == "friend" and two == "on" then
-          HGMVariable["AI"]["Friend"] = "yes"
+          HGMVariable["GL"]["Friend"] = "yes"
           hadarprint("Auto Friend inviting:@GENABLED@w","script")
      elseif one == "friend" and two == "off" then
-          HGMVariable["AI"]["Friend"] = "no"
+          HGMVariable["GL"]["Friend"] = "no"
           hadarprint("Auto Friend inviting:@RDISBALED@w","script")
      end
      
      if one == "add" and two ~= nil then
-          if ismember(msg,"AI") then
+          if ismember(two,"AI") then
                hadarprint(two.." is on the autoinvite list please use hgm autoinvite remove person")
           else
-               table.insert(HGMVariable["BL"],string.lower(msg))
+               table.insert(HGMVariable["AI"],string.lower(two))
                hadarprint("Added @R"..two.."@c into the auto invite list","script")
           end
      elseif one == "remove" and two ~= nil then
-          if ismember(msg,"AI") then
+          if ismember(two,"AI") then
              table.remove(HGMVariable["AI"],HGMVariable["AI"]["Remove"])
              hadarprint("Removed @G"..two.."@c from the auto invite list","script")  
           else
@@ -742,14 +749,14 @@ function hgmchangepass(msg)
 end
 
 function HGMautoinvitetrigger(n,l,wc)
-     if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["AI"]["Clan"] == "yes" then
+     if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["GL"]["Clan"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
           SendSpecial("group invite "..wc[HGMVariable["GL"]["ClanTriggerNum"]])
      end
 end
 
 function hgmfriendjoined(n,l,wc)
-     if ismember(wc[1],"AI") and HGMVariable["AI"]["Friend"] == "yes" then
+     if ismember(wc[1],"AI") and HGMVariable["GL"]["Friend"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[1].." logged in adding to group")
           SendSpecial("group invite "..wc[1])
      end
