@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.34"
+   version="1.35"
    >
 
 </plugin>
@@ -381,7 +381,7 @@ function hgmGroupMessage(msg)
      if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..args.." is blacklisted - no invite sent")
      elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(one,"BL")) then
-          if HGMVariable["GT"]["invite"] == "yes" and ismember(args,"TR") then
+          if HGMVariable["GT"]["invite"] == "yes" and ismember(player,"TR") then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Sending out invite to "..one)
                SendSpecial("group invite "..args)
                if two == nil then
@@ -844,6 +844,8 @@ hadarprint("@x086|                  @Gclear@W: @x208clears your current blacklis
 hadarprint("@x086|                  @Gadd@W: @x208add person to you your current blacklist       @x086|")
 hadarprint("@x086|                  @Gremove@W: @x208removes person from your current blacklist  @x086|")
 hadarprint("@x086| @x214hgm autoinvite @x110- @Gset@W: @x214setup your clan trigger, read for info         @x086|")
+hadarprint("@x086|                  @Gshow@W: @x214shows who is on the list                      @x086|")
+hadarprint("@x086|                  @Gclear@W: @x214fully clears the list                        @x086|")
 hadarprint("@x086|                  @Gsetposition@W:@x214 sets position member name is in def. 1 @x086|")
 hadarprint("@x086|                  @Gclan@W:@x214 activates autoinviting clan members if addded @x086|")
 hadarprint("@x086|                        @x214to the autoinvite list                        @x086|")
