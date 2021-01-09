@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.35"
+   version="1.36"
    >
 
 </plugin>
@@ -455,7 +455,7 @@ function hgmsetmsg(msg)
 		HGMVariable["GT"]["message"] = utils.inputbox ("Format the help message 2 variables\n${logo} add the logo\n${commands} - show list of commands", "set look of gt helpfile", HGMVariable["GT"]["message"], "Courier", 9)
 		
 		if HGMVariable["GT"]["message"] ~= nil then
-			hadarprint("Logo will look like@W: @w"..HGMVariable["GT"]["message"],"script")
+			hadarprint("help will look like@W: @w"..HGMVariable["GT"]["message"],"script")
 		else
 			HGMVariable["GT"]["message"] = HadarBackup
 		end
@@ -553,7 +553,7 @@ function hgmAutoInvite(msg)
 		HGMVariable["GL"]["ClanTrigger"] = utils.inputbox ("Your clan entrance trigger\nPut * for variables\n EG\nCLAN: * has returned from the depths of * meditation, to the realm of Tao.", "Set clan trigger", HGMVariable["GL"]["ClanTrigger"], "Courier", 9)
 		
 		if HGMVariable["GL"]["ClanTrigger"] ~= nil then
-			hadarprint("Logo will look like@W: @w"..HGMVariable["GL"]["ClanTrigger"],"script")
+			hadarprint("Your Clan Trigger looks like@W: @w"..HGMVariable["GL"]["ClanTrigger"],"script")
 		else
 			HGMVariable["GL"]["ClanTrigger"] = HadarBackup
 		end
@@ -596,23 +596,35 @@ function hgmAutoInvite(msg)
      elseif one == "clan" and two == "on" then
           HGMVariable["GL"]["Clan"] = "yes"
           hadarprint("Auto clan inviting:@GENABLED@w","script")
+          SaveState()
+          return
      elseif one == "clan" and two == "off" then
           HGMVariable["GL"]["Clan"] = "no"
           hadarprint("Auto clan inviting:@RDISBALED@w","script")
+          SaveState()
+          return
      elseif one == "friend" and two == nil then
           if HGMVariable["GL"]["Friend"] == "yes" then
                HGMVariable["GL"]["Friend"] = "no"
                hadarprint("Auto Friend inviting:@RDISBALED@w","script")
+               SaveState()
+               return
           else
                HGMVariable["GL"]["Friend"] = "yes"
                hadarprint("Auto Friend inviting:@GENABLED@w","script")
+               SaveState()
+               return
           end
      elseif one == "friend" and two == "on" then
           HGMVariable["GL"]["Friend"] = "yes"
           hadarprint("Auto Friend inviting:@GENABLED@w","script")
+          SaveState()
+          return
      elseif one == "friend" and two == "off" then
           HGMVariable["GL"]["Friend"] = "no"
           hadarprint("Auto Friend inviting:@RDISBALED@w","script")
+          SaveState()
+          return
      end
      
      if one == "add" and two ~= nil then
