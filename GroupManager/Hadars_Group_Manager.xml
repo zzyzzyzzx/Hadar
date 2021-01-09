@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.30"
+   version="1.32"
    >
 
 </plugin>
@@ -131,6 +131,8 @@ function OnPluginEnable ()
      HGMVariable["BL"] = {} --blacklist
      HGMVariable["AI"] = {} --Auto Invite
      HGMVariable["TR"] = {} --Trusted
+     HGMVariableTrust = {}
+     HGMVariableBlacklist = {}
 	
 	if GetVariable ("HGMpastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("HGMVariable") or "")) ()
@@ -468,7 +470,7 @@ function ismember(set,key)
           return false
      end
      
-     if HGMVariable["GL"]["Name"] == HGMVariable["GL"]["Leader"] and key == "TR" then return true end
+     if set == HGMVariable["GL"]["Leader"] and key == "TR" then return true end
      
      for i,v in pairs(HGMVariable[key]) do
           if v == set then
@@ -601,7 +603,7 @@ function hgmAutoInvite(msg)
                hadarprint(msg.." is on the autoinvite list please use hgm autoinvite remove person")
           else
                table.insert(HGMVariable["BL"],string.lower(msg))
-               hadarprint("Added @R"..msg.."@c into the blacklist","script")
+               hadarprint("Added @R"..msg.."@c into the auto invite list","script")
           end
      elseif one == "remove" and two ~= nil then
           if ismember(msg,"AI") then
