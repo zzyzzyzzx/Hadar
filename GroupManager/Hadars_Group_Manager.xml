@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.38"
+   version="1.39"
    >
 
 </plugin>
@@ -393,15 +393,19 @@ function hgmMakeGroupMessage(msg)
      if HGMVariable["GT"]["InOtherGroup"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RIn Another Group@w")
           HGMVariable["GT"]["InOtherGroup"] = "no"
+          return
      elseif HGMVariable["GT"]["CantSee"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RDo not see player with that name@w")
           HGMVariable["GT"]["CantSee"] = "no"
+          return
      elseif HGMVariable["GT"]["Mob"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RTried to invite NPC@w")
           HGMVariable["GT"]["Mob"] = "no"
+          return
      elseif HGMVariable["GT"]["samegroup"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RMember already in group@w")
           HGMVariable["GT"]["samegroup"] = "no"
+          return
      else
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)
      end
@@ -967,7 +971,7 @@ hadarprint("@x086|                  @x208commands@W: @GLeader@W, @GInvite@W, @GR
 hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|")
 hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|")
 hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|")
-hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                @x086|")
+hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 
 end
