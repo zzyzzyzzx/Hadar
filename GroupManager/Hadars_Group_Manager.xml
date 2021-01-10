@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.37"
+   version="1.371"
    >
 
 </plugin>
@@ -224,6 +224,7 @@ function injectVars()
      v["GT"]["blacklist"] = "yes"
      v["GT"]["InOtherGroup"] = "no"
      v["GT"]["CantSee"] = "no"
+     v["GT"]["Mob"] = "no"
      
      v["BL"]["Remove"] = 0
      
@@ -362,7 +363,7 @@ function hgmiscommand(cmd)
      
 end
 
-function hgminanothergroup(n,l,wc)
+function hgminanothergroup()
      HGMVariable["GT"]["InOtherGroup"] = "yes"
 end
 
@@ -370,7 +371,7 @@ function hgmnoplayer()
      HGMVariable["GT"]["CantSee"] = "yes"
 end
 
-function hgminvitedmob(n,l,w)
+function hgminvitedmob()
      HGMVariable["GT"]["Mob"] = "yes"
 end
 
