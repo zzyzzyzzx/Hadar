@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.371"
+   version="1.372"
    >
 
 </plugin>
@@ -385,7 +385,7 @@ function hgmMakeGroupMessage(msg)
      elseif HGMVariable["GT"]["Mob"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RTried to invite NPC@w")
           HGMVariable["GT"]["Mob"] = "no"
-     elseif HGMVariable["GT"]["InOtherGroup"] == "no" then
+     elseif HGMVariable["GT"]["InOtherGroup"] == "no" and HGMVariable["GT"]["CantSee"] == "no" and HGMVariable["GT"]["Mob"] == "no" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)
      end
 end
