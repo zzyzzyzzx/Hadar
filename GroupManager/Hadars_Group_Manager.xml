@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.372"
+   version="1.38"
    >
 
 </plugin>
@@ -77,6 +77,15 @@ kick,cancel,leader,flag,invite
      omit_from_output="n"
      regexp="y"
      script="hgmgroupinvite"
+     sequence="100"
+     >
+     </trigger>
+     <trigger
+     enabled="y"
+     match="^(.+) is already a member of this group\.$"
+     omit_from_output="n"
+     regexp="y"
+     script="hgmsamegeoup"
      sequence="100"
      >
      </trigger>
@@ -225,6 +234,7 @@ function injectVars()
      v["GT"]["InOtherGroup"] = "no"
      v["GT"]["CantSee"] = "no"
      v["GT"]["Mob"] = "no"
+     v["GT"]["samegroup"] = "no"
      
      v["BL"]["Remove"] = 0
      
@@ -375,6 +385,10 @@ function hgminvitedmob()
      HGMVariable["GT"]["Mob"] = "yes"
 end
 
+function hgmsamegeoup()
+     HGMVariable["GT"]["samegroup"] = "yes"
+end
+
 function hgmMakeGroupMessage(msg)
      if HGMVariable["GT"]["InOtherGroup"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RIn Another Group@w")
@@ -385,7 +399,10 @@ function hgmMakeGroupMessage(msg)
      elseif HGMVariable["GT"]["Mob"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RTried to invite NPC@w")
           HGMVariable["GT"]["Mob"] = "no"
-     elseif HGMVariable["GT"]["InOtherGroup"] == "no" and HGMVariable["GT"]["CantSee"] == "no" and HGMVariable["GT"]["Mob"] == "no" then
+     elseif HGMVariable["GT"]["samegroup"] == "yes" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RMember already in group@w")
+          HGMVariable["GT"]["samegroup"] = "no"
+     else
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)
      end
 end
@@ -435,12 +452,6 @@ function hgmGroupMessage(msg)
           return
      elseif command == "ihelp" and args == "kick" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick <person>- kicks a person "..hgmcheckSettings("kick"))
-          return
-     elseif command == "ihelp" and args == "trust" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."trust <person> <add|remove>- adds or removes a person from the trust list  "..hgmcheckSettings("kick"))
-          return
-     elseif command == "ihelp" and args == "blacklist" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."blacklist <person> <add|remove>- adds or removes person from the blacklist "..hgmcheckSettings("kick"))
           return
      end
      
@@ -912,8 +923,15 @@ function hgmConfig(args)
                HGMVariable["GT"]["kick"] = "yes"
                hadarprint("Setting kick to trusted","script")
           end
+     elseif one == "all" then
+          hadarprint("@x240Leader is set to: "..hgmcheckSettings("leader"))
+          hadarprint("@x232Invite is set to: "..hgmcheckSettings("invite"))
+          hadarprint("@x240Rename is set to: "..hgmcheckSettings("rename"))
+          hadarprint("@x232Flag is set to: "..hgmcheckSettings("flag"))
+          hadarprint("@x240Cancel is set to: "..hgmcheckSettings("cancel"))
+          hadarprint("@x232Kick is set to: "..hgmcheckSettings("kick"))
      else
-          hadarprint("Please do a valid selection which is@W:@R Invite@W,@R Leader@W,@R Rename@W,@R Flag@W,@R Cancel@W,@R Kick@w","script")
+          hadarprint("Please do a valid selection which is@W:@R Invite@W,@R Leader@W,@R Rename@W,@R Flag@W,@R Cancel@W,@R Kick@W,@R All@w","script")
      end
      SaveState()
 end
@@ -947,7 +965,9 @@ hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinv
 hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|")
 hadarprint("@x086|                  @x208commands@W: @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@x086|")
 hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|")
+hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|")
 hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|")
+hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 
 end
