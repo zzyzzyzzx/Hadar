@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.7"
+   version="2.08"
    >
 
 </plugin>
@@ -512,6 +512,7 @@ function goldSession(str)
                GoldTrack["SN"]["Mob"] = 0
                GoldTrack["SN"]["Give"] = 0
                GoldTrack["SN"]["Sell"] = 0
+               GoldTrack["SN"]["Active"] = "no"
                SaveState()
           else
                hadarprint("You @RDO NOT@c have a session running use @Ghgt session start@c to begin","script")
@@ -761,6 +762,8 @@ end
 
 function HadarHelp()
 hadarprint("@x086+---------------------------@D[@CG@cold @CT@cracker@D]@x086-----------------------------+")
+hadarprint("@x086|                            @CV@cersion@W: "..GetPluginInfo (GetPluginID (), 19).."@x086                             |")
+hadarprint("@x086+----------------------------------------------------------------------+")
 hadarprint("@x086| @x214hgt help                @x110- @x214Displays this helpfile                     @x086|")
 hadarprint("@x086| @x208hgt fullreset           @x110- @x208resets the plugin to default variables     @x086|")
 hadarprint("@x086| @x214hgt channel <channel>   @x110- @x214no arguments displays the channel          @x086|")
