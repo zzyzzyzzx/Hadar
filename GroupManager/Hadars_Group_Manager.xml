@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.39"
+   version="1.40"
    >
 
 </plugin>
@@ -20,30 +20,16 @@
 
 <trigger
    enabled="y"
-   match=""
-   omit_from_output="y"
+   match="You invite * to join group: *\."
+   omit_from_output="n"
    regexp="y"
-   group=""
    script=""
    sequence="100"
-  >hgminanothergroup
+  >
 </trigger>
-You must be a group leader to invite another player.
-You are not in a group.
-Scars is a member of another group.
-Hadar is already a member of this group.
-Altere tried to invite you to join group: {-=Masaki=-} and Friends.
-Slacktar does not want to talk to you!
-you dont see a player with that name.
-You invite Rakiso to join group: {-=Masaki=-} and Friends.
-
-blacklist set per person, with message to group/person
-
-kick,cancel,leader,flag,invite
   -->
 
 <triggers>
-
      <trigger
      enabled="y"
      match="^you dont see a player with that name\.$"
@@ -471,7 +457,6 @@ function hgmGroupMessage(msg)
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..args.." is blacklisted - no invite sent")
      elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(one,"BL")) then
           if HGMVariable["GT"]["invite"] == "yes" and ismember(player,"TR") then
-               --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Sending out invite to "..one)
                local msg = player.." Sending out invite to "..one
                SendSpecial("group invite "..args)
                DoAfterSpecial(1,"hgmMakeGroupMessage("..msg..")")
@@ -481,12 +466,9 @@ function hgmGroupMessage(msg)
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
           elseif HGMVariable["GT"]["invite"] == "no" then
-               --SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Sending out invite to "..one)
                local msg = player.." Sending out invite to "..one
                SendSpecial("group invite "..args)
-               DoAfterSpecial(1,'hgmMakeGroupMessage(msg)', sendto.script)
-               --DoAfterSpecial(0.5, 'Sound("ding.wav")', sendto.script)
-               SendSpecial("group invite "..args)
+               DoAfterSpecial(1,"hgmMakeGroupMessage("..msg..")", sendto.script)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
