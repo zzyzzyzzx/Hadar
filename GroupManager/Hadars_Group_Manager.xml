@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.42"
+   version="1.421"
    >
 
 </plugin>
@@ -489,7 +489,7 @@ function hgmGroupMessage(msg)
           if HGMVariable["GT"]["invite"] == "yes" and ismember(player,"TR") then
                local msg = player.." Sending out invite to "..one
                SendSpecial("group invite "..args)
-               DoAfterSpecial(1,"hgmMakeGroupMessage("..msg..")", sendto.script)
+               DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
@@ -498,7 +498,7 @@ function hgmGroupMessage(msg)
           elseif HGMVariable["GT"]["invite"] == "no" then
                local msg = player.." Sending out invite to "..one
                SendSpecial("group invite "..args)
-               DoAfterSpecial(1,"hgmMakeGroupMessage("..msg..")", sendto.script)
+               DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
