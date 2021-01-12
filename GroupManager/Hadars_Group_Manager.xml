@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.41"
+   version="1.42"
    >
 
 </plugin>
@@ -72,6 +72,15 @@
      omit_from_output="n"
      regexp="y"
      script="hgmsamegeoup"
+     sequence="100"
+     >
+     </trigger>
+     <trigger
+     enabled="y"
+     match="^You found nobody in this world by the name \'(.+)\'\.$"
+     omit_from_output="n"
+     regexp="y"
+     script="hgmoffline"
      sequence="100"
      >
      </trigger>
@@ -221,6 +230,7 @@ function injectVars()
      v["GT"]["CantSee"] = "no"
      v["GT"]["Mob"] = "no"
      v["GT"]["samegroup"] = "no"
+     v["GT"]["offline"] = "no"
      
      v["BL"]["Remove"] = 0
      
@@ -383,6 +393,10 @@ function hgmsamegeoup()
      HGMVariable["GT"]["samegroup"] = "yes"
 end
 
+function hgmoffline()
+     HGMVariable["GT"]["offline"] = "yes"
+end
+
 function hgmMakeGroupMessage(msg)
      if HGMVariable["GT"]["InOtherGroup"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RIn Another Group@w")
@@ -399,6 +413,10 @@ function hgmMakeGroupMessage(msg)
      elseif HGMVariable["GT"]["samegroup"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RMember already in group@w")
           HGMVariable["GT"]["samegroup"] = "no"
+          return
+     elseif HGMVariable["GT"]["offline"] == "yes" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RPerson Offline@w")
+          HGMVariable["GT"]["offline"] = "yes"
           return
      else
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)
@@ -461,7 +479,7 @@ function hgmGroupMessage(msg)
      return
      end
      
-     if command == HGMVariable["GL"]["Phrase"] and ismember(args,"BL") then
+     if command == HGMVariable["GL"]["Phrase"] and ismember(one,"BL") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..args.." is blacklisted - no invite sent")
      elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(one,"BL")) then
           hgmrefresh()
