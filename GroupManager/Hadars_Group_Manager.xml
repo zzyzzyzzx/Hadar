@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.421"
+   version="1.43"
    >
 
 </plugin>
@@ -868,16 +868,20 @@ function hgmchangepass(msg)
 end
 
 function HGMautoinvitetrigger(n,l,wc)
-     if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["GL"]["Clan"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
-          SendSpecial("group invite "..wc[HGMVariable["GL"]["ClanTriggerNum"]])
+     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
+          if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["GL"]["Clan"] == "yes" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
+               SendSpecial("group invite "..wc[HGMVariable["GL"]["ClanTriggerNum"]])
+          end
      end
 end
 
 function hgmfriendjoined(n,l,wc)
-     if ismember(wc[1],"AI") and HGMVariable["GL"]["Friend"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[1].." logged in adding to group")
-          SendSpecial("group invite "..wc[1])
+     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
+          if ismember(wc[1],"AI") and HGMVariable["GL"]["Friend"] == "yes" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[1].." logged in adding to group")
+               SendSpecial("group invite "..wc[1])
+          end
      end
 end
 
