@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.44"
+   version="1.45"
    >
 
 </plugin>
@@ -323,7 +323,8 @@ function OnPluginBroadcast (msg, id, name, text)
                     end
                end
                if channel == "tell" then
-                    local playerName, message = string.match(msg, "^(.+) tells you '(.+)'")
+                    local playerName = strip_colours(gmcp("comm.channel.player"))
+                    local _, message = string.match(msg, "^(.+) tells you '(.+)'")
                     hgmrefresh()
                     hgmTellMessage(playerName,message)
                end
