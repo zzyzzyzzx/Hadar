@@ -1,0 +1,1199 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+<!--
+     Testers: N/A
+              
+              
+TODO:
+Leve report: 15 mobs, average 201 exp each, completed in 1 min, 32 seconds ((0xp from double)) gains
+might update to hadarmagic 2.0
+
+id="1a36da4e764254b16bd1e33f" REAL ID
+-->
+
+<muclient>
+<plugin
+   name="Hadar_LevelReport"
+   author="Hadar"
+   id="57046a5093436ad643980875"
+   language="Lua"
+   purpose="To report time between levels/pup"
+   save_state="y"
+   date_written="2018-08-14 10:18:40"
+   requires="4.00"
+   version="2.23"
+   >
+
+</plugin>
+
+
+<!--  Get our standard constants -->
+
+<include name="constants.lua"/>
+
+<!--  Triggers  -->
+
+<triggers>
+  <trigger
+   enabled="y"
+   match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
+   omit_from_output="y"
+   regexp="y"
+   script="SkillGain"
+   sequence="100"
+  >
+  </trigger>
+	<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^Congratulations, hero. You have increased your powers!"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_level"
+	>
+	</trigger>
+	<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^Lucky! You gain an extra (\d+) training sessions?!$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_train_bonus"
+	>
+	</trigger>
+	<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^You gain (\d+) extra trains daily blessing bonus.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_train_bonus"
+	>
+	</trigger>
+		<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^You gain (\d+) additional training session.? from your enhanced battle learning\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_train_bonus"
+	>
+	</trigger>
+	<trigger
+		group="PupTriggers"
+		enabled="n"
+		match="^You gain (\d+) train(?s)."
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="Pup_train_add"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain a bonus (.*) point!$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="level_Stat_Add"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain ([0-9]{1,3}) hit points, ([0-9]{1,3}) mana, ([0-9]{1,3}) moves, ([0-9]{1,3}) practices and ([0-9]{1,3}) trains\."
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="gain_Level"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain ([0-9]{1,3}) hit points, ([0-9]{1,3}) mana, ([0-9]{1,3}) moves, ([0-9]{1,3}) practices, ([0-9]{1,3}) trains and ([0-9]{1,3}) instinct trains\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="gain_Level_redo"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain (\d+) additional training session.? from your enhanced battle learning\.$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="level_bonus_train"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^You gain (\d+) extra train.? daily blessing bonus"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="level_bonus_train"
+	>
+	</trigger>
+	<trigger
+		group="LevelTriggers"
+		enabled="n"
+		match="^Lucky! You gain an extra (\d+) training session(?s)!$"
+		regexp="y"
+		omit_from_output="n"
+		sequence="100"
+		script="level_bonus_train"
+	>
+	</trigger>
+	
+	
+		<!-- Recovery Capture -->
+	<trigger
+		name="RecoveriesStart"
+		enabled="n"
+		match="^\{recoveries\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		send_to="12"
+	>
+	<send>
+		EnableTrigger("RecoveriesStart", false)
+		EnableTrigger("RecoveriesCapture", true)
+		EnableTrigger("RecoveriesEnd", true)
+	</send>
+	</trigger>
+
+	<trigger
+		name="RecoveriesCapture"
+		enabled="n"
+		match="^[0-9]+,[^,]+,[0-9]+$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+
+	<trigger
+		name="RecoveriesEnd"
+		enabled="n"
+		match="^\{\/recoveries\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		send_to="12"
+	>
+	<send>
+		EnableTrigger("RecoveriesStart", false)
+		EnableTrigger("RecoveriesCapture", false)
+		EnableTrigger("RecoveriesEnd", false)
+	</send>
+	</trigger>
+	
+		<!-- slist Capture -->
+	<trigger
+		name="SListStart"
+		group="SpellupCapture"
+		script="begin_sList"
+		enabled="n"
+		match="\{spellheaders( learned)?\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+
+	<trigger
+		name="SListEnd"
+		group="SpellupCapture"
+		script="stop_sList"
+		enabled="n"
+		match="^{\/spellheaders\}$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+	>
+	</trigger>
+	<trigger
+		name="SListCapture"
+		group="SpellupCapture"
+		enabled="n"
+		match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
+		regexp="y"
+		omit_from_output="y"
+		sequence="100"
+		script="SlistUpdate"
+	>
+	</trigger>
+     
+     
+     <trigger
+   enabled="y"
+   match="^You receive (.*) experience points?\."
+   omit_from_output="n"
+   regexp="y"
+   group=""
+   script="expGained"
+   sequence="100"
+  >
+</trigger>
+<trigger
+   enabled="y"
+   match="^You receive \(halved\) (.*) experience points?\."
+   omit_from_output="n"
+   regexp="y"
+   group=""
+   script="expGained"
+   sequence="100"
+  >
+</trigger>
+<trigger
+   enabled="y"
+   match="^You receive (.*) bonus experience points"
+   omit_from_output="n"
+   regexp="y"
+   group=""
+   script="bonusExpGained"
+   sequence="100"
+  >
+</trigger>
+<!--
+<trigger
+   match="^Below the flare, you hear (.*) scream '(.*)'"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^\[\s+10 minutes of double exp started courtesy of (.*)\s+\]$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^Double experience for 10 minutes courtesy of (.*)'s daily blessing.$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^Double experience for 10 minutes courtesy of (.*).$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^You hear a loud roar from (.*) and the world appears calmer for a while."
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^INFO: Bonus experience has now expired\."
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleStop"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^Next (.*) mobs? killed will reward double experience[ ]*(.*)$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="DBdoubleStart"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^You have no daily blessing bonus experience kills remaining."
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="DBdoubleStop"
+   omit_from_output="n"
+  >
+  </trigger>
+  <trigger
+   match="^You receive (.*) \'rare kill\' experience bonus."
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+   script="doubleRareKill"
+   omit_from_output="n"
+  >
+  </trigger>
+  -->
+	
+</triggers>
+
+<!--  Aliases  -->
+
+<aliases>
+     <alias
+          match="^hlr ?(.*)?"
+          enabled="y"
+          regexp="y"
+          sequence="100"
+          send_to="12"
+          script="HLRmain"
+     >
+     </alias>
+     
+     <alias match="^had help$"
+          enabled="y"
+          sequence="100"
+          send_to="12"
+          regexp="y"
+          keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
+</aliases>
+
+<script>
+<![CDATA[
+require "serialize"
+require "gmcphelper"
+require "tprint"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+
+	LevelReportVariables = {}
+	local currentState = -1 -- uninitialized
+	local slistCommandSent = false
+	local IAC = 255
+	local SB  = 250
+	local TELOPT = 102
+	local SE  = 240
+	local SKILLGAINS = 8
+	local GLOBAL_TAG_MUTE = 50
+	
+function interp(s, tab)
+
+local stringone = nil
+local stringtwo = nil
+local workingon = 0
+
+		return (s:gsub('($%b{})',
+			function(w)
+				if w:find("|") then
+					for i,v in pairs(utils.split(triminterp(w),"|")) do
+						if i == 1 and tab[v] ~= nil then
+							if v == "score" and tonumber(tab[v]) > 0 then
+								stringone = tab[v]
+								workingon = 1
+							elseif v ~= "score" then
+								stringone = tab[v]
+								workingon = 1
+							end
+						elseif i == 2 and stringone ~= nil and workingon == 1 then
+							return stringone .. v
+						elseif i == 1 and tab[v] == nil then
+							stringtwo = v
+							workingon = 2
+						elseif i == 2 and stringtwo ~= nil and tab[v] ~= nil and workingon == 2 then
+							if v == "score" and tonumber(tab[v]) > 0 then
+								return stringtwo .. tab[v]
+							elseif v ~= "score" then
+								return stringtwo .. tab[v]
+							end
+						else
+							print("could not find I:"..i .." V:" .. v)
+						end
+					end
+				else
+					return tab[w:sub(3, -2)] or ""
+				end --end of if function inside gsub
+				return w:gsub("[%$%{%A+%a+|%}]","")
+			end)) -- end of gsub
+end --end of interp function
+
+function levelTimeDiff(t2,t1,script)
+	local d1,d2,carry,diff = os.date('*t',t1),os.date('*t',t2),false,{}
+	local colMax = {60,60,24,os.date('*t',os.time{year=d1.year,month=d1.month+1,day=0}).day,12}
+	d2.hour = d2.hour - (d2.isdst and 1 or 0) + (d1.isdst and 1 or 0) -- handle dst
+	for i,v in ipairs({'sec','min','hour','day','month','year'}) do
+		diff[v] = d2[v] - d1[v] + (carry and -1 or 0)
+		carry = diff[v] < 0
+		if carry then diff[v] = diff[v] + colMax[i] end
+	end
+	for i,v in pairs(diff) do
+		HLRVariable[script][i] = v
+	end
+	return diff
+end
+
+function OnPluginBroadcast(msg, id, name, text)
+
+  if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+    if (text == "char.status") then
+		res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char.status")
+		
+				assert(loadstring("LoadInfo = "..gmcparg or "")) ()
+				currentState = tonumber(gmcp("char.status.state"))
+		
+		for i,v in pairs(LoadInfo) do
+		
+			if i == "level" then
+				HLRVariable["LU"]["level"]=v  
+				if tonumber(v) >= 200 then
+					EnableTriggerGroup("PupTriggers", true)
+					EnableTriggerGroup("LevelTriggers", false)
+				else
+					EnableTriggerGroup("PupTriggers", false)
+					EnableTriggerGroup("LevelTriggers", true)
+				end
+			end
+			
+		end -- end for
+		
+	end --end if char status
+	
+  end
+end
+
+function hadarprint(str,level)
+
+	if level == "error" then
+          AnsiNote(ColoursToANSI("@R[@MHLR @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CL@cevel @CR@ceport@G]@c "..str))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
+
+											 
+----------------------------------------------------------------------------------------------------
+--										      End GMCP											  --
+--																								  --
+--								         Start Standard Stuff									  --
+----------------------------------------------------------------------------------------------------
+
+function OnPluginSaveState ()
+	SetVariable ("HLRVariable", "HLRVariable = " .. serialize.save_simple (HLRVariable))
+	SetVariable ("HLRpastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	
+	if (currentState == -1) then
+		currentState = 0 -- sent request
+	end
+	
+	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+
+	SendNoEcho("protocol gmcp sendchar")
+	SendNoEcho("protocol gmcp sendstatus")
+	
+     HLRVariable = {}
+     HLRVariable["GL"] = {}
+     HLRVariable["PP"] = {}
+     HLRVariable["LU"] = {}
+     HLRVariable["SK"] = {}
+     HLRVariable["HR"] = {}
+     HLRVariable["SN"] = {}
+     HLRVariable["AT"] = {}
+	
+	
+     if GetVariable ("HLRpastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("HLRVariable") or "")) ()
+          injectVars()
+	else
+          hadarprint("Looks like this is your first install, Lets get you setup! HLR for help","script")
+		injectVars()
+          buildFirstSpellList()
+	end
+
+end
+
+function checkExist(tbl, idx, val) 
+
+     if not HLRVariable[tbl] then
+          HLRVariable[tbl] = {}
+     end
+
+     if not HLRVariable[tbl][idx] then
+               HLRVariable[tbl][idx] = val
+               SetVariable("HLRVariable", serialize.save("HLRVariable")) 
+     end
+     
+end
+
+function injectVars()
+     local v = {}
+     v["GL"] = {}
+     v["PP"] = {}
+     v["LU"] = {}
+     v["SK"] = {}
+     v["HR"] = {}
+     v["SN"] = {}
+     v["AT"] = {}
+-----------Initilize Global Variables---------------------
+     v["GL"]["commLog"] = "no"
+     v["GL"]["mainWindow"] = "yes"
+     v["GL"]["commLogTab"] = nil
+     v["GL"]["channel"] = "gt"
+     v["GL"]["TNL"] = tonumber(gmcp("char.base.perlevel"))
+-----------Initilize Pup Variables------------------------
+     v["PP"]["message"] = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@w"
+     v["PP"]["startTime"] = 0
+     v["PP"]["Exp"] = 0
+     v["PP"]["ExpB"] = 0
+     v["PP"]["Mob"] = 0
+-----------Initilize Level variables----------------------
+     v["LU"]["message"] = "@GL@gevel@R(@W${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
+     v["LU"]["startTime"] = 0
+     v["LU"]["Exp"] = 0
+     v["LU"]["ExpB"] = 0
+     v["LU"]["Mob"] = 0
+     v["LU"]["hp"] = 0
+     v["LU"]["level"] = 0
+     v["LU"]["mana"] = 0
+     v["LU"]["moves"] = 0
+     v["LU"]["train"] = 0
+     v["LU"]["prac"] = 0
+     v["LU"]["instinct"]   = 0
+	v["LU"]["bonusstat"]  = 0
+	v["LU"]["bonustrain"] = 0
+	v["LU"]["levelskill"] = 0
+-----------Initilize Skills variables---------------------
+     v["SK"]["master_message"] = "@x125I have @x023M@x041astered ${skill}@w" 
+     v["SK"]["gain_message"] = "${skill} @x125 Has @x127I@x135ncreased@x125 to @x088 ${percent}"
+     v["SK"]["show_gain_message"] = "yes"
+     v["SK"]["show_master_message"] = "yes"
+     v["SK"]["initilized"] = "no"
+     v["SK"]["List"] = nil
+-----------Initilize Hour variables-----------------------
+     v["HR"]["kills"] = 0
+     v["HR"]["Exp"] = 0
+     v["HR"]["ExpB"] = 0
+     v["HR"]["Mob"] = 0
+-----------Initilize Session variables--------------------
+     v["SN"]["startTime"] = 0
+-----------Initilize ALL TIME variables-------------------
+     v["AT"]["Date"] = os.date("*t")
+     v["AT"]["Installed"] = os.time()
+     v["AT"]["Exp"] = 0
+     v["AT"]["ExpB"] = 0
+     v["AT"]["Mob"] = 0
+----------------------------------------------------------
+
+for a,b in pairs(v) do
+     for c,d in pairs(b) do
+          checkExist(a,c,d)
+     end
+end
+
+end --end injectvars()
+
+function HLRmain(n,l,wc)
+     local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     
+     if first == "set" then
+          hlr_set(rest)
+     elseif first == "gains" then
+          hlr_skillgain(rest)
+     elseif first == "report" then
+          HLR_Report_Build(rest)
+     elseif first == "channel" then
+          hlr_channel(rest)
+     elseif first == "set" then
+          hlr_set(rest)
+     elseif first == "config" then
+          hlr_config(rest)
+     else
+          HadarHelp()
+     end
+end
+
+function hlr_config(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("@cYou need to give an argument EG: @Ghxp report main","error")
+          return
+     end
+     
+     local first, second = str:match("(%w+)%s*(.*)")
+     
+     first = string.lower(first)
+     
+     if second == " " or second == "" then
+          second = nil
+     end
+end
+
+function hlr_set(str)
+     str = string.lower(str)
+     if str == "level" then
+          HadarBackup = HLRVariable["LU"]["message"]
+		HLRVariable["LU"]["message"] = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct trains gains(redo)", "Look of level message", HLRVariable["LU"]["message"], "Courier", 9)
+		
+		if HLRVariable["LU"]["message"] ~= nil then
+			hadarprint("Level up message will look like@W: @w"..HLRVariable["LU"]["message"],"script")
+		else
+			HLRVariable["LU"]["message"] = HadarBackup
+		end
+     elseif str == "pup" then
+          HadarBackup = HLRVariable["PP"]["message"]
+		HLRVariable["PP"]["message"] = utils.inputbox ("${hour} - Time hours\n${min} - Time mins\n${sec} - time seconds\n${tr} - trains", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
+		
+		if HLRVariable["PP"]["message"] ~= nil then
+			hadarprint("PowerUP message will look like@W: @w"..HLRVariable["PP"]["message"],"script")
+		else
+			HLRVariable["PP"]["message"] = HadarBackup
+		end
+     elseif str == "skillmaster" then
+          HadarBackup = HLRVariable["SK"]["master_message"]
+		HLRVariable["SK"]["master_message"] = utils.inputbox ("${skill} - Skill", "Look of mastered skill if active", HLRVariable["SK"]["master_message"], "Courier", 9)
+		
+		if HLRVariable["SK"]["master_message"] ~= nil then
+			hadarprint("Skill Master message will look like@W: @w"..HLRVariable["SK"]["master_message"],"script")
+		else
+			HLRVariable["SK"]["master_message"] = HadarBackup
+		end
+     elseif str == "skillgain" then
+          HadarBackup = HLRVariable["SK"]["gain_message"]
+		HLRVariable["SK"]["gain_message"] = utils.inputbox ("${skill} - Skill\n${percent} - percentage the skill is at", "Look of leveled skill if active", HLRVariable["SK"]["gain_message"], "Courier", 9)
+		
+		if HLRVariable["SK"]["gain_message"] ~= nil then
+			hadarprint("Skill Gain message will look like@W: @w"..HLRVariable["SK"]["gain_message"],"script")
+		else
+			HLRVariable["SK"]["gain_message"] = HadarBackup
+		end
+     else
+          hadarprint("@cYou need to input one of the following@w: @Glevel@w, @Gpup@w,@G skillmaster@w, @Gskillgain @C.@c.@C. @YEG:@R hlr set level@w","error")
+     end
+     SaveState()
+end
+
+function hlr_channel(str)
+     if str ~= nil and str ~= "" and str ~= " " then
+		HLRVariable["GL"]["channel"] = str
+		hadarprint("Default channel set to@w: @G" .. HLRVariable["GL"]["channel"],"script")
+	else
+          hadarprint("Current Channel:"..HLRVariable["GL"]["channel"],"script")
+		hadarprint("@cPlease use the following command@W:@Ghlr channel <channel you want to output to>@w","error")
+	end
+     
+     SaveState()
+end
+
+function hlr_skillgain(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("@cYou need to give an argument EG: @Ghlr skillgain master on","error")
+          return
+     end
+     
+     local first, second = str:match("(%w+)%s*(.*)")
+     
+     first = string.lower(first)
+     
+     if second == " " or second == "" then
+          second = nil
+     else
+          second = string.lower(second)
+     end
+     
+     if first == "level" and second == nil then
+          if HLRVariable["SK"]["show_gain_message"] == "yes" then
+               HLRVariable["SK"]["show_gain_message"] = "no"
+               hadarprint("Regular skill level gains turned @ROFF@w","script")
+          else
+               HLRVariable["SK"]["show_gain_message"] = "yes"
+               hadarprint("Regular skill level gains turned @GON@w","script")
+          end
+     elseif first == "level" and second == "off" then
+          HLRVariable["SK"]["show_gain_message"] = "no"
+          hadarprint("Regular skill level gains turned @ROFF@w","script")
+     elseif first == "level" and second == "on" then
+          HLRVariable["SK"]["show_gain_message"] = "yes"
+          hadarprint("Regular skill level gains turned @GON@w","script")
+     end
+     
+     if first == "master" and second == nil then
+          if HLRVariable["SK"]["show_master_message"] == "yes" then
+               HLRVariable["SK"]["show_master_message"] = "no"
+               hadarprint("Mastering skill turned @ROFF@w","script")
+          else
+               HLRVariable["SK"]["show_master_message"] = "yes"
+               hadarprint("Mastering skill turned @GON@w","script")
+          end
+     elseif first == "master" and second == "on" then
+          HLRVariable["SK"]["show_master_message"] = "yes"
+          adarprint("Mastering skill turned @GON@w","script")
+     elseif first == "master" and second == "off" then
+          HLRVariable["SK"]["show_master_message"] = "no"
+          hadarprint("Mastering skill turned @ROFF@w","script")
+     end
+     
+end
+
+----------------------------------------------------------------------------------------------------
+--										  End Standard Stuff					   --
+--																			   --
+--									    Begin Level/PUP Functions					   --
+----------------------------------------------------------------------------------------------------
+
+
+
+function Pup_level()
+	levelTimeDiff(os.time(),HLRVariable["PP"]["Starttime"],"PP")
+	HLRVariable["PP"]["bonustrain"] = 0
+	DoAfterSpecial(0.5, 'Execute("hlr report pup")', sendto.script)
+end
+
+function Pup_train_bonus(name, line, wildcards)
+	HLRVariable["PP"]["bonustrain"] = tonumber(HLRVariable["PP"]["bonustrain"]) + tonumber(wildcards[1])
+end
+
+function Pup_train_add(name, line, wildcards)
+     HLRVariable["PP"]["bonustrain"] = tonumber(wildcards[1])
+end
+
+function HLR_Report_Build(arg)
+     local report, level = arg:match("(%w+)%s*(.*)")
+     
+     if report == nil or report == "" or report == " " then
+          hadarprint("this command cannot be empty, please use hlr report level or hlr report pup","error")
+          return
+     end
+     
+     if level == nil or level == " " or level == "" then
+          level = HLRVariable["LU"]["level"]
+     end
+     
+     level = tonumber(level)
+     
+     if report == "level" then
+          hlr_level_report(level)
+     elseif report == "pup" then
+          hlr_level_pup()
+     end
+     
+     --[[local level = level or HLRVariable["LU"]["level"]
+     
+     channel = channel or HLRVariable["GL"]["channel"]
+     if level == 0 then 
+          level = "pup"
+     end
+	
+	local report = tonumber(HLRVariable["LU"]["level"])
+	
+	if type(level) == number then
+          hlr_level_report(report)
+     end
+     --]]
+end
+
+function level_Stat_Add(name, line, wildcards)
+	local stat = wildcards[1]
+	if stat == "Strength" then
+		stat = "Str"
+	elseif stat == "Intelligence" then
+		stat = "Int"
+	elseif stat == "Wisdom" then
+		stat = "Wis"
+	elseif stat == "Dexterity" then
+		stat = "Dex"
+	elseif stat == "Constitution" then
+		stat = "Con"
+	elseif stat == "Luck" then
+		stat = "Lck"
+	end
+	bonusstatadd(stat)
+end
+
+function gain_Level(name, line, wildcards)
+
+     levelTimeDiff(os.time(),HLRVariable["LU"].startTime,"LU")
+	statadd(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5])
+	
+	DoAfterSpecial(0.5, 'Execute("hlr report level")', sendto.script)
+end
+
+function gain_Level_redo(name, line, wildcards)
+	levelTimeDiff(os.time(),HLRVariable["PP"].startTime,"PP")
+	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
+	
+	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
+end
+
+function level_bonus_train(name, line, wildcards)
+	trainadd(wildcards[1])
+end
+
+function Level_show(name, line, wildcards)
+	local level = wildcards[1]
+	local report = tonumber(level)
+	local channel
+	if wildcards[2]=="" then
+		channel = HLRVariable["GL"]["channel"]
+	else
+		channel = wildcards[2]
+	end
+	
+	if level=="all" then
+		if leveltable~=nil then
+			for k,v in pairs(leveltable) do
+				hadarprint(v)
+			end
+		else
+			hadarprint("You have not leveled yet, go out and level!","script")
+		end
+	else
+		if channel == nil then
+			hadarprint("Could not find a channel to concat","script")
+		elseif leveltable[report] == nil then
+			hadarprint("Could not find any level data for that level","script")
+		else
+			SendNoEcho(channel.." "..leveltable[report])
+		end
+	end
+end
+
+
+----------------------------------------------------------------------------------------------------
+--									  End Level/PUP Functions	   							      --
+--																								  --
+--									    Begin Slist Stuff										  --
+----------------------------------------------------------------------------------------------------
+
+function SkillGain(name, line, wildcards)
+	local one = tonumber(wildcards.sn)
+	local two = tonumber(wildcards.perc)
+	local msg
+	local skill
+
+	
+	for i,v in pairs(HLRVariable["SK"]["List"]) do
+		if one == i then
+			skill = v
+		end
+	end
+	
+	
+		if tonumber(two) == 1 or tonumber(two) == 85 and HLRVariable["SK"]["show_gain_message"]=="true" then
+			levelskill(skill)
+		elseif tonumber(two) == 100 and HLRVariable["SK"]["show_master_message"]=="true" then
+			msg = interp(HLRVariable["SK"]["master_message"],{skill = skill})
+		elseif tonumber(two) < 100 and HLRVariable["SK"]["show_gain_message"]=="true" then
+			msg = interp(HLRVariable["SK"]["gain_message"],{skill = skill, percent = two})
+		end
+		
+		if two > 1 and two~=85 and two ~=95 and HLRVariable["SK"]["show_gain_message"]=="true" then
+			SendNoEcho(HLRVariable["GL"]["channel"].." "..msg)
+		end
+end
+
+function begin_sList()
+		EnableTriggerGroup("SListCapture", true)
+		EnableTrigger("RecoveriesStart", true)
+		hadarprint("***Geting Skills/Spells","script")
+end
+
+function stop_sList()
+		EnableTriggerGroup("SListCapture", false)
+		SaveState()
+
+		hadarprint("***Got all skills/spells","script")
+end
+
+function SendSlistCommand()
+	if (slistCommandSent == false) then
+		slistCommandSent = true
+		begin_sList()
+		SendNoEcho("slist noprompt")
+	end
+end
+	
+function buildSlist()
+	if (sList.initilized == 0) then
+		if (currentState == 3) then
+			SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
+
+			SendSlistCommand()
+			HLRVariable["SK"]["initilized"] = "yes"
+		end
+	end
+end
+
+function SlistUpdate(name, line, wildcards)
+	local sn = tonumber(wildcards[1])
+	local nm = wildcards[2]
+	local tg = tonumber(wildcards[3])
+	local du = tonumber(wildcards[4])
+	local pc = tonumber(wildcards[5])
+	local rc = tonumber(wildcards[6])
+	local ty = tonumber(wildcards[7])
+	
+     HLRVariable["SK"]["List"][sn] = nm
+		
+end--end update
+
+function buildFirstSpellList()
+	HLRVariable["SK"]["List"] = {}
+	
+	EnableTrigger("SListCapture",true)
+	SendNoEcho("slist noprompt")
+end
+
+----------------------------------------------------------------------------------------------------
+--									     End slist stuff 	   							          --
+--																								  --
+--									    Begin hadarlua Stuff									  --
+----------------------------------------------------------------------------------------------------
+
+
+function statadd(hp,mana,moves,prac,train)
+--
+		HLRVariable["LU"]["hp"]		  = hp
+		HLRVariable["LU"]["mana"]	  = mana
+		HLRVariable["LU"]["moves"]	  = moves
+		HLRVariable["LU"]["prac"]	  = prac
+		HLRVariable["LU"]["train"] 	  = train
+		HLRVariable["LU"]["bonusstat"]  = "none"
+		HLRVariable["LU"]["bonustrain"] = 0
+		HLRVariable["LU"]["levelskill"] = nil
+		HLRVariable["LU"]["instinct"]   = 0
+--
+end
+
+function stataddRedo(hp,mana,moves,prac,train,instinct)
+--
+		HLRVariable["LU"]["hp"]		  = hp
+		HLRVariable["LU"]["mana"]	  = mana
+		HLRVariable["LU"]["moves"]	  = moves
+		HLRVariable["LU"]["prac"]	  = prac
+		HLRVariable["LU"]["train"] 	  = train
+		HLRVariable["LU"]["instinct"]   = instinct
+		HLRVariable["LU"]["bonusstat"]  = "none"
+		HLRVariable["LU"]["bonustrain"] = 0
+		HLRVariable["LU"]["levelskill"] = nil
+--
+end
+
+function trainadd(mybonustrain)
+--
+		HLRVariable["LU"]["bonustrain"] = tonumber(HLRVariable["LU"]["bonustrain"])+tonumber(mybonustrain)
+--
+end
+
+function bonusstatadd(stat)
+--
+	if HLRVariable["LU"]["bonusstat"] ~= "none" then
+		HLRVariable["LU"]["bonusstat"] = HLRVariable["LU"]["bonusstat"]..","..stat
+	else
+		HLRVariable["LU"]["bonusstat"] = stat
+	end
+--
+end
+
+function levelskill(skill)
+--
+	if HLRVariable["LU"]["levelskill"]==nil then
+		HLRVariable["LU"]["levelskill"]=skill
+	else
+		HLRVariable["LU"]["levelskill"]=HLRVariable["LU"]["levelskill"]..","..skill
+	end
+--
+end
+
+function hlr_pup_report()
+--	
+     local trains = HLRVariable["PP"]["bonustrain"]
+     local avg = math.ceil(mob/tnl)
+	
+	local Data = interp(HLRVariable["PP"]["message"], {
+     hour = levelinfo.hour,
+     min = levelinfo.min,
+     sec = levelinfo.sec,
+     tr = trains
+     })
+	
+	SendSpecial(HLRVariable["GL"]["channel"].." "..Data)
+     
+     HLRVariable["PP"]["startTime"] = os.time()
+     HLRVariable["PP"]["day"] = 0
+     HLRVariable["PP"]["month"] = 0
+     HLRVariable["PP"]["day"] = 0
+     HLRVariable["PP"]["hour"] = 0
+     HLRVariable["PP"]["min"] = 0
+     HLRVariable["PP"]["sec"] = 0
+     HLRVariable["PP"]["Exp"] = 0
+     HLRVariable["PP"]["ExpB"] = 0
+     HLRVariable["PP"]["Mob"] = 0
+--
+end
+function hlr_level_report()
+--
+	if tonumber(HLRVariable["LU"]["train"]) > 0 then
+	
+		if tonumber(HLRVariable["LU"]["bonustrain"]) > 0 then
+			HLRVariable["LU"]["train"] = HLRVariable["LU"]["train"] + HLRVariable["LU"]["bonustrain"]
+		end
+
+	end
+     
+     local level = HLRVariable["LU"]["level"]
+     local tnl = HLRVariable["GL"]["TNL"]
+     local mob = HLRVariable["LU"]["Mob"]
+     local bonusxp = HLRVariable["LU"]["ExpB"]
+     local hp = HLRVariable["LU"]["hp"]
+     local mana = HLRVariable["LU"]["mana"]
+     local moves = HLRVariable["LU"]["moves"]
+     local prac = HLRVariable["LU"]["prac"]
+     local train = HLRVariable["LU"]["train"]
+     local levelskill = HLRVariable["LU"]["levelskill"]
+     local bonustrain = HLRVariable["LU"]["bonustrain"]
+     local bonusstat = HLRVariable["LU"]["bonusstat"]
+     local instinct = HLRVariable["LU"]["instinct"]
+     local avg = math.ceil(tnl/mob)
+	
+     local data = interp(HLRVariable["LU"]["message"], {
+     level = level, 
+     year = HLRVariable["LU"]["day"],
+     month = HLRVariable["LU"]["month"],
+     day = HLRVariable["LU"]["day"],
+     hour = HLRVariable["LU"]["hour"], 
+     min = HLRVariable["LU"]["min"], 
+     sec = HLRVariable["LU"]["sec"], 
+     hp = hp, 
+     mn = mana, 
+     mv = moves, 
+     tr = train, 
+     pr = prac, 
+     stat = bonusstat, 
+     inst = instinct,
+     mobs = mob,
+     avg = avg,
+     })
+	
+
+	SendSpecial(HLRVariable["GL"]["channel"].." "..data)
+     
+     HLRVariable["LU"]["startTime"] = os.time()
+     HLRVariable["LU"]["day"] = 0
+     HLRVariable["LU"]["month"] = 0
+     HLRVariable["LU"]["day"] = 0
+     HLRVariable["LU"]["hour"] = 0
+     HLRVariable["LU"]["min"] = 0
+     HLRVariable["LU"]["sec"] = 0
+--
+end
+
+
+function expGained(n,l,wc)
+     local t = utils.split(wc[1],"+")
+          HLRVariable["HR"]["Mob"] = tonumber(HLRVariable["HR"]["Mob"]) + 1
+          HLRVariable["AT"]["Mob"] = tonumber(HLRVariable["AT"]["Mob"]) + 1
+          HLRVariable["PP"]["Mob"] = tonumber(HLRVariable["PP"]["Mob"]) + 1
+          HLRVariable["LU"]["Mob"] = tonumber(HLRVariable["LU"]["Mob"]) + 1
+     for i,v in pairs(t) do
+          HLRVariable["HR"]["Exp"] = tonumber(HLRVariable["HR"]["Exp"]) + tonumber(v)
+          HLRVariable["AT"]["Exp"] = tonumber(HLRVariable["AT"]["Exp"]) + tonumber(v)
+          HLRVariable["PP"]["Exp"] = tonumber(HLRVariable["PP"]["Exp"]) + tonumber(v)
+          HLRVariable["LU"]["Exp"] = tonumber(HLRVariable["LU"]["Exp"]) + tonumber(v)
+     end
+end
+
+function bonusExpGained(n,l,wc)
+local t = utils.split(wc[1],"+")
+     for i,v in pairs(t) do
+          HLRVariable["HR"]["ExpB"] = tonumber(HLRVariable["HR"]["ExpB"]) + tonumber(v)
+          HLRVariable["AT"]["ExpB"] = tonumber(HLRVariable["AT"]["ExpB"]) + tonumber(v)
+          HLRVariable["PP"]["ExpB"] = tonumber(HLRVariable["PP"]["ExpB"]) + tonumber(v)
+          HLRVariable["LU"]["ExpB"] = tonumber(HLRVariable["LU"]["ExpB"]) + tonumber(v)
+     end
+end
+
+
+----------------------------------------------------------------------------------------------------
+--									     End hadarlua stuff 	   							      --
+--																								  --
+--									    Begin help Stuff										  --
+----------------------------------------------------------------------------------------------------
+
+function HadarHelp()
+hadarprint("@x086|                            @CV@cersion@W: "..GetPluginInfo (GetPluginID (), 19).."@x086                             |")
+hadarprint("@x086+----------------------------------------------------------------------+")
+	ColourNote("#159FE5","","+-----------------------------------","Green","","[","Cyan","","L","Teal","","evel","Cyan",""," R","Teal","","eport","Green","","]","#159FE5","","-----------------------------------+")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelchannel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-60s"," set the channel to report to."),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setlevel and setpup"),"#159FE5","","-","#F1D566","",string.format("%-63s"," set how the script outputs"),"#159FE5","","|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," setleveledskill and setmasteredskill"),"#159FE5","","-","#F1D566","",string.format("%-46s"," how leveled/mastered skills look"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," levelshow <level> <channel>"),"#159FE5","","-","#F1D566","",string.format("%-55s"," show the given levels report"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," statgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-62s"," shows stats on level"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+		ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," skillgain <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-61s"," shows skills gained on level"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," leveltimeonly <on or off>"),"#159FE5","","-","#F1D566","",string.format("%-57s"," shows only level time"),"#159FE5","","|")
+	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
+	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
+	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+end
+
+
+
+--leveltimeonly
+]]>
+</script> 
+
+</muclient>
