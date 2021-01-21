@@ -20,7 +20,7 @@ might update to hadarmagic 2.0
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.24"
+   version="2.25"
    >
 
 </plugin>
@@ -822,7 +822,7 @@ function HLR_Report_Build(arg)
      if report == "level" then
           hlr_level_report(level)
      elseif report == "pup" then
-          hlr_level_pup()
+          hlr_pup_report()
      end
      
      --[[local level = level or HLRVariable["LU"]["level"]
@@ -1069,7 +1069,11 @@ function hlr_pup_report()
      avg = avg
      })
 	
-	SendSpecial(HLRVariable["GL"]["channel"].." "..Data)
+     if HLRVariable["GL"]["channel"] == "echo" or HLRVariable["GL"]["channel"] == "print" then
+          hadarprint(Data)
+     else
+          SendSpecial(HLRVariable["GL"]["channel"].." "..Data)
+     end
      
      HLRVariable["PP"]["startTime"] = os.time()
      HLRVariable["PP"]["day"] = 0
@@ -1127,8 +1131,11 @@ function hlr_level_report()
      avg = avg,
      })
 	
-
-	SendSpecial(HLRVariable["GL"]["channel"].." "..data)
+     if HLRVariable["GL"]["channel"] == "echo" or HLRVariable["GL"]["channel"] == "print" then
+          hadarprint(data)
+     else
+          SendSpecial(HLRVariable["GL"]["channel"].." "..data)
+     end
      
      HLRVariable["LU"]["startTime"] = os.time()
      HLRVariable["LU"]["Mob"] = 0
