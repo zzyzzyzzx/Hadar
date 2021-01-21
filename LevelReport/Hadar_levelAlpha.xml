@@ -548,6 +548,8 @@ function OnPluginEnable ()
           hadarprint("Looks like this is your first install, Lets get you setup! HLR for help","script")
 		injectVars()
           buildFirstSpellList()
+          HLRVariable["LU"]["startTime"] = os.time()
+          HLRVariable["PP"]["startTime"] = os.time()
 	end
 
 end
@@ -1053,6 +1055,8 @@ end
 function hlr_pup_report()
 --	
      local trains = HLRVariable["PP"]["bonustrain"]
+     local mob = tonumber(HLRVariable["PP"]["Mob"])
+     local tnl = 1000
      local avg = math.ceil(mob/tnl)
 	
 	local Data = interp(HLRVariable["PP"]["message"], {
@@ -1124,6 +1128,7 @@ function hlr_level_report()
 	SendSpecial(HLRVariable["GL"]["channel"].." "..data)
      
      HLRVariable["LU"]["startTime"] = os.time()
+     HLRVariable["LU"]["Mob"] = 0
      HLRVariable["LU"]["day"] = 0
      HLRVariable["LU"]["month"] = 0
      HLRVariable["LU"]["day"] = 0
