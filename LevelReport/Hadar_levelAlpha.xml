@@ -20,7 +20,7 @@ might update to hadarmagic 2.0
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.25"
+   version="2.26"
    >
 
 </plugin>
@@ -489,9 +489,9 @@ end
 function hadarprint(str,level)
 
 	if level == "error" then
-          AnsiNote(ColoursToANSI("@R[@MHLR @rERROR@R]@W:@w"..str))
+          AnsiNote(ColoursToANSI("@R[@MHLR @rERROR@R]@W:@w"..str.."@w"))
      elseif level == "script" then
-          AnsiNote(ColoursToANSI("@G[@CL@cevel @CR@ceport@G]@c "..str))
+          AnsiNote(ColoursToANSI("@G[@CL@cevel @CR@ceport@G]@c "..str.."@w"))
      else
 		AnsiNote(ColoursToANSI(str))
 	end
@@ -522,7 +522,7 @@ function OnPluginInstall ()
 		currentState = 0 -- sent request
 	end
 	
-	print("had help (to see all of hadar's plugin helpfiles), or level help to just see this one")
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or @Ghlr help@c to just see this one@w","script")
   
 	OnPluginEnable ()
 end
@@ -1061,9 +1061,12 @@ function hlr_pup_report()
      local avg = math.ceil(tnl/mob)
 	
 	local Data = interp(HLRVariable["PP"]["message"], {
-     hour = levelinfo.hour,
-     min = levelinfo.min,
-     sec = levelinfo.sec,
+     year = HLRVariable["PP"]["day"],
+     month = HLRVariable["PP"]["month"],
+     day = HLRVariable["PP"]["day"],
+     hour = HLRVariable["PP"]["hour"], 
+     min = HLRVariable["PP"]["min"], 
+     sec = HLRVariable["PP"]["sec"], 
      tr = trains,
      mobs = mob,
      avg = avg
