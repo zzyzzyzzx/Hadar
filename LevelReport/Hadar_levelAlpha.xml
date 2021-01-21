@@ -2,6 +2,7 @@
 <!DOCTYPE muclient>
 <!--
      Testers: scars
+              rakiso
               
               
 TODO:
@@ -19,7 +20,7 @@ might update to hadarmagic 2.0
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.23"
+   version="2.24"
    >
 
 </plugin>
@@ -1057,13 +1058,15 @@ function hlr_pup_report()
      local trains = HLRVariable["PP"]["bonustrain"]
      local mob = tonumber(HLRVariable["PP"]["Mob"])
      local tnl = 1000
-     local avg = math.ceil(mob/tnl)
+     local avg = math.ceil(tnl/mob)
 	
 	local Data = interp(HLRVariable["PP"]["message"], {
      hour = levelinfo.hour,
      min = levelinfo.min,
      sec = levelinfo.sec,
-     tr = trains
+     tr = trains,
+     mobs = mob,
+     avg = avg
      })
 	
 	SendSpecial(HLRVariable["GL"]["channel"].." "..Data)
