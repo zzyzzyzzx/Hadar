@@ -20,7 +20,7 @@ might update to hadarmagic 2.0
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.26"
+   version="2.27"
    >
 
 </plugin>
@@ -392,7 +392,6 @@ require "gmcphelper"
 require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
-	LevelReportVariables = {}
 	local currentState = -1 -- uninitialized
 	local slistCommandSent = false
 	local IAC = 255
@@ -589,6 +588,8 @@ function injectVars()
      v["PP"]["Exp"] = 0
      v["PP"]["ExpB"] = 0
      v["PP"]["Mob"] = 0
+     v["PP"]["train"] = 0
+     v["PP"]["bonustrain"] = 0
 -----------Initilize Level variables----------------------
      v["LU"]["message"] = "@GL@gevel@R(@W${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
      v["LU"]["startTime"] = 0
@@ -792,8 +793,7 @@ end
 
 
 function Pup_level()
-	levelTimeDiff(os.time(),HLRVariable["PP"]["Starttime"],"PP")
-	HLRVariable["PP"]["bonustrain"] = 0
+	levelTimeDiff(os.time(),HLRVariable["PP"]["startTime"],"PP")
 	DoAfterSpecial(0.5, 'Execute("hlr report pup")', sendto.script)
 end
 
@@ -802,7 +802,7 @@ function Pup_train_bonus(name, line, wildcards)
 end
 
 function Pup_train_add(name, line, wildcards)
-     HLRVariable["PP"]["bonustrain"] = tonumber(wildcards[1])
+     HLRVariable["PP"]["train"] = tonumber(wildcards[1])
 end
 
 function HLR_Report_Build(arg)
@@ -823,6 +823,8 @@ function HLR_Report_Build(arg)
           hlr_level_report(level)
      elseif report == "pup" then
           hlr_pup_report()
+     elseif report == "redo" then
+          hlr_level_report(level)
      end
      
      --[[local level = level or HLRVariable["LU"]["level"]
@@ -870,7 +872,7 @@ function gain_Level_redo(name, line, wildcards)
 	levelTimeDiff(os.time(),HLRVariable["PP"].startTime,"PP")
 	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
 	
-	DoAfterSpecial(0.5, 'Execute("levelreport "..LevelReportVariables.channel)', sendto.script)
+	DoAfterSpecial(0.5, 'Execute("hlr report redo")', sendto.script)
 end
 
 function level_bonus_train(name, line, wildcards)
@@ -1055,7 +1057,9 @@ end
 
 function hlr_pup_report()
 --	
-     local trains = HLRVariable["PP"]["bonustrain"]
+     local trains = HLRVariable["PP"]["train"]
+     local bonustrains = HLRVariable["PP"]["bonustrain"]
+     local alltrains = tonumber(trains)+tonumber(bonustrains)
      local mob = tonumber(HLRVariable["PP"]["Mob"])
      local tnl = 1000
      local avg = math.ceil(tnl/mob)
@@ -1068,6 +1072,8 @@ function hlr_pup_report()
      min = HLRVariable["PP"]["min"], 
      sec = HLRVariable["PP"]["sec"], 
      tr = trains,
+     bonus = bonustrains,
+     all = alltrains,
      mobs = mob,
      avg = avg
      })
@@ -1079,6 +1085,8 @@ function hlr_pup_report()
      end
      
      HLRVariable["PP"]["startTime"] = os.time()
+     HLRVariable["PP"]["train"] = 0
+     HLRVariable["PP"]["bonustrain"] = 0
      HLRVariable["PP"]["day"] = 0
      HLRVariable["PP"]["month"] = 0
      HLRVariable["PP"]["day"] = 0
