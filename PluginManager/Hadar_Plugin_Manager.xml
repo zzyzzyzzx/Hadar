@@ -255,6 +255,7 @@ function buildOutput(retval, page, status, headers, full_status, request_url)
           ghName = getName(page,true)
           pid = string.match(page, '%s+id="(%w+)"')
      else
+          print(page)
           hadarprint("Cant connect to github","error")
           return
      end --end if status 200
