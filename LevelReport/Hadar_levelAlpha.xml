@@ -11,7 +11,7 @@ might update to hadarmagic 2.0
 
 <muclient>
 <plugin
-   name="Hadar_LevelReport"
+   name="Hadar_LevelAlpha"
    author="Hadar"
    id="57046a5093436ad643980875"
    language="Lua"
