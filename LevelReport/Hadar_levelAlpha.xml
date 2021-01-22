@@ -21,7 +21,7 @@ might update to hadarmagic 2.0
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="2.28"
+   version="2.29"
    >
 
 </plugin>
@@ -906,7 +906,7 @@ function gain_Level(name, line, wildcards)
 end
 
 function gain_Level_redo(name, line, wildcards)
-	levelTimeDiff(os.time(),HLRVariable["PP"].startTime,"PP")
+	levelTimeDiff(os.time(),HLRVariable["LU"].startTime,"LU")
 	stataddRedo(wildcards[1],wildcards[2],wildcards[3],wildcards[4],wildcards[5],wildcards[6])
 	
 	DoAfterSpecial(0.5, 'Execute("hlr report redo")', sendto.script)
