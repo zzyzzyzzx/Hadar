@@ -7,9 +7,6 @@
               
               
 TODO:
-Leve report: 15 mobs, average 201 exp each, completed in 1 min, 32 seconds ((0xp from double)) gains
-might update to hadarmagic 2.0
-
 -->
 
 <muclient>
@@ -720,7 +717,7 @@ function hlr_set(str)
      str = string.lower(str)
      if str == "level" then
           HadarBackup = HLRVariable["LU"]["message"]
-		HLRVariable["LU"]["message"] = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${inst} - show instinct trains gains(redo)\n${mobs} - how many mobs it took to level\n${avg} - average exp per mob killed", "Look of level message", HLRVariable["LU"]["message"], "Courier", 9)
+		HLRVariable["LU"]["message"] = utils.inputbox ("Has lots variables:\n${level} - Level\n${hour} - Time hours\n${min} - Time mins\n${sec} - time Seconds\n${hp} - show hp gained\n${mn} - show mana gained\n${mv} - show moves gained\n${pr} - show practices\n${tr} - shows trains\n${stat} - show stats gained (or none)\n${inst} - show instinct trains gains(redo)\n${mobs} - how many mobs it took to level\n${avg} - average exp per mob killed", "Look of level message", HLRVariable["LU"]["message"], "Courier", 9,{box_width = 400,box_height = 350,prompt_height = 200,reply_width = 398,reply_height = 40,})
 		
 		if HLRVariable["LU"]["message"] ~= nil then
 			hadarprint("Level up message will look like@W: @w"..HLRVariable["LU"]["message"],"script")
