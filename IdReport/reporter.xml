@@ -314,7 +314,7 @@ local workingon = 0
 							elseif v ~= "score" then
 								stringone = tab[v]
 								workingon = 1
-							end
+                                   end
 						elseif i == 2 and stringone ~= nil and workingon == 1 then
 							return stringone .. v
 						elseif i == 1 and tab[v] == nil then
@@ -326,7 +326,7 @@ local workingon = 0
 							elseif v ~= "score" then
 								return stringtwo .. tab[v]
 							end
-						else
+                              else
 							--print("could not find I:"..i .." V:" .. v)
 						end
 					end
