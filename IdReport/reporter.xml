@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="2.11"
+   version="2.12"
    >
 
 </plugin>
@@ -215,14 +215,13 @@ function buildInitial()
 end
 
 function hidMain(n,l,w)
-	local first, rest = w[1]:match("(.*)%s*(.*)") or nil
+	local first, rest = w[1]:match("([0-9.a-zA-Z]*)%s*(.*)")
 
 	
      if first == nil or first == "" or first == " " then
           HadarHelp()
           return
      end
-     
      
      first = tonumber(first) or string.lower(first)
      
