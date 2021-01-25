@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.45"
+   version="1.46"
    >
 
 </plugin>
@@ -336,7 +336,8 @@ function hgmTellMessage(p,m)
      if p == nil then return end
      if m == nil then return end
      
-     local command, args = m:match("(%w+)%s*(.*)")
+     local command, args = m:match("(%w+)%s*(.*)") or nil
+     if command == nil then return end
      p = string.lower(p)
      command = string.lower(command)
      
