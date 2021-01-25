@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="2.10"
+   version="2.11"
    >
 
 </plugin>
@@ -215,10 +215,10 @@ function buildInitial()
 end
 
 function hidMain(n,l,w)
-	local first, rest = w[1]:match("(%w+)%s*(.*)")
+	local first, rest = w[1]:match("(.*)%s*(.*)") or nil
 
 	
-     if first == nil then
+     if first == nil or first == "" or first == " " then
           HadarHelp()
           return
      end
@@ -1229,9 +1229,9 @@ end
 function HadarHelp(param)
 local helpfile
 
-if param == "1" or param == "" or param == " " or param == nil then
+if param == "" or param == " " or param == nil or param == "1" then
 helpfile = [[
-@x086+-------------------------------@g[@x051I@cdentify@g]@x086-----------------------------+
+@x086+----------------------------@G[@x051I@cdentify @WV:]]..GetPluginInfo (GetPluginID (), 19)..[[@g]@x086-------------------------+
 @x086|                                                                      @x086|
 @x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
 @x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
@@ -1364,7 +1364,7 @@ you can even get more complicated or less, if you have any questions feel free t
 ]]
 else
 helpfile = [[
-@x086+-------------------------------@g[@x051I@cdentify@g]@x086-----------------------------+
+@x086+----------------------------@G[@x051I@cdentify @WV:]]..GetPluginInfo (GetPluginID (), 19)..[[@g]@x086-------------------------+
 @x086|                                                                      @x086|
 @x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
 @x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
@@ -1376,7 +1376,7 @@ helpfile = [[
 @x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
 @x086|                          @x130default is 20                               @x086|
 @x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
-@x086|                          @x142type hid help2 for a helpfile with variables@x086|
+@x086|                          @x142type hid help 2 for a helpfile with variable@x086|
 @x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
 @x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
 @x086|                                                                      @x086|
