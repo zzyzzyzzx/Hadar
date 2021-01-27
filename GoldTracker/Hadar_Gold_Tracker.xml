@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.81"
+   version="2.82"
    >
 
 </plugin>
@@ -761,7 +761,7 @@ function GoldChannel(str)
 end
 
 function HadarHelp()
-hadarprint("@x086+-----------------------[Gold Tracker "..GetPluginInfo (GetPluginID (), 19).."]--------------------------+")
+hadarprint("@x086+-----------------------@g[@CG@cold @CT@cracker @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086--------------------------+")
 hadarprint("@x086| @x214hgt help                @x110- @x214Displays this helpfile                     @x086|")
 hadarprint("@x086| @x208hgt fullreset           @x110- @x208resets the plugin to default variables     @x086|")
 hadarprint("@x086| @x214hgt channel <channel>   @x110- @x214no arguments displays the channel          @x086|")
