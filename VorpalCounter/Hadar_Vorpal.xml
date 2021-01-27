@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="3.4"
+   version="3.5"
    save_state="y"
    >
 <description trim="y">
@@ -492,7 +492,7 @@ function vorpComm(str)
 end
 
 function HadarHelp()
-hadarprint("@x086+--------------------------@G[@CV@corpal @CC@counter@G]@x086----------------------------+")
+hadarprint("@x086+-----------------------[Vorpal Counter V:"..GetPluginInfo (GetPluginID (), 19).."]------------------------+")
 hadarprint("@x086| @x214hvc help               @x110- @x214Displays this helpfile                      @x086|")
 hadarprint("@x086| @x208hvc show <channel>     @x110- @x208Shows the current vorpals to a channel      @x086|")
 hadarprint("@x086|                          @x208Echo shows a full report                    @x086|")
