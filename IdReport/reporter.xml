@@ -1256,8 +1256,7 @@ helpfile = [[
 @x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
 @x086|                                                                      @x086|
 @x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
-@x086+----------------------------------------------------------------------+@w
-]]
+@x086+----------------------------------------------------------------------+@w]]
 elseif param == "2" then
 helpfile = [[
 @x099+-----------------------------@g[@CI@cdentify @R2@g]@x099-----------------------------+
@@ -1389,8 +1388,7 @@ helpfile = [[
 @x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
 @x086|                                                                      @x086|
 @x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
-@x086+----------------------------------------------------------------------+@w
-]]
+@x086+----------------------------------------------------------------------+@w]]
 end
 hadarprint(helpfile)
 end
