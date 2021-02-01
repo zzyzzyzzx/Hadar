@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.47"
+   version="1.48"
    >
 
 </plugin>
@@ -220,10 +220,10 @@ function injectVars()
      v["GT"]["Name"] = nil
      v["GT"]["invite"] = "no"
      v["GT"]["leader"] = "yes"
-     v["GT"]["rename"] = "yes"
+     v["GT"]["rename"] = "leader"
      v["GT"]["flag"] = "no"
      v["GT"]["cancel"] = "no"
-     v["GT"]["kick"] = "yes"
+     v["GT"]["kick"] = "leader"
      v["GT"]["trust"] = "yes"
      v["GT"]["blacklist"] = "yes"
      v["GT"]["InOtherGroup"] = "no"
@@ -489,6 +489,10 @@ function hgmGroupMessage(msg)
      return
      end
      
+     if isleaderonly(command) and one ~= HGMVariable["GL"]["Leader"] then
+          return
+     end
+     
      if command == HGMVariable["GL"]["Phrase"] and ismember(one,"BL") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..args.." is blacklisted - no invite sent")
      elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(one,"BL")) then
@@ -600,56 +604,113 @@ function ismember(set,key)
      return false
 end
 
+function isleaderonly(arg)
+     if arg == "invite" then
+          if HGMVariable["GT"]["invite"] == "leader" then
+               return true
+          else
+               return false
+          end
+     elseif arg == "leader" then
+          if HGMVariable["GT"]["leader"] == "leader" then
+               return true
+          else
+               return false
+          end
+     elseif arg == "rename" then
+          if HGMVariable["GT"]["rename"] == "leader" then
+               return true
+          else
+               return false
+          end
+     elseif arg == "flag" then
+          if HGMVariable["GT"]["flag"] == "leader" then
+               return true
+          else
+               return false
+          end
+     elseif arg == "cancel" then
+          if HGMVariable["GT"]["cancel"] == "leader" then
+               return true
+          else
+               return false
+          end
+     elseif arg == "kick" then
+          if HGMVariable["GT"]["kick"] == "leader" then
+               return true
+          else
+               return false
+          end
+     end
+end
+
 function hgmcheckSettings(arg)
      local trusted = "@W(@YTrusted@W)@w"
      local untrusted = "@C(@GALL@C)@w"
+     local leader = "@R(@DLeader@R)@w"
      if arg == "invite" then
           if HGMVariable["GT"]["invite"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["invite"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "leader" then
           if HGMVariable["GT"]["leader"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["leader"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "rename" then
           if HGMVariable["GT"]["rename"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["rename"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "flag" then
           if HGMVariable["GT"]["flag"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["flag"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "cancel" then
           if HGMVariable["GT"]["cancel"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["cancel"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "kick" then
           if HGMVariable["GT"]["kick"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["kick"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "trust" then
           if HGMVariable["GT"]["trust"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["trust"] == "yes" then
                return trusted
+          else
+               return leader
           end
      elseif arg == "blacklist" then
           if HGMVariable["GT"]["blacklist"] == "no" then
                return untrusted
-          else
+          elseif HGMVariable["GT"]["blacklist"] == "yes" then
                return trusted
+          else
+               return leader
           end
      end
 end
@@ -910,7 +971,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["invite"] == "yes" then
                HGMVariable["GT"]["invite"] = "no"
                hadarprint("Setting invite to all","script")
-          else
+          elseif HGMVariable["GT"]["invite"] == "no" then
+               HGMVariable["GT"]["invite"] = "leader"
+               hadarprint("Setting invite to leader","script")
+          elseif HGMVariable["GT"]["invite"] == "leader" then
                HGMVariable["GT"]["invite"] = "yes"
                hadarprint("Setting invite to trusted","script")
           end
@@ -918,7 +982,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["leader"] == "yes" then
                HGMVariable["GT"]["leader"] = "no"
                hadarprint("Setting leader to all","script")
-          else
+          elseif HGMVariable["GT"]["leader"] == "no" then
+               HGMVariable["GT"]["leader"] = "leader"
+               hadarprint("Setting leader to leader","script")
+          elseif HGMVariable["GT"]["leader"] == "leader" then
                HGMVariable["GT"]["leader"] = "yes"
                hadarprint("Setting leader to trusted","script")
           end
@@ -926,7 +993,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["rename"] == "yes" then
                HGMVariable["GT"]["rename"] = "no"
                hadarprint("Setting rename to all","script")
-          else
+          elseif HGMVariable["GT"]["rename"] == "no" then
+               HGMVariable["GT"]["rename"] = "leader"
+               hadarprint("Setting rename to leader","script")
+          elseif HGMVariable["GT"]["rename"] == "leader" then
                HGMVariable["GT"]["rename"] = "yes"
                hadarprint("Setting rename to trusted","script")
           end
@@ -934,7 +1004,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["flag"] == "yes" then
                HGMVariable["GT"]["flag"] = "no"
                hadarprint("Setting flag to all","script")
-          else
+          elseif HGMVariable["GT"]["flag"] == "no" then
+               HGMVariable["GT"]["flag"] = "leader"
+               hadarprint("Setting flag to leader","script")
+          elseif HGMVariable["GT"]["flag"] == "leader" then
                HGMVariable["GT"]["flag"] = "yes"
                hadarprint("Setting flag to trusted","script")
           end
@@ -942,7 +1015,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["cancel"] == "yes" then
                HGMVariable["GT"]["cancel"] = "no"
                hadarprint("Setting cancel to all","script")
-          else
+          elseif HGMVariable["GT"]["cancel"] == "no" then
+               HGMVariable["GT"]["cancel"] = "leader"
+               hadarprint("Setting cancel to leader","script")
+          elseif HGMVariable["GT"]["cancel"] == "leader" then
                HGMVariable["GT"]["cancel"] = "yes"
                hadarprint("Setting cancel to trusted","script")
           end
@@ -950,7 +1026,10 @@ function hgmConfig(args)
           if HGMVariable["GT"]["kick"] == "yes" then
                HGMVariable["GT"]["kick"] = "no"
                hadarprint("Setting kick to all","script")
-          else
+          elseif HGMVariable["GT"]["kick"] == "no" then
+               HGMVariable["GT"]["kick"] = "leader"
+               hadarprint("Setting kick to leader","script")
+          elseif HGMVariable["GT"]["kick"] == "leader" then
                HGMVariable["GT"]["kick"] = "yes"
                hadarprint("Setting kick to trusted","script")
           end
