@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.48"
+   version="1.49"
    >
 
 </plugin>
@@ -489,8 +489,11 @@ function hgmGroupMessage(msg)
      return
      end
      
-     if isleaderonly(command) and one ~= HGMVariable["GL"]["Leader"] then
-          return
+     
+     if isleaderonly(command) then
+          if player ~= HGMVariable["GL"]["Leader"] then
+               return
+          end
      end
      
      if command == HGMVariable["GL"]["Phrase"] and ismember(one,"BL") then
@@ -510,7 +513,7 @@ function hgmGroupMessage(msg)
                else
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
-          elseif HGMVariable["GT"]["invite"] == "no" then
+          else
                local msg = player.." Sending out invite to "..one
                SendSpecial("group invite "..args)
                DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
@@ -523,31 +526,35 @@ function hgmGroupMessage(msg)
      elseif command == "leader" and HGMVariable["GT"]["leader"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
           SendSpecial("group leader "..args)
-     elseif command == "leader" and HGMVariable["GT"]["leader"] == "no" then
+     elseif command == "leader" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
           SendSpecial("group leader "..args)
      elseif command == "rename" and HGMVariable["GT"]["rename"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
-     elseif command == "rename" and HGMVariable["GT"]["rename"] == "no" then
+     elseif command == "rename" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
-     elseif command == "flag" and HGMVariable["GT"]["flag"] == "yes" and ismember(player,"TR") and one == "public" or one == "private" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
-          SendSpecial("group flag "..args)
-     elseif command == "flag" and HGMVariable["GT"]["flag"] == "no" and one == "public" or one == "private" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
-          SendSpecial("group flag "..args)
+     elseif command == "flag" and HGMVariable["GT"]["flag"] == "yes" and ismember(player,"TR") then
+          if one == "public" or one == "private" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
+               SendSpecial("group flag "..one)
+          end
+     elseif command == "flag" then
+          if one == "public" or one == "private" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag to "..args)
+               SendSpecial("group flag "..one)
+          end
      elseif command == "cancel" and HGMVariable["GT"]["cancel"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Wants to cancel invite sent to "..args)
           SendSpecial("group cancel "..args)
-     elseif command == "cancel" and HGMVariable["GT"]["cancel"] == "no" then
+     elseif command == "cancel" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Wants to cancel invite sent to "..args)
           SendSpecial("group cancel "..args)
      elseif command == "kick" and HGMVariable["GT"]["kick"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
-     elseif command == "kick" and HGMVariable["GT"]["kick"] == "no" then
+     elseif command == "kick" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
      else
