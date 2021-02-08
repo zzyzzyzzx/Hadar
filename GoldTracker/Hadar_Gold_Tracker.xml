@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.82"
+   version="2.83"
    >
 
 </plugin>
@@ -743,6 +743,11 @@ function GoldConfig(str)
      elseif first == "hour" and second == "off" then
           GoldTrack["GL"]["Hour"] = "no"
           hadarprint("Hour Message Disabled","script")
+     end
+     
+     if second ~= nil and second ~= "on" and second ~= "off" then
+          GoldTrack["GL"]["commLogTab"] = second
+          hadarprint("You will now report gold to the @W"..second.."@w communication log","script")
      end
           
           SaveState()
