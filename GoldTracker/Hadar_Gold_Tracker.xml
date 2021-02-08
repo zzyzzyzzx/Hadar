@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.83"
+   version="2.84"
    >
 
 </plugin>
@@ -715,7 +715,7 @@ function GoldConfig(str)
      elseif first == "commlog" and second == "off" then
           GoldTrack["GL"]["commLog"] = "no"
           hadarprint("GoldTrack Commlog @RDisabled@w","script")
-     elseif first == "main" and second == nil then
+     elseif first == "mainwindow" and second == nil then
           if GoldTrack["GL"]["mainWindow"] == "yes" then
                GoldTrack["GL"]["mainWindow"] = "no"
                hadarprint("GoldTrack mainWindow @RDisabled@w","script")
@@ -723,10 +723,10 @@ function GoldConfig(str)
                GoldTrack["GL"]["mainWindow"] = "yes"
                hadarprint("GoldTrack mainWindow @GEnabled@w","script")
           end
-     elseif first == "main" and second == "on" then
+     elseif first == "mainwindow" and second == "on" then
           GoldTrack["GL"]["mainWindow"] = "yes"
           hadarprint("GoldTrack mainWindow @GEnabled@w","script")
-     elseif first == "main" and second == "off" then
+     elseif first == "mainwindow" and second == "off" then
           GoldTrack["GL"]["mainWindow"] = "no"
           hadarprint("GoldTrack mainWindow @RDisabled@w","script")
      elseif first == "hour" and second == nil then
