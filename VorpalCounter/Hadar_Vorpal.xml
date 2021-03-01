@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="3.52"
+   version="3.53"
    save_state="y"
    >
 <description trim="y">
@@ -121,6 +121,8 @@ function vorpMain(n,l,wc)
           vorpWindow(rest)
      elseif first == "comm" then
           vorpComm(rest)
+     elseif first == "reset" then
+          vorpReset()
      else
           HadarHelp()
      end
@@ -128,6 +130,18 @@ end
 
 function interp(s, tab)
   return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
+function vorpReset()
+
+     vorpalInfo["MT"] = {} --Mort
+     vorpalInfo["AT"] = {} --All Time
+     vorpalInfo["SN"] = {} --Session
+     vorpalInfo["LS"] = {} --Session
+     injectVars()
+     
+     hadarprint("Vorpal counter has been reset","script")
+     
 end
 
 function hadarprint(str,level)
@@ -500,6 +514,7 @@ hadarprint("@x086| @x214hvc set <message|logo> @x110- @x214hanges the look of th
 hadarprint("@x086| @x208hvc channel <channel>  @x110- @x208Sets default reporting channel              @x086|")
 hadarprint("@x086| @x214hvc window <main|comm> @x110- @x214Sets the default output window              @x086|")
 hadarprint("@x086| @x208hvc comm <number>      @x110- @x208if multiple comm tabs, set the reporting tab@x086|")
+hadarprint("@x086| @x214hvc reset              @x110- @x214resets the vorpal counter                   @x086|")
 hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
