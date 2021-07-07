@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.49"
+   version="1.50"
    >
 
 </plugin>
@@ -231,6 +231,7 @@ function injectVars()
      v["GT"]["Mob"] = "no"
      v["GT"]["samegroup"] = "no"
      v["GT"]["offline"] = "no"
+     v["GT"]["lastmsg"] = "none"
      
      v["BL"]["Remove"] = 0
      
@@ -446,12 +447,21 @@ function hgmGroupMessage(msg)
           return
      end
      
-     
      if message ~= nil then
           command, args = message:match("(%w+)%s*(.*)")
           if command == nil then return end
           command = string.lower(command)
           args = string.lower(args)
+     end
+     
+     if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" then
+          if ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] == player then
+               return
+          elseif ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] ~= player then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Sorry "..player.." you are blacklisted - can't use commands")
+               HGMVariable["GT"]["lastmsg"] = player
+               return
+          end
      end
      
      if command == "ihelp" and args == "" then
@@ -836,6 +846,12 @@ function hgmAutoInvite(msg)
 end
 
 function hgmblacklist(msg)
+
+     if msg == nil or msg == "" or msg == " " then 
+          hadarprint("@cValid Commands are: @Ghgm blacklist @Radd@c, @Rremove@c, @Rclear@c and @Rshow@w","script")
+          return
+     end
+
      local one, two = msg:match("(%w+)%s*(.*)")
      one = string.lower(one)
      if two == "" or two == " " then
@@ -885,6 +901,11 @@ function hgmblacklist(msg)
 end
 
 function hgmtrusted(msg)
+
+     if msg == nil or msg == "" or msg == " " then 
+          hadarprint("@cValid Commands are: @Ghgm trust @Radd@c, @Rremove@c, @Rclear@c and @Rshow@w","script")
+          return
+     end
 
      local one, two = msg:match("(%w+)%s*(.*)")
      one = string.lower(one)
@@ -1040,7 +1061,7 @@ function hgmConfig(args)
                HGMVariable["GT"]["kick"] = "yes"
                hadarprint("Setting kick to trusted","script")
           end
-     elseif one == "all" then
+     elseif one == "all" or one == "show" then
           hadarprint("@x240Leader is set to: "..hgmcheckSettings("leader"))
           hadarprint("@x232Invite is set to: "..hgmcheckSettings("invite"))
           hadarprint("@x240Rename is set to: "..hgmcheckSettings("rename"))
