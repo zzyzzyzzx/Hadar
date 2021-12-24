@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.01"
+   version="3.02"
    >
 
 </plugin>
@@ -157,7 +157,7 @@ TODO:
 	<trigger
 		name="RecoveriesStart"
 		enabled="n"
-		match="^\{recoveries\}$"
+		match="^\{recoveries noprompt\}$"
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
@@ -199,10 +199,9 @@ TODO:
 		<!-- slist Capture -->
 	<trigger
 		name="SListStart"
-		group="SpellupCapture"
-		script="begin_sList"
+		group="slistCapture"
 		enabled="n"
-		match="\{spellheaders( learned)?\}$"
+		match="\{spellheaders noprompt\}$"
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
@@ -211,7 +210,7 @@ TODO:
 
 	<trigger
 		name="SListEnd"
-		group="SpellupCapture"
+		group="slistCapture"
 		script="stop_sList"
 		enabled="n"
 		match="^{\/spellheaders\}$"
@@ -222,7 +221,7 @@ TODO:
 	</trigger>
 	<trigger
 		name="SListCapture"
-		group="SpellupCapture"
+		group="slistCapture"
 		enabled="n"
 		match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
 		regexp="y"
@@ -521,14 +520,14 @@ function OnPluginInstall ()
 	end
 	
 	hadarprint("had help (to see all of hadar's plugin helpfiles), or @Ghlr help@c to just see this one@w","script")
+     
+     SendNoEcho("protocol gmcp sendchar")
+	SendNoEcho("protocol gmcp sendstatus")
   
 	OnPluginEnable ()
 end
 
 function OnPluginEnable ()
-
-	SendNoEcho("protocol gmcp sendchar")
-	SendNoEcho("protocol gmcp sendstatus")
 	
      HLRVariable = {}
      HLRVariable["GL"] = {}
@@ -538,6 +537,7 @@ function OnPluginEnable ()
      HLRVariable["HR"] = {}
      HLRVariable["SN"] = {}
      HLRVariable["AT"] = {}
+     
 	
 	
      if GetVariable ("HLRpastfirstinstall") == "true" then
@@ -550,7 +550,14 @@ function OnPluginEnable ()
           HLRVariable["LU"]["startTime"] = os.time()
           HLRVariable["PP"]["startTime"] = os.time()
 	end
-
+     charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
+     currentState = tonumber(charstatus.state)
+     
+     if HLRVariable["SK"]["initilized"] == "no" then
+          buildSlist()
+          HLRVariable["SK"]["initilized"] = "yes"
+     end
+          
 end
 
 function checkExist(tbl, idx, val) 
@@ -581,6 +588,7 @@ function injectVars()
      v["GL"]["commLogTab"] = nil
      v["GL"]["channel"] = "gt"
      v["GL"]["TNL"] = tonumber(gmcp("char.base.perlevel"))
+     v["GL"]["Logo"] = "@G[@CL@cevel @CR@ceport]@c "
 -----------Initilize Pup Variables------------------------
      v["PP"]["message"] = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@w"
      v["PP"]["startTime"] = 0
@@ -606,8 +614,8 @@ function injectVars()
 	v["LU"]["bonustrain"] = 0
 	v["LU"]["levelskill"] = 0
 -----------Initilize Skills variables---------------------
-     v["SK"]["master_message"] = "@x125I have @x023M@x041astered ${skill}@w" 
-     v["SK"]["gain_message"] = "${skill} @x125 Has @x127I@x135ncreased@x125 to @x088 ${percent}"
+     v["SK"]["master_message"] = "${logo}@GI have @CM@castered @R${skill}@w" 
+     v["SK"]["gain_message"] = "${logo}@R${skill} @CH@cas @CI@cncreased to @R${percent}"
      v["SK"]["show_gain_message"] = "yes"
      v["SK"]["show_master_message"] = "yes"
      v["SK"]["initilized"] = "no"
@@ -655,9 +663,17 @@ function HLRmain(n,l,wc)
           hlr_channel(rest)
      elseif first == "config" then
           hlr_config(rest)
+     elseif first == "list" then
+          buildSlist()
+     elseif first == "show" then
+          showthis()
      else
           HadarHelp()
      end
+end
+
+function showthis()
+     tprint(HLRVariable["SK"]["List"])
 end
 
 function hlr_config(str)
@@ -726,7 +742,7 @@ function hlr_set(str)
 		end
      elseif str == "pup" then
           HadarBackup = HLRVariable["PP"]["message"]
-		HLRVariable["PP"]["message"] = utils.inputbox ("${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
+		HLRVariable["PP"]["message"] = utils.inputbox ("\n${logo} - shows the plugin logo\n${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
 		
 		if HLRVariable["PP"]["message"] ~= nil then
 			hadarprint("PowerUP message will look like@W: @w"..HLRVariable["PP"]["message"],"script")
@@ -735,7 +751,7 @@ function hlr_set(str)
 		end
      elseif str == "skillmaster" then
           HadarBackup = HLRVariable["SK"]["master_message"]
-		HLRVariable["SK"]["master_message"] = utils.inputbox ("${skill} - Skill", "Look of mastered skill if active", HLRVariable["SK"]["master_message"], "Courier", 9)
+		HLRVariable["SK"]["master_message"] = utils.inputbox ("${skill} - Skill", "Look of mastered skill if active\n${logo} - shows the plugin logo", HLRVariable["SK"]["master_message"], "Courier", 9)
 		
 		if HLRVariable["SK"]["master_message"] ~= nil then
 			hadarprint("Skill Master message will look like@W: @w"..HLRVariable["SK"]["master_message"],"script")
@@ -744,15 +760,24 @@ function hlr_set(str)
 		end
      elseif str == "skillgain" then
           HadarBackup = HLRVariable["SK"]["gain_message"]
-		HLRVariable["SK"]["gain_message"] = utils.inputbox ("${skill} - Skill\n${percent} - percentage the skill is at", "Look of leveled skill if active", HLRVariable["SK"]["gain_message"], "Courier", 9)
+		HLRVariable["SK"]["gain_message"] = utils.inputbox ("${skill} - Skill\n${percent} - percentage the skill is at\n${logo} - shows the plugin logo", "Look of leveled skill if active", HLRVariable["SK"]["gain_message"], "Courier", 9)
 		
 		if HLRVariable["SK"]["gain_message"] ~= nil then
 			hadarprint("Skill Gain message will look like@W: @w"..HLRVariable["SK"]["gain_message"],"script")
 		else
 			HLRVariable["SK"]["gain_message"] = HadarBackup
 		end
+     elseif str == "logo" then
+          HadarBackup = HLRVariable["GL"]["Logo"]
+		HLRVariable["GL"]["Logo"] = utils.inputbox ("look of the logo", "Look of logo", HLRVariable["GL"]["Logo"], "Courier", 9)
+		
+		if HLRVariable["GL"]["Logo"] ~= nil then
+			hadarprint("Logo will look like@W: @w"..HLRVariable["GL"]["Logo"],"script")
+		else
+			HLRVariable["GL"]["Logo"] = HadarBackup
+		end
      else
-          hadarprint("@cYou need to input one of the following@w: @Glevel@w, @Gpup@w,@G skillmaster@w, @Gskillgain @C.@c.@C. @YEG:@R hlr set level@w","error")
+          hadarprint("@cYou need to input one of the following@w: @Glevel@w, @Gpup@w,@G skillmaster@w, @Gskillgain@w,@G logo@w @C.@c.@C. @YEG:@R hlr set level@w","error")
      end
      SaveState()
 end
@@ -785,7 +810,7 @@ function hlr_skillgain(str)
           second = string.lower(second)
      end
      
-     if first == "level" and second == nil then
+     if first == "skills" and second == nil then
           if HLRVariable["SK"]["show_gain_message"] == "yes" then
                HLRVariable["SK"]["show_gain_message"] = "no"
                hadarprint("Regular skill level gains turned @ROFF@w","script")
@@ -793,10 +818,10 @@ function hlr_skillgain(str)
                HLRVariable["SK"]["show_gain_message"] = "yes"
                hadarprint("Regular skill level gains turned @GON@w","script")
           end
-     elseif first == "level" and second == "off" then
+     elseif first == "skills" and second == "off" then
           HLRVariable["SK"]["show_gain_message"] = "no"
           hadarprint("Regular skill level gains turned @ROFF@w","script")
-     elseif first == "level" and second == "on" then
+     elseif first == "skills" and second == "on" then
           HLRVariable["SK"]["show_gain_message"] = "yes"
           hadarprint("Regular skill level gains turned @GON@w","script")
      end
@@ -861,20 +886,6 @@ function HLR_Report_Build(arg)
      elseif report == "redo" then
           hlr_level_report(level)
      end
-     
-     --[[local level = level or HLRVariable["LU"]["level"]
-     
-     channel = channel or HLRVariable["GL"]["channel"]
-     if level == 0 then 
-          level = "pup"
-     end
-	
-	local report = tonumber(HLRVariable["LU"]["level"])
-	
-	if type(level) == number then
-          hlr_level_report(report)
-     end
-     --]]
 end
 
 function level_Stat_Add(name, line, wildcards)
@@ -962,29 +973,46 @@ function SkillGain(name, line, wildcards)
 			skill = v
 		end
 	end
-	
-	
-		if tonumber(two) == 1 or tonumber(two) == 85 and HLRVariable["SK"]["show_gain_message"]=="true" then
-			levelskill(skill)
-		elseif tonumber(two) == 100 and HLRVariable["SK"]["show_master_message"]=="true" then
-			msg = interp(HLRVariable["SK"]["master_message"],{skill = skill})
-		elseif tonumber(two) < 100 and HLRVariable["SK"]["show_gain_message"]=="true" then
-			msg = interp(HLRVariable["SK"]["gain_message"],{skill = skill, percent = two})
-		end
-		
-		if two > 1 and two~=85 and two ~=95 and HLRVariable["SK"]["show_gain_message"]=="true" then
-			SendNoEcho(HLRVariable["GL"]["channel"].." "..msg)
-		end
+     
+     if two == 1 or two == 85 and HLRVariable["SK"]["show_gain_message"]=="yes" then
+          if HLRVariable["LU"]["levelskill"]==nil then
+               HLRVariable["LU"]["levelskill"]=skill
+          else
+               HLRVariable["LU"]["levelskill"]=HLRVariable["LU"]["levelskill"]..","..skill
+          end
+     elseif two==100 and HLRVariable["SK"]["show_master_message"]=="yes" then
+          msg = interp(HLRVariable["SK"]["master_message"],{skill = skill,logo = HLRVariable["GL"]["Logo"]})
+     elseif two<100 and two>85 and HLRVariable["SK"]["show_gain_message"]=="yes" then
+          msg = interp(HLRVariable["SK"]["gain_message"],{skill = skill, percent = two, logo = HLRVariable["GL"]["Logo"]})
+     end
+          
+          --send to main window
+          if HLRVariable["GL"]["mainWindow"] == "yes" and msg~= nil then
+               if HLRVariable["GL"]["channel"] == "echo" or HLRVariable["GL"]["channel"] == "print" then
+                    hadarprint(msg)
+               else
+                    SendSpecial(HLRVariable["GL"]["channel"] .. " " ..msg)
+               end
+          end
+
+          --send to commlog
+          if HLRVariable["GL"]["commLog"] == "yes" and msg~=nil then
+               CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",msg, HLRVariable["GL"]["commLogTab"], "yes")
+          end
+          
+          if HLRVariable["GL"]["commLog"] == "no" and HLRVariable["GL"]["mainWindow"] == "no" then
+               hadarprint("You have both reporting to Comm log and reporting to main window off, cant report","error")
+          end
 end
 
 function begin_sList()
-		EnableTriggerGroup("SListCapture", true)
+		EnableTriggerGroup("slistCapture", true)
 		EnableTrigger("RecoveriesStart", true)
 		hadarprint("***Geting Skills/Spells","script")
 end
 
 function stop_sList()
-		EnableTriggerGroup("SListCapture", false)
+		EnableTriggerGroup("slistCapture", false)
 		SaveState()
 
 		hadarprint("***Got all skills/spells","script")
@@ -999,14 +1027,12 @@ function SendSlistCommand()
 end
 	
 function buildSlist()
-	if (sList.initilized == 0) then
-		if (currentState == 3) then
-			SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
+     if (currentState == 3) then
+          SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
 
-			SendSlistCommand()
-			HLRVariable["SK"]["initilized"] = "yes"
-		end
-	end
+          HLRVariable["SK"]["List"] = {}
+          SendSlistCommand()
+     end
 end
 
 function SlistUpdate(name, line, wildcards)
@@ -1023,10 +1049,7 @@ function SlistUpdate(name, line, wildcards)
 end--end update
 
 function buildFirstSpellList()
-	HLRVariable["SK"]["List"] = {}
-	
-	EnableTrigger("SListCapture",true)
-	SendNoEcho("slist noprompt")
+	buildSlist()
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1080,16 +1103,6 @@ function bonusstatadd(stat)
 --
 end
 
-function levelskill(skill)
---
-	if HLRVariable["LU"]["levelskill"]==nil then
-		HLRVariable["LU"]["levelskill"]=skill
-	else
-		HLRVariable["LU"]["levelskill"]=HLRVariable["LU"]["levelskill"]..","..skill
-	end
---
-end
-
 function hlr_pup_report()
 --	
      local trains = HLRVariable["PP"]["train"]
@@ -1110,7 +1123,8 @@ function hlr_pup_report()
      bonus = bonustrains,
      all = alltrains,
      mobs = mob,
-     avg = avg
+     avg = avg,
+     logo = HLRVariable["GL"]["Logo"],
      })
      
      if Data ~= nil then
@@ -1189,6 +1203,7 @@ function hlr_level_report()
      inst = instinct,
      mobs = mob,
      avg = avg,
+     logo = HLRVariable["GL"]["Logo"],
      })
 	
      if Data ~= nil then
