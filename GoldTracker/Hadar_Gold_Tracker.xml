@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.84"
+   version="2.85"
    >
 
 </plugin>
@@ -87,6 +87,15 @@
    regexp="y"
    send_to="12"
    script="GainGoldSell"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^You fence .* for ([+-]?[0-9,]+) gold."
+   regexp="y"
+   send_to="12"
+   script="GainGoldFence"
    sequence="100"
   >
   </trigger>
@@ -369,6 +378,7 @@ function injectVars()
      v["HR"]["Mob"] = 0
      v["HR"]["Give"] = 0
      v["HR"]["Sell"] = 0
+     v["HR"]["Fence"] = 0
 -------------------Session Vars------------------------------
      --track gold over a session
      v["SN"]["lostGive"] = 0
@@ -378,6 +388,7 @@ function injectVars()
      v["SN"]["Mob"] = 0
      v["SN"]["Give"] = 0
      v["SN"]["Sell"] = 0
+     v["SN"]["Fence"] = 0
      v["SN"]["startTime"] = nil
      v["SN"]["Active"] = "no"
      v["SN"]["Message"] = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totalgold}@G[@CM@cob@W:@R${mob} @CG@civen@W:@R${given} @CC@crumble@W:@R${crumble}@G]@w"
@@ -390,6 +401,7 @@ function injectVars()
      v["AT"]["Mob"] = 0
      v["AT"]["Give"] = 0
      v["AT"]["Sell"] = 0
+     v["AT"]["Fence"] = 0
      v["AT"]["Message"] = "${logo} @CI@cnstalled@W:@G${wday}@W,@G${month} ${day} ${year} @Ca@Ct @G${hour}@W:@G${min}@W:@G${sec} @CT@cotal Gained: @D[@CM@cob@W:@R ${mob} @CG@civen@W:@R ${give} @CS@cold@W:@R ${sell} @CC@crumbles@W:@R${crumble}@D] Total Lost: @D[@CT@caxed@W: @R${taxed} @CG@civen@W:@R ${gave} @CB@cuy@W:@R${bought}@D]@w"
      v["AT"]["Installed"] = os.time()
      v["AT"]["Date"] = os.date("*t")
@@ -417,7 +429,7 @@ function makeOutput()
 
      if GoldTrack["GL"]["Type"] == "HR" then
           local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
-          local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell)
+          local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell) + tonumber(GoldTrack["HR"].Fence)
           local goldtotal = tonumber(gainedGold-goldLost)
           
           message = interp(GoldTrack["HR"].message, {
@@ -427,6 +439,7 @@ function makeOutput()
                mob = comma_value(GoldTrack["HR"].Mob),
                given = comma_value(GoldTrack["HR"].Give),
                sold = comma_value(GoldTrack["HR"].Sell),
+               fence = comma_value(GoldTrack["HR"].Fence),
                taxed = comma_value(GoldTrack["HR"].Taxed),
                gave = comma_value(GoldTrack["HR"].lostGive),
                bought = comma_value(GoldTrack["HR"].Buy),
@@ -435,7 +448,7 @@ function makeOutput()
           })
      elseif GoldTrack["GL"]["Type"] == "SN" then
           local goldLost = tonumber(GoldTrack["SN"].Taxed) + tonumber(GoldTrack["SN"].lostGive) + tonumber(GoldTrack["SN"].Buy)
-          local gainedGold = tonumber(GoldTrack["SN"].Crumble) + tonumber(GoldTrack["SN"].Mob) + tonumber(GoldTrack["SN"].Give) + tonumber(GoldTrack["SN"].Sell)
+          local gainedGold = tonumber(GoldTrack["SN"].Crumble) + tonumber(GoldTrack["SN"].Mob) + tonumber(GoldTrack["SN"].Give) + tonumber(GoldTrack["SN"].Sell) + tonumber(GoldTrack["SN"].Fence)
           local goldtotal = tonumber(gainedGold-goldLost)
           
           message = interp(GoldTrack["SN"].Message, {
@@ -445,6 +458,7 @@ function makeOutput()
                     mob = comma_value(GoldTrack["SN"].Mob),
                     given = comma_value(GoldTrack["SN"].Give),
                     sold = comma_value(GoldTrack["SN"].Sell),
+                    fence = comma_value(GoldTrack["SN"].Fence),
                     taxed = comma_value(GoldTrack["SN"].Taxed),
                     gave = comma_value(GoldTrack["SN"].lostGive),
                     bought = comma_value(GoldTrack["SN"].Buy),
@@ -512,6 +526,7 @@ function goldSession(str)
                GoldTrack["SN"]["Mob"] = 0
                GoldTrack["SN"]["Give"] = 0
                GoldTrack["SN"]["Sell"] = 0
+               GoldTrack["SN"]["Fence"] = 0
                GoldTrack["SN"]["Active"] = "no"
                SaveState()
           else
@@ -546,6 +561,7 @@ function hourReport()
      GoldTrack["HR"].Mob = 0
      GoldTrack["HR"].Give = 0
      GoldTrack["HR"].Sell = 0
+     GoldTrack["HR"].Fence = 0
      GoldTrack["HR"].Taxed = 0
      GoldTrack["HR"].lostGive = 0
      GoldTrack["HR"].Buy = 0
@@ -638,6 +654,18 @@ local gold = tonumber(NoMoreComma(wildcards[1]))
      SaveState()
 end
 
+function GainGoldFence(name, line, wildcards)
+     local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Fence = tonumber(GoldTrack["AT"].Fence) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Fence = tonumber(GoldTrack["HR"].Fence) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Fence = tonumber(GoldTrack["HR"].Fence) + gold
+     end
+     SaveState()
+end
+
 
 function GoldSet(str)
      if str == nil or str == " " or str == "" then
@@ -648,7 +676,7 @@ function GoldSet(str)
           
      if str == "session" then
           HadarBackup = GoldTrack["SN"].Message
-		GoldTrack["SN"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Look for Gold Session", GoldTrack["SN"].Message, "Courier", 9)
+		GoldTrack["SN"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Look for Gold Session", GoldTrack["SN"].Message, "Courier", 9)
 		
 		if GoldTrack["SN"].Message ~= nil then
 			hadarprint("message will look like@W: @w"..GoldTrack["SN"].Message,"script")
@@ -657,7 +685,7 @@ function GoldSet(str)
 		end
      elseif str == "alltime" then
           HadarBackup = GoldTrack["AT"].Message
-		GoldTrack["AT"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo\n${wday} - day of week installed\n${month} - mon can change with year day hour min sec for respective time", "Look for alltime", GoldTrack["AT"].Message, "Courier", 9)
+		GoldTrack["AT"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo\n${wday} - day of week installed\n${month} - mon can change with year day hour min sec for respective time", "Look for alltime", GoldTrack["AT"].Message, "Courier", 9)
 		
 		if GoldTrack["AT"].Message ~= nil then
 			hadarprint("message will look like@W: @w"..GoldTrack["AT"].Message,"script")
@@ -666,7 +694,7 @@ function GoldSet(str)
 		end
      elseif str == "hour" then
           HadarBackup = GoldTrack["HR"].message
-		GoldTrack["HR"].message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Change Look for Gold Hour Message", GoldTrack["HR"].message, "Courier", 9)
+		GoldTrack["HR"].message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Change Look for Gold Hour Message", GoldTrack["HR"].message, "Courier", 9)
 		
 		if GoldTrack["HR"].message ~= nil then
 			hadarprint("message will look like@W: @w"..GoldTrack["HR"].message,"script")
