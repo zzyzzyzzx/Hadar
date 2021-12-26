@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.85"
+   version="2.86"
    >
 
 </plugin>
@@ -264,11 +264,11 @@ function GoldTracked(str)
      hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",golddatetime," ").."@x165|")
      hadarprint("@x165|                                                                      |")
      hadarprint("@x165|     @CAll @cTime @CTracked @cGold @W- @RLost@W:@x165                                    |")
-     hadarprint("@x165|      @CT@caxed@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Taxed"])).." @CG@civen Away@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["lostGive"])).." @CB@cought@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Buy"])).."@x165     |")
+     hadarprint("@x165|      @CT@caxed@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Taxed"])).." @CG@civen Away@W: @R"..string.format("%-14s",comma_value(GoldTrack["AT"]["lostGive"])).." @CB@cought@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Buy"])).."@x165 |")
      hadarprint("@x165|                                                                      |")
      hadarprint("@x165|     @cAll @CTime @cTracked @CGold @W- @RGained@W:@x165                                  |")
      hadarprint("@x165|      @CC@crumble@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Crumble"])).." @CM@cob@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Mob"])).." @CG@civen@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Give"])).." @x165  |")
-     hadarprint("@x165|      @CS@cold@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Sell"])).."@x165                                                |")
+     hadarprint("@x165|      @CS@cold@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Sell"])).."@x165  @CF@cenced@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Fence"])).."@x165                        |")
      hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
      else
           local ATmessage = interp(GoldTrack["AT"].Message, {
@@ -276,6 +276,7 @@ function GoldTracked(str)
                     mob = comma_value(GoldTrack["AT"].Mob),
                     give = comma_value(GoldTrack["AT"].Give),
                     sell = comma_value(GoldTrack["AT"].Sell),
+                    fence = comma_value(GoldTrack["AT"].Fence),
                     taxed = comma_value(GoldTrack["AT"].Taxed),
                     gave = comma_value(GoldTrack["AT"].lostGive),
                     bought = comma_value(GoldTrack["AT"].Buy),
@@ -402,7 +403,7 @@ function injectVars()
      v["AT"]["Give"] = 0
      v["AT"]["Sell"] = 0
      v["AT"]["Fence"] = 0
-     v["AT"]["Message"] = "${logo} @CI@cnstalled@W:@G${wday}@W,@G${month} ${day} ${year} @Ca@Ct @G${hour}@W:@G${min}@W:@G${sec} @CT@cotal Gained: @D[@CM@cob@W:@R ${mob} @CG@civen@W:@R ${give} @CS@cold@W:@R ${sell} @CC@crumbles@W:@R${crumble}@D] Total Lost: @D[@CT@caxed@W: @R${taxed} @CG@civen@W:@R ${gave} @CB@cuy@W:@R${bought}@D]@w"
+     v["AT"]["Message"] = "${logo} @CI@cnstalled@W:@G${wday}@W,@G${month} ${day} ${year} @Ca@Ct @G${hour}@W:@G${min}@W:@G${sec} @CT@cotal Gained: @D[@CM@cob@W:@R ${mob} @CG@civen@W:@R ${give} @CS@cold@W:@R ${sell} @CF@cenced@W: @R${fence} @CC@crumbles@W:@R${crumble}@D] Total Lost: @D[@CT@caxed@W: @R${taxed} @CG@civen@W:@R ${gave} @CB@cuy@W:@R${bought}@D]@w"
      v["AT"]["Installed"] = os.time()
      v["AT"]["Date"] = os.date("*t")
 -------------------------------------------------------------
