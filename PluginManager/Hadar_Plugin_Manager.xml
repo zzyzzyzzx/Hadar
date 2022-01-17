@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.69"
+   version="1.70"
    >
 
 </plugin>
@@ -119,6 +119,7 @@ local aSlist = "plugin"
 local gitHubRaw = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/ZZZZZZ(Repo)/github.list"
 local gitHubBeta = "https://raw.githubusercontent.com/zzyzzyzzx/HadarBeta/master/Repos/devlist.list"
 local rawPluginUrl
+local rawPluginUrlBeta
   
 
 function interp(s, tab)
@@ -143,7 +144,7 @@ end
 
 function OnPluginSaveState ()
 	SetVariable ("hpmVar", "hpmVar = " .. serialize.save_simple (hpmVar))
-	SetVariable ("hpmpastfirstinstall", "true")
+	SetVariable ("hpmpastfirstinstall2", "true")
 end -- function OnPluginSaveState
 
 
@@ -168,7 +169,7 @@ function OnPluginEnable ()
      hpmVar["betaCache"] = {}
      ghName = nil
 
-     if GetVariable ("hpmpastfirstinstall") == "true" then
+     if GetVariable ("hpmpastfirstinstall2") == "true" then
 		assert (loadstring (GetVariable ("hpmVar") or "")) ()
 	end
      
@@ -255,12 +256,12 @@ function hpmBeta()
      makeRawUrlBeta()
      buildCacheBeta()
      
-     build_Len = tablelength(rawPluginUrlBeta)
-     build_res = 0
+     build_Len_beta = tablelength(rawPluginUrlBeta)
+     build_res_beta = 0
      
           hadarprint("@x086+---------------------@g[@x051L@cist of @RBETA@w @x051m@caintained @x051p@clugins@g]@x086---------------------+@w")
           
-          if build_Len == 0 then
+          if build_Len_beta == 0 then
                hadarprint("Nothing to see here")
                return
           end
@@ -286,47 +287,47 @@ function buildOutputBeta(retval, page, status, headers, full_status, request_url
           return
      end --end if status 200
      
-     build_res = build_res + 1
+     build_res_beta = build_res_beta + 1
      
-     if build_res >= build_Len then
-                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
-                    if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
-                         if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
+     if build_res_beta >= build_Len_beta then
+                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res_beta ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
+                    if IsPluginInstalled(hpmVar["betaCache"][pid]["pid"]) then
+                         if tonumber(hpmVar["betaCache"][pid]["versionL"]) < tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
                               Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
                          Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
                     
-                         if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
+                         if tonumber(hpmVar["betaCache"][pid]["versionL"]) >= tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
                          else
-                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["cache"][pid]["versionL"].." to " .. hpmVar["cache"][pid]["versionW"],"Red","","**")
+                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["betaCache"][pid]["versionL"].." to " .. hpmVar["betaCache"][pid]["versionW"],"Red","","**")
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
-                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["cache"][pid]["versionW"],"Red","","]]")
+                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["betaCache"][pid]["versionW"],"Red","","]]")
                     end
                     print()
           hadarprint("@x086+----------------------------------------------------------------------+@w")
      else
-                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
-                    if IsPluginInstalled(hpmVar["cache"][pid]["pid"]) then
-                         if tonumber(hpmVar["cache"][pid]["versionL"]) < tonumber(hpmVar["cache"][pid]["versionW"]) then
+                    ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res_beta ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
+                    if IsPluginInstalled(hpmVar["betaCache"][pid]["pid"]) then
+                         if tonumber(hpmVar["betaCache"][pid]["versionL"]) < tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
                               Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
                          Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
                     
-                         if tonumber(hpmVar["cache"][pid]["versionL"]) >= tonumber(hpmVar["cache"][pid]["versionW"]) then
+                         if tonumber(hpmVar["betaCache"][pid]["versionL"]) >= tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
                          else
-                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["cache"][pid]["versionL"].." to " .. hpmVar["cache"][pid]["versionW"],"Red","","**")
+                              ColourTell("Red",""," **","Cyan","","from "..hpmVar["betaCache"][pid]["versionL"].." to " .. hpmVar["betaCache"][pid]["versionW"],"Red","","**")
                          end
                     else
                          Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
-                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["cache"][pid]["versionW"],"Red","","]]")
+                         ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["betaCache"][pid]["versionW"],"Red","","]]")
                     end
      end -- end counting if
      print()
@@ -547,8 +548,8 @@ function buildCache()
 end --end function buildCache()
 
 function buildCacheBeta()
-     cache_Len = tablelength(rawPluginUrlBeta)
-     cache_res = 0
+     beta_cache_Len = tablelength(rawPluginUrlBeta)
+     beta_cache_res = 0
      
      async_ok, async = pcall (require, "async")
      if async_ok then
@@ -560,7 +561,7 @@ function buildCacheBeta()
           
      for a,b in pairs (rawPluginUrlBeta) do
           if b ~= "" then
-               plugin_page = async.doAsyncRemoteRequest(b, raw_get_cache_Beta, "HTTPS") 
+               beta_plugin_page = async.doAsyncRemoteRequest(b, raw_get_cache_Beta, "HTTPS") 
           end
      end -- end for loop
      
@@ -625,10 +626,12 @@ function raw_get_cache_Beta(retval, page, status, headers, full_status, request_
      else
           hadarprint("Cant connect to github","error")
      end --end if status 200
+	
+	--tprint(hpmVar)
      
-     cache_res = cache_res + 1
+     beta_cache_res = beta_cache_res + 1
 
-     if cache_res >= cache_Len then
+     if beta_cache_res >= beta_cache_Len then
           hpmVar["betaCache"][pid]["sname"] = WName
           hpmVar["betaCache"][pid]["rawname"] = rawname
           hpmVar["betaCache"][pid]["versionW"] = ghVersion
