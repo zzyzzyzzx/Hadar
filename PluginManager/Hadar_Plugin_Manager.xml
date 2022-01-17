@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-06-19 00:00:00"
    requires="4.00"
-   version="1.70"
+   version="1.71"
    >
 
 </plugin>
@@ -88,6 +88,38 @@
      <alias
      script="installPlugin"
      match="^#installPlugin ([0-9a-zA-Z]+)$"
+     enabled="y"
+     regexp="y"
+     sequence="100"
+     >
+     </alias>
+	     <alias
+     script="updatePluginBeta"
+     match="^#updatePluginBeta ([0-9a-zA-Z]+)$"
+     enabled="y"
+     regexp="y"
+     sequence="100"
+     >
+     </alias>
+     <alias
+     script="reloadPluginBeta"
+     match="^#reloadPluginBeta ([0-9a-zA-Z]+)$"
+     enabled="y"
+     regexp="y"
+     sequence="100"
+     >
+     </alias>
+     <alias
+     script="removePluginBeta"
+     match="^#removePluginBeta ([0-9a-zA-Z]+)$"
+     enabled="y"
+     regexp="y"
+     sequence="100"
+     >
+     </alias>
+     <alias
+     script="installPluginBeta"
+     match="^#installPluginBeta ([0-9a-zA-Z]+)$"
      enabled="y"
      regexp="y"
      sequence="100"
@@ -293,11 +325,11 @@ function buildOutputBeta(retval, page, status, headers, full_status, request_url
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res_beta ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["betaCache"][pid]["pid"]) then
                          if tonumber(hpmVar["betaCache"][pid]["versionL"]) < tonumber(hpmVar["betaCache"][pid]["versionW"]) then
-                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                              Hyperlink("#updatePluginBeta "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
-                              Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
+                              Hyperlink("#reloadPluginBeta "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
-                         Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
+                         Hyperlink("#removePluginBeta "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
                     
                          if tonumber(hpmVar["betaCache"][pid]["versionL"]) >= tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
@@ -305,7 +337,7 @@ function buildOutputBeta(retval, page, status, headers, full_status, request_url
                               ColourTell("Red",""," **","Cyan","","from "..hpmVar["betaCache"][pid]["versionL"].." to " .. hpmVar["betaCache"][pid]["versionW"],"Red","","**")
                          end
                     else
-                         Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         Hyperlink("#installPluginBeta "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
                          ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["betaCache"][pid]["versionW"],"Red","","]]")
                     end
                     print()
@@ -314,11 +346,11 @@ function buildOutputBeta(retval, page, status, headers, full_status, request_url
                     ColourTell("Cyan", "", "  ", "teal", "","[","Red","", build_res_beta ,"teal","", "] ", "SkyBlue", "", ghName .. " ")
                     if IsPluginInstalled(hpmVar["betaCache"][pid]["pid"]) then
                          if tonumber(hpmVar["betaCache"][pid]["versionL"]) < tonumber(hpmVar["betaCache"][pid]["versionW"]) then
-                              Hyperlink("#updatePlugin "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                              Hyperlink("#updatePluginBeta "..pid, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                          else
-                              Hyperlink("#reloadPlugin "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
+                              Hyperlink("#reloadPluginBeta "..pid, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                          end
-                         Hyperlink("#removePlugin "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
+                         Hyperlink("#removePluginBeta "..pid, " [Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
                     
                          if tonumber(hpmVar["betaCache"][pid]["versionL"]) >= tonumber(hpmVar["betaCache"][pid]["versionW"]) then
                               ColourTell("Gold",""," **","Green","","UP TO DATE","Gold","","**")
@@ -326,7 +358,7 @@ function buildOutputBeta(retval, page, status, headers, full_status, request_url
                               ColourTell("Red",""," **","Cyan","","from "..hpmVar["betaCache"][pid]["versionL"].." to " .. hpmVar["betaCache"][pid]["versionW"],"Red","","**")
                          end
                     else
-                         Hyperlink("#installPlugin "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         Hyperlink("#installPluginBeta "..pid, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
                          ColourTell("Red",""," [[","Cyan","","Version "..hpmVar["betaCache"][pid]["versionW"],"Red","","]]")
                     end
      end -- end counting if
@@ -478,6 +510,85 @@ function removePlugin(name,line,wc)
           hadarprint("Removed script:@G"..hpmVar["cache"][script_id]["sname"].."@w","script")
      else
           hadarprint("Was not able to remove @G"..hpmVar["cache"][script_id]["sname"].." @R"..err.."@w","error")
+     end
+end
+
+function updatePluginBeta(name,line,wc)
+     local script_id = wc[1]
+     local script_name = hpmVar["betaCache"][script_id]["lname"]
+     local script_url = hpmVar["betaCache"][script_id]["url"]
+     local script_pid = hpmVar["betaCache"][script_id]["pid"]
+     
+     
+     hadarprint("Updating Plugin @G"..hpmVar["betaCache"][script_id]["sname"].."@w","script")
+    
+     UnloadPlugin(script_pid)
+     
+     async_ok, async = pcall (require, "async")
+     if async_ok then
+          script_rawurl = async.request(script_url, "HTTPS")
+          retval, page, status, headers, full_status = script_rawurl:join()
+          
+          if status == 200 then
+               local lscript = io.open(script_name,"w")
+               lscript:write(page)
+               lscript:close()
+          end --end status 200
+     end --end async_ok
+     hadarprint("Plugin @G"..hpmVar["betaCache"][script_id]["sname"].."@c Updated Enjoy!","script")
+     LoadPlugin(script_name)
+end
+
+function installPluginBeta(name,line,wc)
+     local script_id = wc[1]
+     local script_directory = GetInfo(60)
+     local script_lname = hpmVar["betaCache"][script_id]["sname"]
+     local script_name = script_directory .. hpmVar["betaCache"][script_id]["rawname"]..".xml"
+     local script_url = hpmVar["betaCache"][script_id]["url"]
+     local script_pid = hpmVar["betaCache"][script_id]["pid"]
+     
+      hadarprint("Installing Plugin @G"..script_lname.."@w","script")
+      
+     async_ok, async = pcall (require, "async")
+     if async_ok then
+          script_rawurl = async.request(script_url, "HTTPS")
+          retval, page, status, headers, full_status = script_rawurl:join()
+          
+          if status == 200 then
+               local lscript = io.open(script_name,"w")
+               lscript:write(page)
+               lscript:close()
+          else --end status 200
+               hadarprint("status was not 200","error")
+          end
+     end --end async_ok
+     hadarprint("Plugin @G"..script_lname.."@c Installed Enjoy!","script")
+     LoadPlugin(script_name)
+end
+
+function reloadPluginBeta(name,line,wc)
+     local script_id = wc[1]
+     local script_name = hpmVar["betaCache"][script_id]["lname"]
+     local script_url = hpmVar["betaCache"][script_id]["url"]
+     local script_pid = hpmVar["betaCache"][script_id]["pid"]
+     
+     hadarprint("Currently reloading script: @G"..hpmVar["betaCache"][script_id]["sname"].."@c please stand by","script")
+     ReloadPlugin(script_pid)
+end
+
+function removePluginBeta(name,line,wc)
+     local script_id = wc[1]
+     local script_name = hpmVar["betaCache"][script_id]["lname"]
+     local script_url = hpmVar["betaCache"][script_id]["url"]
+     local script_pid = hpmVar["betaCache"][script_id]["pid"]
+     
+     hadarprint("Currently Removing script: "..hpmVar["betaCache"][script_id]["sname"].." please stand by")
+     UnloadPlugin(script_pid)
+     local ok, err = os.remove(script_name)
+     if ok then
+          hadarprint("Removed script:@G"..hpmVar["betaCache"][script_id]["sname"].."@w","script")
+     else
+          hadarprint("Was not able to remove @G"..hpmVar["betaCache"][script_id]["sname"].." @R"..err.."@w","error")
      end
 end
 
