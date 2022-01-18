@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="2.12"
+   version="2.13"
    >
 
 </plugin>
@@ -123,7 +123,16 @@
  -->
  <aliases>
    <alias
-   match="^hid ?(.*)?"
+   match="^hid$"
+   enabled="y"
+   regexp="y"
+   sequence="100"
+   send_to="12"
+   script="HadarHelp"
+  >
+  </alias>
+  <alias
+   match="^hid (.*)?"
    enabled="y"
    regexp="y"
    sequence="100"
@@ -1015,7 +1024,7 @@ function makeOutput()
 		, templuck = report.tmpLuck
 		, inflicts = report.Inflicts
 		, damtype = report.DamType
-		, weaponyype = report.WeaponType
+		, weapontype = report.WeaponType
 		, specials = report.Specials
 		, flagsall = report.Flags
 		, flagsenchant = report.enchanting
@@ -1324,7 +1333,7 @@ elseif param == "5" then
 @x099| @x010spelllevel  @x099-@x222 level of the first spell on a potion/scroll            @x099|
 @x099| @x002inflicts    @x099-@x214 shows temporary what the weapon inflicts               @x099|
 @x099| @x010damtype     @x099-@x222 shows the damage type of a weapon                      @x099|
-@x099| @x002weaponyype  @x099-@x214 reports a wepons type                                  @x099|
+@x099| @x002weapontype  @x099-@x214 reports a wepons type                                  @x099|
 @x099| @x010specials    @x099-@x222 reports a special flag on a weapon                     @x099|
 @x099+----------------------------------------------------------------------+@w
 ]]
