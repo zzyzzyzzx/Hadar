@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.02"
+   version="3.03"
    >
 
 </plugin>
@@ -144,7 +144,7 @@ TODO:
 	<trigger
 		group="LevelTriggers"
 		enabled="n"
-		match="^Lucky! You gain an extra (\d+) training session(?s)!$"
+		match="^Lucky! You gain an extra (\d+) training sessions?!$"
 		regexp="y"
 		omit_from_output="n"
 		sequence="100"
