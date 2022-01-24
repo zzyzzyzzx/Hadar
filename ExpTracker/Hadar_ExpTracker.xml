@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.85"
+   version="1.86"
    >
 
 </plugin>
@@ -717,10 +717,10 @@ function expDoubleSet(param)
           HadarBackup = expTracker["HR"].message
 		expTracker["HR"].message = utils.inputbox ("${logo} - Shows the logo of the script\n${xp} - shows the rate of exp earned per second\n${totexp} - shows total exp earned\n${kills} - shows how many kills you got", "look of hour tracker", expTracker["HR"].message, "Courier", 9)
 		
-		if expTracker["NR"].message ~= nil then
-			hadarprint("Hourly message will look like@W: @w"..expTracker["NR"].message,"script")
+		if expTracker["HR"].message ~= nil then
+			hadarprint("Hourly message will look like@W: @w"..expTracker["HR"].message,"script")
 		else
-			expTracker["NR"].message = HadarBackup
+			expTracker["HR"].message = HadarBackup
 		end
      elseif param == "logo" then
           HadarBackup = expTracker["GL"]["Logo"]
