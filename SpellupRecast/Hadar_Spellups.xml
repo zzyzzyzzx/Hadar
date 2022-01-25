@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.52"
+   version="0.53"
    >
 
 </plugin>
@@ -322,7 +322,11 @@ function OnPluginBroadcast(msg, id, name, text)
             assert (loadstring (luastmt or "")) ()
 			
 			maxmana = tonumber(gmcpval("maxstats.maxmana"))
-			Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+			if maxmana == nil or maxmana == -1 then
+				Spellups["EX"]["percentageStop"] = 0
+			else
+				Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+			end
 		end
 	end --end if char status
 end
@@ -391,7 +395,11 @@ function OnPluginEnable ()
 	injectVars()
 	SendSlistCommand()
 
-	Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+	if maxmana == nil or maxmana == -1 then
+		Spellups["EX"]["percentageStop"] = 0
+	else
+		Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+	end
 end
 
 function buildInitial()
@@ -1643,6 +1651,10 @@ function hspsetpercent(str)
 	arg = tonumber(arg) or string.lower(arg)
 
 	if type(arg) == "number" then
+		if maxmana == nil or maxmana == -1 then
+			hadarprint("mana variable not set","error")
+			return
+		end
 		Spellups["EX"]["percentage"] = arg
 		Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
 		hadarprint("Set autocast pause to @G"..Spellups["EX"]["percentage"].."@c% which is "..Spellups["EX"]["percentageStop"].." mana","script")
