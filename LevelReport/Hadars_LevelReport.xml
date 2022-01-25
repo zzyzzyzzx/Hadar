@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.03"
+   version="3.04"
    >
 
 </plugin>
@@ -590,7 +590,7 @@ function injectVars()
      v["GL"]["TNL"] = tonumber(gmcp("char.base.perlevel"))
      v["GL"]["Logo"] = "@G[@CL@cevel @CR@ceport]@c "
 -----------Initilize Pup Variables------------------------
-     v["PP"]["message"] = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@w"
+     v["PP"]["message"] = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@G+@R${bonus}=${all}@w"
      v["PP"]["startTime"] = 0
      v["PP"]["Exp"] = 0
      v["PP"]["ExpB"] = 0
