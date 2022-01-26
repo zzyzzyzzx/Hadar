@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.53"
+   version="0.54"
    >
 
 </plugin>
@@ -393,7 +393,9 @@ function OnPluginEnable ()
 	end
 	
 	injectVars()
-	SendSlistCommand()
+	if currentState == 3 then
+		SendSlistCommand()
+	end
 
 	if maxmana == nil or maxmana == -1 then
 		Spellups["EX"]["percentageStop"] = 0
@@ -859,10 +861,14 @@ function cast_spells()
 		return
 	end
 
+	if currentmana == nil or currentmana == -1 then
+		goto manaiscausingissues
+	end
+
 	if Spellups["EX"]["percentageStop"] >= currentmana then
 		return
 	end
-	
+	::manaiscausingissues::
 	for i,v in pairs (Spellups["QS"]) do
         local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
 
