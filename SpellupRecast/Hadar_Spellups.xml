@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.54"
+   version="0.55"
    >
 
 </plugin>
@@ -245,6 +245,30 @@ local currentState = -1 -- uninitialized
 local maxmana = -1 -- uninitialized
 local currentmana = -1 -- uninitialized
 local slistCommandSent = false
+local pluscount = 0
+local pluscount2 = 0
+local utfset = false
+
+local ascii_2_utf8 = {
+	["7C"]="E29482", -- │
+	["2D"]="E29480", -- ─
+	["0F"]="E2948C", -- ┌
+	["1F"]="E29490", -- ┐
+	["5F"]="E29498", -- ┘
+	["4F"]="E29494", -- └
+	["3F"]="E294A4", -- ┤
+	["2F"]="E2949C", -- ├
+	["5D"]="E2949C", -- ├
+	["5B"]="E294A4" -- ┤
+	}
+local ascii_2_utf82 = {
+		["7C"]="E29482", -- │
+		["2D"]="E29480", -- ─
+		["0F"]="E2948C", -- ┌
+		["1F"]="E29490", -- ┐
+		["3F"]="E29498", -- ┘
+		["2F"]="E29494", -- └
+		}
 
 --[[
 
@@ -274,7 +298,47 @@ function hadarprint(str,level)
 		else
 			AnsiNote(ColoursToANSI("@G[@CS@cpellup@G]@c "..str))
 		end
-     else
+	elseif level == "helpfile" then
+		if utfset then
+			text = utils.tohex(str)
+			if string.find(text,"2B") ~= nil then
+				text = text:gsub('2B', 
+					function(x) 
+						c = pluscount.."F"
+						if pluscount == 5 then
+							pluscount = 0
+						else
+							pluscount = pluscount + 1
+						end
+						return ascii_2_utf8[c]
+					end)
+			end
+			text = string.gsub(text, ("(%x%x)"), ascii_2_utf82)
+			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+		else
+			AnsiNote(ColoursToANSI(str))
+		end
+	elseif level == "helpfile2" then
+		if utfset then
+			text = utils.tohex(str)
+			if string.find(text,"2B") ~= nil then
+				text = text:gsub('2B', 
+					function(x) 
+						c = pluscount2.."F"
+						if pluscount2 == 3 then
+							pluscount2 = 0
+						else
+							pluscount2 = pluscount2 + 1
+						end
+						return ascii_2_utf82[c]
+					end)
+			end
+			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
+			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+		else
+			AnsiNote(ColoursToANSI(str))
+		end
+	else
 		AnsiNote(ColoursToANSI(str))
 	end
 	
@@ -402,6 +466,18 @@ function OnPluginEnable ()
 	else
 		Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
 	end
+
+	local fonts = utils.getfontfamilies ()
+   	
+	if fonts["Courier New"] then
+    	utfset = true
+   	elseif fonts ["Lucida Console"] then
+		utfset = true
+   	elseif fonts ["Liberation Mono"] then
+    	utfset = true
+   	else
+		utfset = false
+   end
 end
 
 function buildInitial()
@@ -1678,72 +1754,72 @@ function HadarHelp(str)
 	end
 
 	if arg == "combat" then
-		hadarprint("@x086+-------------------------[Combat Help Files]--------------------------+@w")
-		hadarprint("@x086| hsp combat     - no argument shows a table with the spell number and |")
-		hadarprint("@x086|                  the spell name, these will be re-cast during combat |")
-		hadarprint("@x086|                                                                      |")
-		hadarprint("@x086| hsp combat <skill number>  - will add or remove the skill from the   |")
-		hadarprint("@x086|                              list to recast in combat                |")
-		hadarprint("@x086+----------------------------------------------------------------------+@w")
+		hadarprint("@x086+-------------------------@G[@CC@combat @CH@celp @CF@ciles]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp combat     @x110- @x214no argument shows a table with the spell number and @x086|","helpfile2")
+		hadarprint("@x086|                  @x214the spell name, these will be re-cast during combat @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp combat <skill number>  @x110-@x208 will add or remove the skill from the   @x086|","helpfile2")
+		hadarprint("@x086|                              @x208list to recast in combat                @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	elseif arg == "timer" then
-		hadarprint("@x086+-------------------------[Timers Help Files]--------------------------+@w")
-		hadarprint("@x086| hsp timer     - no argument shows a table with the spell number and  |")
-		hadarprint("@x086|                 the spell name, along with what timers are active    |")
-		hadarprint("@x086|                                                                      |")
-		hadarprint("@x086| hsp timer <skill number>  - will add or remove the skill from the    |")
-		hadarprint("@x086|                             list to show a timer, when added to the  |")
-		hadarprint("@x086|                             list both 30 second, and 10 second timers|")
-		hadarprint("@x086|                             are activated                            |")
-		hadarprint("@x086| 	                   EG: hsp timer 71                                 |")
-		hadarprint("@x086| 	   turns on both the 30 and the 10 second timer for sanctuary       |")
-		hadarprint("@x086|                                                                      |")
-		hadarprint("@x086| hsp timer set <skill number> [10,30] - this will toggle the timer    |")
-		hadarprint("@x086| 	                       - the 2 timers are 10 seconds, and 30 seconds|")
-		hadarprint("@x086| 	                       - you can run 1 or both, or neither          |")
-		hadarprint("@x086| 	                   EG: hsp timer set 71 30                          |")
-		hadarprint("@x086| 	         will toggle the 30 second timer to on or off               |")
-		hadarprint("@x086+----------------------------------------------------------------------+@w")
+		hadarprint("@x086+-------------------------@G[@CT@cimers @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp timer     @x110- @x214no argument shows a table with the spell number and  @x086|","helpfile2")
+		hadarprint("@x086|                 @x214the spell name, along with what timers are active    @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp timer <skill number>  @x110- @x208will add or remove the skill from the    @x086|","helpfile2")
+		hadarprint("@x086|                             @x208list to show a timer, when added to the  @x086|","helpfile2")
+		hadarprint("@x086|                             @x208list both 30 second, and 10 second timers@x086|","helpfile2")
+		hadarprint("@x086|                             @x208are activated                            @x086|","helpfile2")
+		hadarprint("@x086| 	                   @REG@x110:@G hsp timer 71                                 @x086|","helpfile2")
+		hadarprint("@x086| 	   @x208turns on both the 30 and the 10 second timer for sanctuary       @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x214hsp timer set <skill number> [10,30] @x110-@x214 this will toggle the timer    @x086|","helpfile2")
+		hadarprint("@x086| 	                       @x110-@x214 the 2 timers are 10 seconds, and 30 seconds@x086|","helpfile2")
+		hadarprint("@x086| 	                       @x110-@x214 you can run 1 or both, or neither          @x086|","helpfile2")
+		hadarprint("@x086| 	                   @REG@x110:@G hsp timer set 71 30                          @x086|","helpfile2")
+		hadarprint("@x086| 	         @x214will toggle the 30 second timer to on or off               @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	elseif arg == "wraith" then
-		hadarprint("@x086+-------------------------[Wraith Help Files]--------------------------+@w")
-		hadarprint("@x086| hsp wraith     - no argument shows a table with the spell number and |")
-		hadarprint("@x086|                  the spell name, these will be cast before the spell |")
-		hadarprint("@x086|                  wraith form is recast                               |")
-		hadarprint("@x086|                                                                      |")
-		hadarprint("@x086| hsp wraith <skill number>  - will add or remove the skill from the   |")
-		hadarprint("@x086|                              list to cast before wraith form         |")
-		hadarprint("@x086+----------------------------------------------------------------------+@w")
+		hadarprint("@x086+-------------------------@G[@CW@craith @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp wraith     @x110- @x214no argument shows a table with the spell number and @x086|","helpfile2")
+		hadarprint("@x086|                  @x214the spell name, these will be cast before the spell @x086|","helpfile2")
+		hadarprint("@x086|                  @x214wraith form is recast                               @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp wraith <skill number>  @x110-@x208 will add or remove the skill from the   @x086|","helpfile2")
+		hadarprint("@x086|                              @x208list to cast before wraith form         @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	else
-		hadarprint("@x086+-------------------------@g[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086-------------------------+@w")
-		hadarprint("@x086| @x214hsp help                @x110- @x214Displays this helpfile                     @x086|@w")
-		hadarprint("@x086| @x208hsp noauto <number>     @x110- @x208number optional, sets a spellnumber to not @x086|@w")
-		hadarprint("@x086|                           @x208be recast, no argument to see list         @x086|@w")
-		hadarprint("@x086|                           @x208EG. hsp noauto 58                          @x086|@w")
-		hadarprint("@x086| @x214hsp noauto clear        @x110- @x214clears your noauto list                    @x086|@w")
-		hadarprint("@x086| @x208hsp disable <check>     @x110- @x208Turns the script on or off, check is status@x086|@w")
-		hadarprint("@x086| @x214hsp reload              @x110- @x214 reloads the skills/spells use after tier  @x086|@w")
-		hadarprint("@x086| @x208hsp autoaura <command>  @x110- @x208Has multiple commands, they are:           @x086|@w")
-		hadarprint("@x086|                         @x110-@x208 On  @x110-@x214 enables wearing aura in combat       @x086|@w")
-		hadarprint("@x086|                         @x110-@x208 Off @x110-@x214 diables wearing aura in combat       @x086|@w")
-		hadarprint("@x086|                         @x110-@x208 aura <itemid> @x110-@x214 set the id of your aura    @x086|@w")
-		hadarprint("@x086|                         @x110-@x208 bag <itemid> @x110-@x214 set the id of bag with aura @x086|@w")
-		hadarprint("@x086| @x214hsp set <thing>         @x110- @x214Sets the message output for reports        @x086|@w")
-		hadarprint("@x086|                         @x110- @glogo@x110,@G 30@x110,@G 10                               @x086|@w")
-		hadarprint("@x086| @x208hsp channel <channel>   @x110- @x208no arguments displays the channel          @x086|@w")
-		hadarprint("@x086|                           @REG@W.@G hsp channel spouse                     @x086|")
-		hadarprint("@x086| @x214hsp report <screen> <log>@x110- @x214screen main or comm, log = comm log       @x086|@w")
-		hadarprint("@x086|                           @REG@W.@G hsp report comm SpellTracker          @x086 |")
-		hadarprint("@x086|                           @REG@W.@G hsp report main off                   @x086 |")
-		hadarprint("@x086| @x208hsp seespells           @x110- @x208toggle seeing recasts                      @x086|@w")
-		hadarprint("@x086| @x214hsp totem <spell>       @x110- @x214spell is either guidance or focus to recast@x086|@w")
-		hadarprint("@x086| @x208hsp elementalfocus <ele>@x110- @x208change the element for elemental focus     @x086|@w")
-		hadarprint("@x086| @x214hsp elementalward <ele> @x110- @x214change the element for elemental ward      @x086|@w")
-		hadarprint("@x086| @x208hsp gaiasfocus <element>@x110- @x208change the element for recast 	            @x086|@w")
-		hadarprint("@x086| @x214hsp percent <number>    @x110- @x214Sets mana percentage to stop auto casting  @x086|@w")
-		hadarprint("@x086+-------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086--------------------------+@w")
-		hadarprint("@x086|                           @x214hsp help combat                            @x086|")
-		hadarprint("@x086|                           @x208hsp help timer                             @x086|")
-		hadarprint("@x086|                           @x214hsp help wraith                            @x086|")
-		hadarprint("@x086+----------------------------------------------------------------------+@w")
+		hadarprint("@x086+-------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086-------------------------+@w","helpfile")
+		hadarprint("@x086| @x214hsp help                @x110- @x214Displays this helpfile                     @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp noauto <number>     @x110- @x208number optional, sets a spellnumber to not @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208be recast, no argument to see list         @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208EG. hsp noauto 58                          @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp noauto clear        @x110- @x214clears your noauto list                    @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp disable <check>     @x110- @x208Turns the script on or off, check is status@x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp reload              @x110- @x214 reloads the skills/spells use after tier  @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp autoaura <command>  @x110- @x208Has multiple commands, they are:           @x086|@w","helpfile")
+		hadarprint("@x086|                         @x110-@x208 On  @x110-@x214 enables wearing aura in combat       @x086|@w","helpfile")
+		hadarprint("@x086|                         @x110-@x208 Off @x110-@x214 diables wearing aura in combat       @x086|@w","helpfile")
+		hadarprint("@x086|                         @x110-@x208 aura <itemid> @x110-@x214 set the id of your aura    @x086|@w","helpfile")
+		hadarprint("@x086|                         @x110-@x208 bag <itemid> @x110-@x214 set the id of bag with aura @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp set <thing>         @x110- @x214Sets the message output for reports        @x086|@w","helpfile")
+		hadarprint("@x086|                         @x110- @glogo@x110,@G 30@x110,@G 10                               @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp channel <channel>   @x110- @x208no arguments displays the channel          @x086|@w","helpfile")
+		hadarprint("@x086|                           @REG@W.@G hsp channel spouse                     @x086|","helpfile")
+		hadarprint("@x086| @x214hsp report <screen> <log>@x110- @x214screen main or comm, log = comm log       @x086|@w","helpfile")
+		hadarprint("@x086|                           @REG@W.@G hsp report comm SpellTracker          @x086 |","helpfile")
+		hadarprint("@x086|                           @REG@W.@G hsp report main off                   @x086 |","helpfile")
+		hadarprint("@x086| @x208hsp seespells           @x110- @x208toggle seeing recasts                      @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp totem <spell>       @x110- @x214spell is either guidance or focus to recast@x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp elementalfocus <ele>@x110- @x208change the element for elemental focus     @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp elementalward <ele> @x110- @x214change the element for elemental ward      @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp gaiasfocus <element>@x110- @x208change the element for recast 	            @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp percent <number>    @x110- @x214Sets mana percentage to stop auto casting  @x086|@w","helpfile")
+		hadarprint("@x086+-------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086--------------------------+@w","helpfile")
+		hadarprint("@x086|                           @x214hsp help combat                            @x086|","helpfile")
+		hadarprint("@x086|                           @x208hsp help timer                             @x086|","helpfile")
+		hadarprint("@x086|                           @x214hsp help wraith                            @x086|","helpfile")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile")
 	end
 end
 
