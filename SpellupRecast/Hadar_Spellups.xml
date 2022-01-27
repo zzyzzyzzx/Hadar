@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.56"
+   version="0.57"
    >
 
 </plugin>
@@ -453,6 +453,7 @@ function OnPluginEnable ()
 		if Spellups["GL"]["clan"] ~= "" then
 			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"]))
 			hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+			hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 		end
 	end
 	
@@ -1175,8 +1176,8 @@ function noAutoList(sn)
 		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 		if Spellups["EX"]["noAuto"][1] == nil then
-			hadarprint("@W|@c     No Spells are set to not autocast        @W|@w")
-			hadarprint("@W|@c     to set a spell use hsp autocast <number> @W|@w")
+			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp autocast <number>  @W|@w")
 		end
 		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
 			local numbersize = 24-string.len(v)
@@ -1197,8 +1198,8 @@ function noAutoList(sn)
 		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 		if Spellups["EX"]["noAuto"][1] == nil then
-			hadarprint("@W|@c     No Spells are set to not autocast        @W|@w")
-			hadarprint("@W|@c     to set a spell use hsp autocast <number> @W|@w")
+			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp autocast <number>  @W|@w")
 		end
 		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
 			local numbersize = 24-string.len(v)
