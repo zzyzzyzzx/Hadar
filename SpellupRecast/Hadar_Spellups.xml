@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.55"
+   version="0.56"
    >
 
 </plugin>
@@ -1502,7 +1502,7 @@ function hspsetelementalward(str)
 
 	if arg == "earth" or arg == "air" or arg == "fire" or arg == "water" then
 		Spellups["CG"]["elementward"] = arg
-		hadarprint("Elemental @Cward@c set to: @G"..Spellups["CG"]["elementfocus"],"script")
+		hadarprint("Elemental @Cward@c set to: @G"..Spellups["CG"]["elementward"],"script")
 	else
 		hadarprint("You need to enter which element you want to cast @CEarth@c, @CAir@c, @CFire@c, @CWater @C... @GEG hsp elementalward fire@w","script")
 	end
