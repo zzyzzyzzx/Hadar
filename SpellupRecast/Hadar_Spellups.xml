@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.58"
+   version="0.59"
    >
 
 </plugin>
@@ -1179,7 +1179,7 @@ function noAutoList(sn)
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 		if Spellups["EX"]["noAuto"][1] == nil then
 			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
-			hadarprint("@W|@c      to set a spell use hsp autocast <number>  @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp noauto <number>    @W|@w")
 		end
 		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
 			local numbersize = 24-string.len(v)
@@ -1201,7 +1201,7 @@ function noAutoList(sn)
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 		if Spellups["EX"]["noAuto"][1] == nil then
 			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
-			hadarprint("@W|@c      to set a spell use hsp autocast <number>  @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp noauto <number>    @W|@w")
 		end
 		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
 			local numbersize = 24-string.len(v)
@@ -1669,8 +1669,8 @@ function hspsetcombat(str)
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 	
 		if Spellups["EX"]["exceptions"][1] == nil then
-			hadarprint("@W|@c     No Spells are set to not autocast        @W|@w")
-			hadarprint("@W|@c     to set a spell use hsp autocast <number> @W|@w")
+			hadarprint("@W|@c     No Spells are set to cat in combat       @W|@w")
+			hadarprint("@W|@c     to set a spell use hsp combat <number>   @W|@w")
 		end
 
 		for i ,v in pairs(Spellups["EX"]["exceptions"]) do
