@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.50"
+   version="1.51"
    >
 
 </plugin>
@@ -126,6 +126,17 @@ require "serialize"
 require "gmcphelper"
 require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
+local pluscount = 0
+local utfset = false
+
+local ascii_2_utf8 = {
+     ["7C"]="E29482", -- │
+     ["2D"]="E29480", -- ─
+     ["0F"]="E2948C", -- ┌
+     ["1F"]="E29490", -- ┐
+     ["3F"]="E29498", -- ┘
+     ["2F"]="E29494", -- └
+     }
 
 function interp(s, tab)
 	return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
@@ -139,6 +150,26 @@ function hadarprint(str,level)
           AnsiNote(ColoursToANSI("@R[@Mhgm @rERROR@R]@W:@w"..str))
      elseif level == "script" then
           AnsiNote(ColoursToANSI("@G[@CG@croup@CM@canager@G]@c"..str))
+     elseif level == "helpfile" then
+		if utfset then
+			text = utils.tohex(str)
+			if string.find(text,"2B") ~= nil then
+				text = text:gsub('2B', 
+					function(x) 
+						c = pluscount.."F"
+						if pluscount == 3 then
+							pluscount = 0
+						else
+							pluscount = pluscount + 1
+						end
+						return ascii_2_utf8[c]
+					end)
+			end
+			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
+			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+		else
+			AnsiNote(ColoursToANSI(str))
+		end
      else
 		AnsiNote(ColoursToANSI(str))
 	end
@@ -182,6 +213,18 @@ function OnPluginEnable ()
 		injectVars()
 	end
      AddTrigger("ClannieJoins", HGMVariable["GL"]["ClanTrigger"], "", 3 , -1, 1, "", "HGMautoinvitetrigger")
+
+     local fonts = utils.getfontfamilies ()
+   	
+	if fonts["Courier New"] then
+    	     utfset = true
+   	elseif fonts ["Lucida Console"] then
+		utfset = true
+   	elseif fonts ["Liberation Mono"] then
+    	     utfset = true
+   	else
+		utfset = false
+   end
 end
 
 function checkExist(tbl, idx, val) 
@@ -287,6 +330,8 @@ function hgmMain(n,l,wc)
           injectVars()
           hadarprint("All Variables have been reset to default","script")
           hgmrefresh()
+     elseif first == "import" then
+          hgmpwarimport()
      else
           HadarHelp()
      end
@@ -1074,37 +1119,70 @@ function hgmConfig(args)
      SaveState()
 end
 
+function hgmpwarimport()
+     if IsPluginInstalled ("56e7e7121bf320c3510ee2e0") then
+          local inviteList
+          local invitesplit
+          local inviteKey
+          hadarprint("Importing Auto invite list from pwar's plugin","script")
+          inviteList = GetPluginVariable ("56e7e7121bf320c3510ee2e0", "inviteList")
+          inviteKey = GetPluginVariable ("56e7e7121bf320c3510ee2e0", "inviteKey")
+          inviteList = string.gsub(inviteList,"{","")
+          inviteList = string.gsub(inviteList,"}","")
+          inviteList = string.gsub(inviteList,"%[","")
+          inviteList = string.gsub(inviteList,"%]","")
+          inviteList = string.gsub(inviteList,"%d","")
+          inviteList = string.gsub(inviteList,"=","")
+          inviteList = string.gsub(inviteList,"%s","")
+          inviteList = string.gsub(inviteList,"\"","")
+          invitesplit = utils.split(inviteList,",")
+          HGMVariable["GL"]["Phrase"] = inviteKey
+          for i, v in pairs (invitesplit) do
+               if v ~= "" then
+                    table.insert(HGMVariable["AI"],string.lower(v))
+               end
+          end
+          hadarprint("Import Complete, Thank you for choosing air Hadar, we hope you have a wonderful time!","script")
+          hadarprint()
+          hadarprint("Also imported passkey, passkey is now: @G"..inviteKey,"script")
+          Execute("hgm autoinvite show")
+     else
+          hadarprint("Pwar's inviter not installed, nothing to import","error")
+     end
+end
+
 function HadarHelp()
-hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086-----------------------+")
-hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|")
-hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|")
-hadarprint("@x086|                  @x208Default set to: invite                              @x086|")
-hadarprint("@x086| @x214hgm trust      @x110- @x214add a person to trusted commands in grouptalk       @x086|")
-hadarprint("@x086|                  @Gshow@W: @x214shows your current trusted people             @x086|")
-hadarprint("@x086|                  @Gclear@W: @x214clear your current trusted people            @x086|")
-hadarprint("@x086|                  @Gadd@W: @x214add person to you your current trustlist       @x086|")
-hadarprint("@x086|                  @Gremove@W: @x214removes person from your current trustlist  @x086|")
-hadarprint("@x086| @x208hgm blacklist  @x110- @x208stop a person from being added to the group         @x086|")
-hadarprint("@x086|                  @Gshow@W: @x208shows your current blacklist                  @x086|")
-hadarprint("@x086|                  @Gclear@W: @x208clears your current blacklist                @x086|")
-hadarprint("@x086|                  @Gadd@W: @x208add person to you your current blacklist       @x086|")
-hadarprint("@x086|                  @Gremove@W: @x208removes person from your current blacklist  @x086|")
-hadarprint("@x086| @x214hgm autoinvite @x110- @Gset@W: @x214setup your clan trigger, read for info         @x086|")
-hadarprint("@x086|                  @Gshow@W: @x214shows who is on the list                      @x086|")
-hadarprint("@x086|                  @Gclear@W: @x214fully clears the list                        @x086|")
-hadarprint("@x086|                  @Gsetposition@W:@x214 sets position member name is in def. 1 @x086|")
-hadarprint("@x086|                  @Gclan@W:@x214 activates autoinviting clan members if addded @x086|")
-hadarprint("@x086|                        @x214to the autoinvite list                        @x086|")
-hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friends                @x086|")
-hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|")
-hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinvite              @x086|")
-hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|")
-hadarprint("@x086|                  @x208commands@W: @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@x086|")
-hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|")
-hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|")
-hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|")
-hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|")
-hadarprint("@x086+----------------------------------------------------------------------+")
+hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086------------------------+","helpfile")
+hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|","helpfile")
+hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|","helpfile")
+hadarprint("@x086|                  @x208Default set to: invite                              @x086|","helpfile")
+hadarprint("@x086| @x214hgm trust      @x110- @x214add a person to trusted commands in grouptalk       @x086|","helpfile")
+hadarprint("@x086|                  @Gshow@W: @x214shows your current trusted people             @x086|","helpfile")
+hadarprint("@x086|                  @Gclear@W: @x214clear your current trusted people            @x086|","helpfile")
+hadarprint("@x086|                  @Gadd@W: @x214add person to you your current trustlist       @x086|","helpfile")
+hadarprint("@x086|                  @Gremove@W: @x214removes person from your current trustlist  @x086|","helpfile")
+hadarprint("@x086| @x208hgm blacklist  @x110- @x208stop a person from being added to the group         @x086|","helpfile")
+hadarprint("@x086|                  @Gshow@W: @x208shows your current blacklist                  @x086|","helpfile")
+hadarprint("@x086|                  @Gclear@W: @x208clears your current blacklist                @x086|","helpfile")
+hadarprint("@x086|                  @Gadd@W: @x208add person to you your current blacklist       @x086|","helpfile")
+hadarprint("@x086|                  @Gremove@W: @x208removes person from your current blacklist  @x086|","helpfile")
+hadarprint("@x086| @x214hgm autoinvite @x110- @Gset@W: @x214setup your clan trigger, read for info         @x086|","helpfile")
+hadarprint("@x086|                  @Gshow@W: @x214shows who is on the list                      @x086|","helpfile")
+hadarprint("@x086|                  @Gclear@W: @x214fully clears the list                        @x086|","helpfile")
+hadarprint("@x086|                  @Gsetposition@W:@x214 sets position member name is in def. 1 @x086|","helpfile")
+hadarprint("@x086|                  @Gclan@W:@x214 activates autoinviting clan members if addded @x086|","helpfile")
+hadarprint("@x086|                        @x214to the autoinvite list                        @x086|","helpfile")
+hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friends                @x086|","helpfile")
+hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|","helpfile")
+hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinvite              @x086|","helpfile")
+hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|","helpfile")
+hadarprint("@x086|                  @x208commands@W: @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@x086|","helpfile")
+hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|","helpfile")
+hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|","helpfile")
+hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|","helpfile")
+hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|","helpfile")
+hadarprint("@x086| @x214hgm import     @x110- @x208imports auto list from pwar's invter                @x086|","helpfile")
+hadarprint("@x086+----------------------------------------------------------------------+","helpfile")
 
 end
 
