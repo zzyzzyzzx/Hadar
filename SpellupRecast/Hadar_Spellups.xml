@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.57"
+   version="0.58"
    >
 
 </plugin>
@@ -724,6 +724,8 @@ function HSPmain(name, line, wc)
 		HadarHelp(rest)
 	elseif first == "percent" then
 		hspsetpercent(rest)
+	elseif first == "cskill" then
+		hspshowcskill()
 	else
 		HadarHelp("nadda")
 	end
@@ -1744,6 +1746,10 @@ function hspsetpercent(str)
 	end
 end
 
+function hspshowcskill()
+	hadarprint("Current Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
+end
+
 function HadarHelp(str)
 	local arg, rest
 	
@@ -1816,6 +1822,7 @@ function HadarHelp(str)
 		hadarprint("@x086| @x214hsp elementalward <ele> @x110- @x214change the element for elemental ward      @x086|@w","helpfile")
 		hadarprint("@x086| @x208hsp gaiasfocus <element>@x110- @x208change the element for recast 	            @x086|@w","helpfile")
 		hadarprint("@x086| @x214hsp percent <number>    @x110- @x214Sets mana percentage to stop auto casting  @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp cskill              @x110- @x208shows your current cskill along with SN    @x086|@w","helpfile")
 		hadarprint("@x086+-------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086--------------------------+@w","helpfile")
 		hadarprint("@x086|                           @x214hsp help combat                            @x086|","helpfile")
 		hadarprint("@x086|                           @x208hsp help timer                             @x086|","helpfile")
