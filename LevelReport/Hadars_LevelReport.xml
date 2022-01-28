@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.04"
+   version="3.05"
    >
 
 </plugin>
@@ -586,7 +586,7 @@ function injectVars()
      v["GL"]["commLog"] = "no"
      v["GL"]["mainWindow"] = "yes"
      v["GL"]["commLogTab"] = nil
-     v["GL"]["channel"] = "gt"
+     v["GL"]["channel"] = "echo"
      v["GL"]["TNL"] = tonumber(gmcp("char.base.perlevel"))
      v["GL"]["Logo"] = "@G[@CL@cevel @CR@ceport]@c "
 -----------Initilize Pup Variables------------------------
