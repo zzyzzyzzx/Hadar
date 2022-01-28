@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.60"
+   version="0.61"
    >
 
 </plugin>
@@ -1809,6 +1809,24 @@ function hspshowcskill(str)
 	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
 	arg = tonumber(arg) or string.lower(arg)
 
+	if Spellups["GL"]["clan"] == "none" then
+		local grabmessage = {
+			"You know you need to be in a clan to do this! (loner and outcast dont count) *facepalm",
+			"Buuuuut mom, I wish I had a clanskill to see! *ponder",
+			"Can I haz cskill?",
+			"You know, you would have a clan skill if you joined tao! http://aardtao.com",
+			"One day. The day will come, and this command will be useful.",
+			"Teehee, only YOU can see these messages, you know since no clan.",
+			"Honey? 'What?' Where is my Clan Skill? 'What?' Where - IS - MY - CLAN SKILL!",
+			"You know I wish I was funny ... it would make this message that you need a clan skill more interesting.",
+			"What do you call a person without a morgue? clanless!",
+			"You know. if you joined a clan you would not have to put up with these messages.",
+		}
+		local rnd = math.random(1,10)
+		hadarprint(grabmessage[rnd],"noclan")
+		return
+	end
+
 	if arg == "set" and rest ~= nil then
 		local nm2 = rest:gsub(" ","_")
 		if table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
@@ -1825,24 +1843,7 @@ function hspshowcskill(str)
 			hadarprint("You can disable V1 cskill with @Ghsp cskill set none@w","script")
 			hadarprint("Current V1 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskillV1"]]["name"].." @C[@G"..Spellups["EX"]["clanskillV1"].."@C]@w","script")
 		end
-		if Spellups["EX"]["clanskill"] ~= "" then
-			hadarprint("Current V2 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
-		else
-			local grabmessage = {
-				"You know you need to be in a clan to do this! (loner and outcast dont count) *facepalm",
-				"Buuuuut mom, I wish I had a clanskill to see! *ponder",
-				"Can I haz cskill?",
-				"You know, you would have a clan skill if you joined tao! http://aardtao.com",
-				"One day. The day will come, and this command will be useful.",
-				"Teehee, only YOU can see these messages, you know since no clan.",
-				"Honey? 'What?' Where is my Clan Skill? 'What?' Where - IS - MY - CLAN SKILL!",
-				"You know I wish I was funny ... it would make this message that you need a clan skill more interesting.",
-				"What do you call a person without a morgue? clanless!",
-				"You know. if you joined a clan you would not have to put up with these messages.",
-			}
-			local rnd = math.random(1,10)
-			hadarprint(grabmessage[rnd],"noclan")
-		end
+		hadarprint("Current V2 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 	end
 end
 
