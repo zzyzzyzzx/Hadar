@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.61"
+   version="0.62"
    >
 
 </plugin>
@@ -755,7 +755,7 @@ function setdebug()
 end
 
 function testshow(arg)
-    --tprint(Spellups["AS"]["namelist"])
+    tprint(Spellups["AS"]["attack"])
 	--tprint(Spellups["RT"]["reverse"])
 	--Note(IsTimer("warn_30_"..arg))
 	--Note(IsTimer("warn_10_"..arg))
@@ -1320,9 +1320,7 @@ function recoff(n,l,wc)
 			hadarprint("Autocasting totem guidance or totem focus not set")
 		end
 	else
-		if contains(Spellups["AS"]["attack"],skillnum) then
-			--is attack spell dont attempt to recast
-		else
+		if table.find(Spellups["AS"]["attack"]) == nil then
 			hadarprint("recasting:"..skillname,"debug")
 
 			Spellups["QS"][skillnum] = Spellups["AS"]["list"][skillnum]["name"]
