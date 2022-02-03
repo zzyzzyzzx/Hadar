@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.64"
+   version="0.65"
    >
 
 </plugin>
@@ -36,7 +36,7 @@
 	name="SListStart"
 	group="slistCapture"
 	enabled="n"
-	match="\{spellheaders noprompt\}$"
+	match="\{spellheaders hsp\}$"
 	regexp="y"
 	omit_from_output="y"
 	sequence="100"
@@ -53,20 +53,20 @@
 >
 </trigger>
 <trigger
-     name="SListCapture"
-     group="slistCapture"
-     enabled="n"
-     match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
-     regexp="y"
-     omit_from_output="y"
-     sequence="100"
-     script="SlistUpdate"
+	name="hspCapture"
+    group="slistCapture"
+    enabled="n"
+    match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
+    regexp="y"
+    omit_from_output="y"
+    sequence="100"
+    script="SlistUpdate"
 >
 </trigger>
 <trigger
 	name="RecoveriesStart"
 	enabled="n"
-	match="^\{recoveries noprompt\}$"
+	match="^\{recoveries hsp\}$"
 	regexp="y"
 	omit_from_output="y"
 	sequence="100"
@@ -623,7 +623,7 @@ function SendSlistCommand()
 		EnableTriggerGroup("slistCapture", true)
 		EnableTrigger("RecoveriesStart", true)
 		hadarprint("***Getting Skills/Spells","script")
-		SendNoEcho("slist noprompt")
+		SendNoEcho("slist hsp")
 	end
 end
 
@@ -640,21 +640,25 @@ function SlistUpdate(name, line, wildcards)
 	local nm2 = nm:gsub(" ","_")
 	Spellups["AS"]["namelist"][nm2] = {skillnum = sn}
 	
-     if tg == 2 or tg == 3 then
-          Spellups["AS"]["spellup"][sn] = nm
-     end
-     if tg == 5 then
-          Spellups["AS"]["other"][sn] = nm
-     end
-     if rc ~= -1 and tg == 2 then
-          Spellups["AS"]["recovery"][sn] = nm
-     end
-     if tg == 1 then
+    if tg == 2 or tg == 3 then
+        Spellups["AS"]["spellup"][sn] = nm
+    end
+    if tg == 5 then
+        Spellups["AS"]["other"][sn] = nm
+    end
+    if rc ~= -1 and tg == 2 then
+        Spellups["AS"]["recovery"][sn] = nm
+    end
+    if tg == 1 then
 		Spellups["AS"]["attack"][sn] = nm
-     end
-	 if sn == 574 then
+    end
+	if sn == 574 then
 		Spellups["AS"]["attack"][sn] = nm
-	 end
+	end
+	if sn == 285 then
+		Spellups["AS"]["attack"][sn] = nm
+	end
+	
 	
 	if ty == 1 then
 		Spellups["AS"]["spells"][sn] = nm
