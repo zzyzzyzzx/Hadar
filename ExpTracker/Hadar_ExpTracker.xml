@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.86"
+   version="1.87"
    >
 
 </plugin>
@@ -733,7 +733,7 @@ function expDoubleSet(param)
 		end
      elseif param == "session" then
           HadarBackup = expTracker["SN"].message
-		expTracker["SN"].message = utils.inputbox ("${month} - shows if session has been running a month\n${day} - shows if session has been running 1+ days\n${hour} - session hours\n${min} - session minutes\n${sec} - session seconds\n${totexp} - total exp over session\n${killexp} - how much exp from just kills\n${rareexp} - rare mobs exp\n${bonusexp} - bonus exp\n${kills} - how many kills\n${logo} - shows logo", "Logo", expTracker["GL"]["Logo"], "Courier", 9)
+		expTracker["SN"].message = utils.inputbox ("${month} - shows if session has been running a month\n${day} - shows if session has been running 1+ days\n${hour} - session hours\n${min} - session minutes\n${sec} - session seconds\n${totexp} - total exp over session\n${killexp} - how much exp from just kills\n${rareexp} - rare mobs exp\n${bonusexp} - bonus exp\n${kills} - how many kills\n${logo} - shows logo", "Logo", expTracker["SN"]["message"], "Courier", 9)
 		
 		if expTracker["SN"].message ~= nil then
 			hadarprint("Session message will look like@W: @w"..expTracker["SN"].message,"script")
