@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.65"
+   version="0.66"
    >
 
 </plugin>
@@ -33,8 +33,8 @@
 <triggers>
 
  <trigger
-	name="SListStart"
-	group="slistCapture"
+	name="HSPListStart"
+	group="HSPslistCapture"
 	enabled="n"
 	match="\{spellheaders hsp\}$"
 	regexp="y"
@@ -43,18 +43,19 @@
 >
 </trigger>
 <trigger
-	name="SListEnd"
-	group="slistCapture"
+	name="HSPListEnd"
+	group="HSPslistCapture"
 	enabled="n"
-	match="^{\/spellheaders\}$"
+	match="^\{\/spellheaders\}$"
 	regexp="y"
 	omit_from_output="y"
-     sequence="100"
+    sequence="100"
+	script="HSP_stop_sList"
 >
 </trigger>
 <trigger
-	name="hspCapture"
-    group="slistCapture"
+	name="HSPListCapture"
+    group="HSPslistCapture"
     enabled="n"
     match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
     regexp="y"
@@ -64,7 +65,7 @@
 >
 </trigger>
 <trigger
-	name="RecoveriesStart"
+	name="HSPRecoveriesStart"
 	enabled="n"
 	match="^\{recoveries hsp\}$"
 	regexp="y"
@@ -73,13 +74,13 @@
 	send_to="12"
 >
 <send>
-	EnableTrigger("RecoveriesStart", false)
-	EnableTrigger("RecoveriesCapture", true)
-	EnableTrigger("RecoveriesEnd", true)
+	EnableTrigger("HSPRecoveriesStart", false)
+	EnableTrigger("HSPRecoveriesCapture", true)
+	EnableTrigger("HSPRecoveriesEnd", true)
 </send>
 </trigger>
 <trigger
-	name="RecoveriesCapture"
+	name="HSPRecoveriesCapture"
 	enabled="n"
 	match="^[0-9]+,[^,]+,[0-9]+$"
 	regexp="y"
@@ -88,7 +89,7 @@
 >
 </trigger>
 <trigger
-	name="RecoveriesEnd"
+	name="HSPRecoveriesEnd"
 	enabled="n"
 	match="^\{\/recoveries\}$"
 	regexp="y"
@@ -97,9 +98,9 @@
 	send_to="12"
 >
 <send>
-	EnableTrigger("RecoveriesStart", false)
-	EnableTrigger("RecoveriesCapture", false)
-     EnableTrigger("RecoveriesEnd", false)
+	EnableTrigger("HSPRecoveriesStart", false)
+	EnableTrigger("HSPRecoveriesCapture", false)
+     EnableTrigger("HSPRecoveriesEnd", false)
 </send>
 </trigger>
 
@@ -620,11 +621,18 @@ end
 function SendSlistCommand()
 	if (slistCommandSent == false) then
 		slistCommandSent = true
-		EnableTriggerGroup("slistCapture", true)
-		EnableTrigger("RecoveriesStart", true)
+		EnableTriggerGroup("HSPslistCapture", true)
+		EnableTrigger("HSPRecoveriesStart", true)
 		hadarprint("***Getting Skills/Spells","script")
 		SendNoEcho("slist hsp")
 	end
+end
+
+function HSP_stop_sList()
+		EnableTriggerGroup("HSPslistCapture", false)
+		SaveState()
+
+		hadarprint("***Got all skills/spells","script")
 end
 
 function SlistUpdate(name, line, wildcards)
