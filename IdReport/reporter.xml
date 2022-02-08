@@ -3,73 +3,58 @@
 
 <muclient>
 <plugin
-   name="Hadars_identify"
-   author="Hadar"
-   id="a92c40f4114e1d08f4c121ed"
-   language="Lua"
-   purpose="identify script that will at some point update hadar.ninja"
-   save_state="y"
-   date_written="2020-01-01 00:00:00"
-   requires="4.00"
-   version="2.13"
-   >
+  name="Hadars_identify"
+  author="Hadar"
+  id="a92c40f4114e1d08f4c121ed"
+  language="Lua"
+  purpose="identify script that will at some point update hadar.ninja"
+  save_state="y"
+  date_written="2020-01-01 00:00:00"
+  requires="4.00"
+  version="2.14"
+  >
 
 </plugin>
-
-<!--  Triggers
-
-<trigger
-   enabled="y"
-   match=""
-   omit_from_output="y"
-   regexp="y"
-   group=""
-   script=""
-   sequence="100"
-  >
-</trigger>
-
-  -->
 
 <triggers>
 
 <trigger
-   enabled="n"
-   match="^\+-*\+$"
-   omit_from_output="y"
-   regexp="y"
-   group="idCap"
-   sequence="100"
+  enabled="n"
+  match="^\+-*\+$"
+  omit_from_output="y"
+  regexp="y"
+  group="idCap"
+  sequence="100"
   >
 </trigger>
 
 <trigger
-   enabled="y"
-   match="^Auction: \w+ is auctioning .* \(Level \d+, Num (\d+)\)\. Current bid is [0-9,]+\.$"
-   omit_from_output="n"
-   regexp="y"
-   script="autoidenta"
-   sequence="100"
+  enabled="y"
+  match="^Auction: \w+ is auctioning .* \(Level \d+, Num (\d+)\)\. Current bid is [0-9,]+\.$"
+  omit_from_output="n"
+  regexp="y"
+  script="autoidenta"
+  sequence="100"
   >
 </trigger>
 
 <trigger
-   enabled="y"
-   match="^Market\: \w+ is selling .* \(Level \d+, Num (\d+)\)\. Auction is for \w+\.$"
-   omit_from_output="n"
-   regexp="y"
-   script="autoidentl"
-   sequence="100"
+  enabled="y"
+  match="^Market\: \w+ is selling .* \(Level \d+, Num (\d+)\)\. Auction is for \w+\.$"
+  omit_from_output="n"
+  regexp="y"
+  script="autoidentl"
+  sequence="100"
   >
 </trigger>
 
 <trigger
-   enabled="n"
-   match="^Current bid on this item is .* \(No bid yet\)\.$"
-   omit_from_output="y"
-   regexp="y"
-   sequence="100"
-   group="idCap"
+  enabled="n"
+  match="^Current bid on this item is .* \(No bid yet\)\.$"
+  omit_from_output="y"
+  regexp="y"
+  sequence="100"
+  group="idCap"
   >
 </trigger>
 
@@ -236,43 +221,58 @@ function hidMain(n,l,w)
      
 
 	if first == "help" then
-          HadarHelp(rest)
+    HadarHelp(rest)
 	elseif first == "channel" then
 		setreportchannel(rest)
 	elseif first == "autoid" then
 		toggleAutoID()
-     elseif first == "words" then
-          setreportwords()
-     elseif first == "beep" then
-          toggleannoying()
-     elseif first == "set" then
-          setOutput()
-     elseif first == "max" then
-          idmax(rest)
-     elseif first == "reset" then
-          hadarreset()
-     elseif first == "fullreset" then
-          if rest == "confirm" then
-               hadarresetfull()
-          else
-               hadarprint("@yIf you are sure you would to fully reset and lose all data please do: @Rhid fullreset confirm")
-          end
-     elseif first == "all" then
-          showid("all","blank")
-     elseif first == "id" then
-          EnableTriggerGroup("idCap", true)
+  elseif first == "words" then
+    setreportwords()
+  elseif first == "beep" then
+    toggleannoying()
+  elseif first == "set" then
+    setOutput()
+  elseif first == "max" then
+    idmax(rest)
+  elseif first == "reset" then
+    hadarreset()
+  elseif first == "fullreset" then
+    if rest == "confirm" then
+      hadarresetfull()
+    else
+      hadarprint("@yIf you are sure you would to fully reset and lose all data please do: @Rhid fullreset confirm")
+    end
+  elseif first == "all" then
+    showid("all","blank")
+  elseif first == "id" then
+    EnableTriggerGroup("idCap", true)
 		SendSpecial("identify "..rest)
-     elseif type(first) == "number" then
-          showid(first,rest)
-     else
-          EnableTriggerGroup("idCap", true)
-		SendSpecial("identify "..first)
+  elseif first == "lbid" then
+    hidlbid(rest)
+  elseif type(first) == "number" then
+    showid(first,rest)
+  else
+    EnableTriggerGroup("idCap", true)
+    local blegh, megh = rest:match("([0-9.a-zA-Z]*)%s*(.*)")
+    if blegh == "worn" then
+      --SendNoEcho("identify "..first.." worn")
+      Send ("id "..first.." worn")
+      if megh == nil or megh == "" or mwgh == " " then
+        overwriteChannel = idreport.channel
+      else
+        overwriteChannel = megh
+      end
+      return
+    else
+      --SendNoEcho("identify "..first)
+      Send("identify "..first)
+    end
           
-          if rest == nil or rest == "" or rest == " " then
-               overwriteChannel = idreport.channel
-          else
-               overwriteChannel = rest
-          end
+    if rest == nil or rest == "" or rest == " " then
+      overwriteChannel = idreport.channel
+    else
+      overwriteChannel = rest
+    end
 	end
 
 end --end of qpsgoalMain() 
@@ -978,8 +978,8 @@ end
 
 function makeOutput()
 		local msg = interp(idreport.output,{
-		  id = report.Id
-          , repid = idreport.currentid
+    id = report.Id
+    , repid = idreport.currentid
 		, name = report.coloredname
 		, lvl = report.Level
 		, weight = report.Weight
@@ -1004,7 +1004,7 @@ function makeOutput()
 		, itemburden = report.ItemBurden
 		, weightred = report.WeightReduction
 		, clan = report.Clan
-          , str = report.Str
+    , str = report.Str
 		, int = report.Int
 		, wis = report.Wis
 		, dex = report.Dex
@@ -1028,7 +1028,7 @@ function makeOutput()
 		, specials = report.Specials
 		, flagsall = report.Flags
 		, flagsenchant = report.enchanting
-          , resistall = report.resistAll
+    , resistall = report.resistAll
 		, acid = report.Acid
 		, cold = report.Cold
 		, energy = report.Energy
@@ -1060,9 +1060,9 @@ function makeOutput()
 		, enchantillum = report.enchantingIllum
 		, enchantillumyes = report.enchantIllumyes
 		, enchantillumno = report.enchantIllumno
-          , bidnum = report.bidNum
-          , rbidnum = report.rbidNum
-          , lbidnum = report.lbidNum
+    , bidnum = report.bidNum
+    , rbidnum = report.rbidNum
+    , lbidnum = report.lbidNum
 	})
      
      OldChannel = idreport.channel
@@ -1077,7 +1077,6 @@ function makeOutput()
           idreport[1] = msg
 		idreport.currentid = 2
 	end
-     
      
 	SendSpecial(idreport.channel .. " " .. msg)
 
@@ -1219,10 +1218,23 @@ end
 
 function autoidentl(name, line, wildcards)
 	if idreport.autoid == "yes" then
-		EnableTriggerGroup("idCap", true)
+    EnableTriggerGroup("idCap", true)
 		report.lbidNum = wildcards[1]
 		SendSpecial("lbid "..report.lbidNum)
 	end
+end
+
+function hidlbid(str)
+  local first, rest = str:match("(%d+)%s*(.*)")
+  EnableTriggerGroup("idCap", true)
+  report.lbidNum = first
+  SendSpecial("lbid "..report.lbidNum)
+
+  if rest == nil or rest == "" or rest == " " then
+    overwriteChannel = idreport.channel
+  else
+    overwriteChannel = rest
+  end
 end
 
 function idmax(name, line, wildcards)
@@ -1386,6 +1398,7 @@ helpfile = [[
 @x086|                          @x142type hid help 2 for a helpfile with variable@x086|
 @x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
 @x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
+@x086| @x130hid lbid <number>      @x123- @x130will output lbid item                       @x086|
 @x086|                                                                      @x086|
 @x086|                                                                      @x086|
 @x086| @cTo Customize the script please read the following@w:                   @x086|
