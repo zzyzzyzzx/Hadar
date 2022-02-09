@@ -11,7 +11,7 @@
   save_state="y"
   date_written="2020-01-01 00:00:00"
   requires="4.00"
-  version="2.14"
+  version="2.15"
   >
 
 </plugin>
@@ -249,6 +249,10 @@ function hidMain(n,l,w)
 		SendSpecial("identify "..rest)
   elseif first == "lbid" then
     hidlbid(rest)
+  elseif first == "bid" then
+    hidbid(rest)
+  elseif first == "rbid" then
+    hidrbid(rest)
   elseif type(first) == "number" then
     showid(first,rest)
   else
@@ -1237,6 +1241,32 @@ function hidlbid(str)
   end
 end
 
+function hidrbid(str)
+  local first, rest = str:match("(%d+)%s*(.*)")
+  EnableTriggerGroup("idCap", true)
+  report.rbidNum = first
+	SendSpecial("rbid "..report.rbidNum)
+
+  if rest == nil or rest == "" or rest == " " then
+    overwriteChannel = idreport.channel
+  else
+    overwriteChannel = rest
+  end
+end
+
+function hidbid(str)
+  local first, rest = str:match("(%d+)%s*(.*)")
+  EnableTriggerGroup("idCap", true)
+  report.bidNum = first
+	SendSpecial("bid "..report.bidNum)
+
+  if rest == nil or rest == "" or rest == " " then
+    overwriteChannel = idreport.channel
+  else
+    overwriteChannel = rest
+  end
+end
+
 function idmax(name, line, wildcards)
 	if tonumber(wildcards[1]) then
 		idreport.maxid = wildcards[1]
@@ -1251,33 +1281,36 @@ local helpfile
 
 if param == "" or param == " " or param == nil or param == "1" then
 helpfile = [[
-@x086+----------------------------@G[@x051I@cdentify @WV:]]..GetPluginInfo (GetPluginID (), 19)..[[@g]@x086-------------------------+
-@x086|                                                                      @x086|
-@x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
-@x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
-@x086| @x130hid autoid             @x123- @x130toggle auto iding bids, rauction and market @x086|
-@x086| @x142hid beep               @x123- @x142toggle trigger words for beeps/icon flashing@x086|
-@x086| @x130hid words              @x123- @x130lets you make a list of words for idbeeps   @x086|
-@x086| @x142hid <id|all> <channel> @x123- @x142Lets you see past Ids use with hid max      @x086|
-@x086|                          @x142all shows all IDS                           @x086|
-@x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
-@x086|                          @x130default is 20                               @x086|
-@x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
-@x086|                          @x142type hid help 2 for a helpfile with variable@x086|
-@x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
-@x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
-@x086|                                                                      @x086|
-@x086|                                                                      @x086|
-@x086| @cTo Customize the script please read the following@w:                   @x086|
-@x086| @x130hid help 2 - @x130shows the second helpfile with all the variables        @x086|
-@x086| @x142hid help 3 - @x142shows the third helpfile with variables                 @x086|
-@x086| @x130hid help 4 - @x130shows the fourth helpfile with variables                @x086|
-@x086| @x142hid help 5 - @x142shows the fifth helpfile with variables                 @x086|
-@x086| @x130hid help 6 - @x130shows the sixth helpfile with variables                 @x086|
-@x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
-@x086|                                                                      @x086|
-@x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
-@x086+----------------------------------------------------------------------+@w]]
+  @x086+----------------------------@G[@x051I@cdentify @WV:]]..GetPluginInfo (GetPluginID (), 19)..[[@g]@x086-------------------------+
+  @x086|                                                                      @x086|
+  @x086| @x130hid <paramaters>       @x123- @x130command to use the script                   @x086|
+  @x086| @x142hid channel <channel>  @x123- @x142set channel for default reporting           @x086|
+  @x086| @x130hid autoid             @x123- @x130toggle auto iding bids, rauction and market @x086|
+  @x086| @x142hid beep               @x123- @x142toggle trigger words for beeps/icon flashing@x086|
+  @x086| @x130hid words              @x123- @x130lets you make a list of words for idbeeps   @x086|
+  @x086| @x142hid <id|all> <channel> @x123- @x142Lets you see past Ids use with hid max      @x086|
+  @x086|                          @x142all shows all IDS                           @x086|
+  @x086| @x130hid max <number>       @x123- @x130change the max ids to keep in history       @x086|
+  @x086|                          @x130default is 20                               @x086|
+  @x086| @x142hid set                @x123- @x142will let you hadarmagic the output          @x086|
+  @x086|                          @x142type hid help 2 for a helpfile with variable@x086|
+  @x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
+  @x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
+  @x086| @x130hid lbid <number> [chan]@x123- @x130will output lbid item                      @x086|
+  @x086| @x142hid rbid <number> [chan]@x123- @x142will output a remort auction item          @x086|
+  @x086| @x130hid bid <number> [chan] @x123- @x130will output an item up for auction         @x086|
+  @x086|                                                                      @x086|
+  @x086|                                                                      @x086|
+  @x086| @cTo Customize the script please read the following@w:                   @x086|
+  @x086| @x130hid help 2 - @x130shows the second helpfile with all the variables        @x086|
+  @x086| @x142hid help 3 - @x142shows the third helpfile with variables                 @x086|
+  @x086| @x130hid help 4 - @x130shows the fourth helpfile with variables                @x086|
+  @x086| @x142hid help 5 - @x142shows the fifth helpfile with variables                 @x086|
+  @x086| @x130hid help 6 - @x130shows the sixth helpfile with variables                 @x086|
+  @x086| @x142hid help examples - @x142shows the second helpfile with all the variables @x086|
+  @x086|                                                                      @x086|
+  @x086| @WIf you have any issues please contact me via note/tell or on discord @x086|
+  @x086+----------------------------------------------------------------------+@w]]
 elseif param == "2" then
 helpfile = [[
 @x099+-----------------------------@g[@CI@cdentify @R2@g]@x099-----------------------------+
@@ -1398,7 +1431,9 @@ helpfile = [[
 @x086|                          @x142type hid help 2 for a helpfile with variable@x086|
 @x086| @x130hid reset              @x123- @x130sets hadarmagic output back to the default  @x086|
 @x086| @x142hid fullreset          @x123- @x142resets the script to install status         @x086|
-@x086| @x130hid lbid <number>      @x123- @x130will output lbid item                       @x086|
+@x086| @x130hid lbid <number> [chan]@x123- @x130will output lbid item                      @x086|
+@x086| @x142hid rbid <number> [chan]@x123- @x142will output a remort auction item          @x086|
+@x086| @x130hid bid <number> [chan] @x123- @x130will output an item up for auction         @x086|
 @x086|                                                                      @x086|
 @x086|                                                                      @x086|
 @x086| @cTo Customize the script please read the following@w:                   @x086|
