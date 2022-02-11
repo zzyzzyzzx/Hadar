@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.66"
+   version="0.67"
    >
 
 </plugin>
@@ -382,6 +382,9 @@ function OnPluginBroadcast(msg, id, name, text)
             assert (loadstring (luastmt or "")) ()
 			
 			currentmana = tonumber(gmcpval("vitals.mana"))
+			if type(currentmana) ~= "number" then
+				currentmana = nil
+			end
 		end
 		if (text == "char.maxstats") then
 			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
@@ -968,13 +971,11 @@ function cast_spells()
 	end
 
 	if currentmana == nil or currentmana == -1 then
-		goto manaiscausingissues
-	end
-
-	if Spellups["EX"]["percentageStop"] >= currentmana then
+		--left blank to test something
+	elseif Spellups["EX"]["percentageStop"] >= currentmana then
 		return
 	end
-	::manaiscausingissues::
+	
 	for i,v in pairs (Spellups["QS"]) do
         local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
 
