@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.67"
+   version="0.68"
    >
 
 </plugin>
@@ -445,8 +445,8 @@ function OnPluginEnable ()
 	
 	charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
     currentState = tonumber(charstatus.state)
-	maxmana = tonumber(gmcp("char.maxstats.maxmana"))
-	currentmana = tonumber(gmcp("char.vitals.mana"))
+	maxmana = tonumber(gmcp("char.maxstats.maxmana")) or -1
+	currentmana = tonumber(gmcp("char.vitals.mana")) or -1
 	
 	Spellups["GL"]["clan"] = gmcp("char.base.clan") -- fetch char.base and return it as a Lua table
 	 
