@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.69"
+   version="0.70"
    >
 
 </plugin>
@@ -997,7 +997,7 @@ function cast_spells()
 					end
 				end
 
-				if Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] then 
+				if Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
 					cast_this(i,ctype)
 				else
 					Spellups["QS"][i] = nil --if spell not practiced remove from queue
