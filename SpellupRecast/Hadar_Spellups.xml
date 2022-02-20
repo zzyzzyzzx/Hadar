@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.70"
+   version="0.71"
    >
 
 </plugin>
@@ -880,7 +880,19 @@ function affoff(name,line,wc)
 	
 	if Spellups["AS"]["list"][sn]["target"] == 2 or Spellups["AS"]["list"][sn]["target"] == 3 or sn == Spellups["EX"]["clanskill"] or sn == Spellups["EX"]["clanskillV1"] then
 		if currentState == 8 then
-			if Spellups["GL"]["autoaura"] == "yes" then
+			if sn == 71 or sn == 102 or sn == 180 then
+				if sn == 71 or sn == 102 then
+					Spellups["GL"]["sancoff"] = "yes"
+					hadarprint("sancoff = yes","debug")
+					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+				end
+				hadarprint("CS = 8, autoaura = on, sn = 71 or 108 or 180","debug")
+				if sn == 180 then
+					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+				end
+				return
+			end
+			if Spellups["GL"]["autoaura"] == "yes" and sn == 71 or sn == 102 then
 				if Spellups["GL"]["auranumber"] ~= 0 then
 					hadarprint("autoaura not 0","debug")
 					if Spellups["GL"]["sancoff"] == "yes" then 
@@ -904,18 +916,6 @@ function affoff(name,line,wc)
 					end
 				end
 				Spellups["GL"]["autoaurafired"] = "no"
-			end
-			if sn == 71 or sn == 102 or sn == 180 then
-				if sn == 71 or sn == 102 then
-					Spellups["GL"]["sancoff"] = "yes"
-					hadarprint("sancoff = yes","debug")
-					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
-				end
-				hadarprint("CS = 8, autoaura = on, sn = 71 or 108 or 180","debug")
-				if sn == 180 then
-					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
-				end
-				return
 			end
 		end
 		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
