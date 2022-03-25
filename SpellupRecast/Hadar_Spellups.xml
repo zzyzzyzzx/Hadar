@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.71"
+   version="0.72"
    >
 
 </plugin>
@@ -842,9 +842,6 @@ function affoff(name,line,wc)
 	end
 
 	if sn == 552 then
-		if Spellups["CG"]["gaiasfocus"] == 0 then
-			goto pastsncheckGF
-		end
 		if table.find(518,Spellups["AF"]["list"]) then
 			--left empty becaue
 		else
@@ -854,21 +851,25 @@ function affoff(name,line,wc)
 				Spellups["QS"][552] = Spellups["AS"]["list"][552]["name"]
 				Spellups["QS"][518] = Spellups["AS"]["list"][518]["name"]
 			else
-				cast_this(552,ctype)
-				cast_this(518,ctype)
+				cast_this(552,ctypefocus)
+				cast_this(518,ctyperevenge)
 			end
 		end
 	end
-	::pastsncheckGF::
+
 	if sn == 518 then
+		Spellups["AF"]["list"][sn] = tm
 		if table.find(552,Spellups["AF"]["list"]) then
 			--left empty becaue
 		else
+			local ctypefocus = tonumber(Spellups["AS"]["list"][552]["type"])
+			local ctyperevenge = tonumber(Spellups["AS"]["list"][518]["type"])
 			if currentState == 8 then
-				Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+				Spellups["QS"][552] = Spellups["AS"]["list"][552]["name"]
+				Spellups["QS"][518] = Spellups["AS"]["list"][518]["name"]
 			else
-				local ctype = tonumber(Spellups["AS"]["list"][552]["type"])
-				cast_this(552,ctype)
+				cast_this(552,ctypefocus)
+				cast_this(518,ctyperevenge)
 			end
 		end
 	end
@@ -1543,7 +1544,7 @@ function hspsetgaiasfocus(str)
 	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
 	arg = string.lower(arg)
 
-	if arg == "random" then
+	if arg == "random" or arg == "none" then
 		Spellups["CG"]["gaiasfocus"] = 0
 		hadarprint("Gaia's @Cfocus@c set to: @GRandom","script")
 		return
