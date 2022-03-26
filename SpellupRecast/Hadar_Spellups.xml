@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.72"
+   version="0.73"
    >
 
 </plugin>
@@ -1252,7 +1252,7 @@ function noAutoList(sn)
 end
 
 function make_vis()
-	hadarprint("Letting you go visable","script")
+	hadarprint("Letting you go visible","script")
 	EnableAlias("do_vis", false)
 		
 	if Spellups["GL"]["disabled"] == "yes" then
