@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.73"
+   version="0.74"
    >
 
 </plugin>
@@ -1194,13 +1194,17 @@ function contains(tableToSearch, value)
 function noAutoList(sn)
 	sn = tonumber(sn) or string.lower(sn)
 	if type(sn) == "number" then
-  		if contains(Spellups["EX"]["noAuto"], sn) then 
-  			hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the NOAUTO list","script")
-  			remove(Spellups["EX"]["noAuto"], sn)
-  		else
-			hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the NOAUTO list","script")	
-  			table.insert(Spellups["EX"]["noAuto"], sn)
-  		end
+		if contains(Spellups["AS"]["list"],sn) then
+  			if contains(Spellups["EX"]["noAuto"], sn) then 
+  				hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the NOAUTO list","script")
+  				remove(Spellups["EX"]["noAuto"], sn)
+  			else
+				hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the NOAUTO list","script")	
+  				table.insert(Spellups["EX"]["noAuto"], sn)
+  			end
+		else
+			hadarprint("Please input a valid SN","error")
+		end
 	elseif sn == "clear" then
 		Spellups["EX"]["noAuto"] = {}
 		hadarprint("Your list of no cast spells has been cleared.","script")
@@ -1576,16 +1580,20 @@ function hspdotimerexception(str)
 
 
 	if type(arg) == "number" then
-		if contains(Spellups["EX"]["Timer"], arg) then 
-			hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the timers list","script")
-			remove(Spellups["EX"]["Timer"], arg)
-			Spellups["EX"]["thirtytimer"][arg] = "no"
-			Spellups["EX"]["tentimer"][arg] = "no"
+		if contains(Spellups["AS"]["list"],arg) then
+			if contains(Spellups["EX"]["Timer"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the timers list","script")
+				remove(Spellups["EX"]["Timer"], arg)
+				Spellups["EX"]["thirtytimer"][arg] = "no"
+				Spellups["EX"]["tentimer"][arg] = "no"
+			else
+				hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the timers list, turned on 30 second warning, and 10 second warning","script")	
+				table.insert(Spellups["EX"]["Timer"], arg)
+				Spellups["EX"]["thirtytimer"][arg] = "yes"
+				Spellups["EX"]["tentimer"][arg] = "yes"
+			end
 		else
-			hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the timers list, turned on 30 second warning, and 10 second warning","script")	
-			table.insert(Spellups["EX"]["Timer"], arg)
-			Spellups["EX"]["thirtytimer"][arg] = "yes"
-			Spellups["EX"]["tentimer"][arg] = "yes"
+			hadarprint("Please enter a valid SN","error")
 		end
 	elseif arg == "set" then
 		addorremovetimers(rest)
@@ -1713,12 +1721,16 @@ function hspsetcombat(str)
 	end
 
 	if type(arg) == "number" then
-		if contains(Spellups["EX"]["exceptions"], arg) then 
-			hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the exceptions list","script")
-			remove(Spellups["EX"]["exceptions"], arg)
+		if contains(Spellups["AS"]["list"],arg) then
+			if contains(Spellups["EX"]["exceptions"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the exceptions list","script")
+				remove(Spellups["EX"]["exceptions"], arg)
+			else
+		  		hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the exceptions list","script")	
+				table.insert(Spellups["EX"]["exceptions"], arg)
+			end
 		else
-		  hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the exceptions list","script")	
-			table.insert(Spellups["EX"]["exceptions"], arg)
+			hadarprint("Please enter a valid SN","error")
 		end
 	elseif table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
 		local sn = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
@@ -1767,12 +1779,16 @@ function hspsetwraith(str)
 	end
 
 	if type(arg) == "number" then
-		if contains(Spellups["EX"]["wraithform"], arg) then 
-			hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the wraith form list","script")
-			remove(Spellups["EX"]["wraithform"], arg)
+		if contains(Spellups["AS"]["list"],arg) then
+			if contains(Spellups["EX"]["wraithform"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the wraith form list","script")
+				remove(Spellups["EX"]["wraithform"], arg)
+			else
+	  			hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the wraith form list","script")	
+				table.insert(Spellups["EX"]["wraithform"], arg)
+			end
 		else
-	  		hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the wraith form list","script")	
-			table.insert(Spellups["EX"]["wraithform"], arg)
+			hadarprint("Please enter a valid SN","error")
 		end
 	elseif table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
 		local sn = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
