@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.74"
+   version="0.75"
    >
 
 </plugin>
@@ -885,6 +885,9 @@ function affoff(name,line,wc)
 				if sn == 71 or sn == 102 then
 					Spellups["GL"]["sancoff"] = "yes"
 					hadarprint("sancoff = yes","debug")
+					if Spellups["GL"]["autoaura"] == "yes" then
+						affoffautoaura()
+					end
 					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
 				end
 				hadarprint("CS = 8, autoaura = on, sn = 71 or 108 or 180","debug")
@@ -893,37 +896,38 @@ function affoff(name,line,wc)
 				end
 				return
 			end
-			if Spellups["GL"]["autoaura"] == "yes" and sn == 71 or sn == 102 then
-				if Spellups["GL"]["auranumber"] ~= 0 then
-					hadarprint("autoaura not 0","debug")
-					if Spellups["GL"]["sancoff"] == "yes" then 
-						if Spellups["GL"]["aurabag"] ~= 0 then
-							hadarprint("aurabag not 0","debug")
-							SendNoEcho("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
-							SendNoEcho("wear "..Spellups["GL"]["auranumber"])
-						else
-							hadarprint("aura bag not set leaving in inventory","debug")
-							SendNoEcho("wear "..Spellups["GL"]["auranumber"])
-						end
-					else
-						if Spellups["GL"]["aurabag"] ~= 0 then
-							hadarprint("aurabag not 0","debug")
-							SendNoEcho("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
-							SendNoEcho("wear "..Spellups["GL"]["auranumber"])
-						else
-							hadarprint("aura bag not set leaving in inventory","debug")
-							SendNoEcho("wear "..Spellups["GL"]["auranumber"])
-						end
-					end
-				end
-				Spellups["GL"]["autoaurafired"] = "no"
-			end
 		end
 		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
 		hadarprint("adding to queue (affoff): "..Spellups["AS"]["list"][sn]["name"],"debug")
 	end
 	
 	cast_spells()
+end
+
+function affoffautoaura()
+	if Spellups["GL"]["auranumber"] ~= 0 then
+		hadarprint("autoaura not 0","debug")
+		if Spellups["GL"]["sancoff"] == "yes" then 
+			if Spellups["GL"]["aurabag"] ~= 0 then
+				hadarprint("aurabag not 0","debug")
+				Send("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+				Send("wear "..Spellups["GL"]["auranumber"])
+			else
+				hadarprint("aura bag not set leaving in inventory","debug")
+				Send("wear "..Spellups["GL"]["auranumber"])
+			end
+		else
+			if Spellups["GL"]["aurabag"] ~= 0 then
+				hadarprint("aurabag not 0","debug")
+				Send("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+				Send("wear "..Spellups["GL"]["auranumber"])
+			else
+				hadarprint("aura bag not set leaving in inventory","debug")
+				Send("wear "..Spellups["GL"]["auranumber"])
+			end
+		end
+		Spellups["GL"]["autoaurafired"] = "no"
+	end
 end
 
 function sfail(name,line,wc)
@@ -1194,7 +1198,7 @@ function contains(tableToSearch, value)
 function noAutoList(sn)
 	sn = tonumber(sn) or string.lower(sn)
 	if type(sn) == "number" then
-		if contains(Spellups["AS"]["list"],sn) then
+		if table.find(sn, Spellups["AS"]["list"]) ~= nil then
   			if contains(Spellups["EX"]["noAuto"], sn) then 
   				hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the NOAUTO list","script")
   				remove(Spellups["EX"]["noAuto"], sn)
@@ -1580,7 +1584,7 @@ function hspdotimerexception(str)
 
 
 	if type(arg) == "number" then
-		if contains(Spellups["AS"]["list"],arg) then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
 			if contains(Spellups["EX"]["Timer"], arg) then 
 				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the timers list","script")
 				remove(Spellups["EX"]["Timer"], arg)
@@ -1721,7 +1725,7 @@ function hspsetcombat(str)
 	end
 
 	if type(arg) == "number" then
-		if contains(Spellups["AS"]["list"],arg) then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
 			if contains(Spellups["EX"]["exceptions"], arg) then 
 				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the exceptions list","script")
 				remove(Spellups["EX"]["exceptions"], arg)
@@ -1779,7 +1783,7 @@ function hspsetwraith(str)
 	end
 
 	if type(arg) == "number" then
-		if contains(Spellups["AS"]["list"],arg) then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
 			if contains(Spellups["EX"]["wraithform"], arg) then 
 				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the wraith form list","script")
 				remove(Spellups["EX"]["wraithform"], arg)
