@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.75"
+   version="0.76"
    >
 
 </plugin>
@@ -834,7 +834,7 @@ function affoff(name,line,wc)
 			if table.find(v,Spellups["AF"]["list"]) then
 				--left empty becaue
 			else
-				local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
+				local ctype = tonumber(Spellups["AS"]["list"][v]["type"])
 				cast_this(v,ctype)
 			end
 
@@ -1804,7 +1804,7 @@ function hspsetwraith(str)
 			table.insert(Spellups["EX"]["wraithform"], sn)
 		end
 	else
-		hadarprint("@W+@x086---------------@G[@CC@combat @CE@cxceptions@G]@x086--------------@W+@w")
+		hadarprint("@W+@x086---------------@G[@CW@craith @CE@cxceptions@G]@x086--------------@W+@w")
 		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
 		hadarprint("@W+@x086------------------------------------------------@W+@w")
 
