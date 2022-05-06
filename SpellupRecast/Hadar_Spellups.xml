@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.76"
+   version="0.77"
    >
 
 </plugin>
@@ -835,7 +835,8 @@ function affoff(name,line,wc)
 				--left empty becaue
 			else
 				local ctype = tonumber(Spellups["AS"]["list"][v]["type"])
-				cast_this(v,ctype)
+				Spellups["QS"][v] = Spellups["AS"]["list"][v]["name"]
+				cast_spells()
 			end
 
 		end--end for loop
