@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.77"
+   version="0.78"
    >
 
 </plugin>
@@ -281,7 +281,17 @@ Saori, tester
 
 
 TODO:
-
+| It's not really hurting anything like this, but I kinda doubt you expected
+| this to be how it worked:
+| 
+| You lose your control over Gaia's Focus.
+| cast 'gaias focus' earth
+| You are no longer blessed with Gaia's Revenge.
+| cast 'gaias focus' earth
+| cast 'gaias revenge'
+| cast 'gaias revenge'
+| 
+| -Scars
 
 ]]
 
@@ -453,12 +463,12 @@ function OnPluginEnable ()
 	if Spellups["GL"]["clan"] == "loner" or Spellups["GL"]["clan"] == "outcast" or Spellups["GL"]["clan"] == "exile" then
 		Spellups["GL"]["clan"] = "none"
 	end
-	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 	
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
 			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"])) or "none"
 			hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+			hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 			if Spellups["EX"]["clanskill"] == "none" or Spellups["EX"]["clanskill"] == nil or Spellups["EX"]["clanskill"] == "" then
 				hadarprint("Your Clan skill is not noted, please contact hadar","error")
 			else
