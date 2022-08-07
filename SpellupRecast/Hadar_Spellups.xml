@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.79"
+   version="0.80"
    >
 
 </plugin>
@@ -467,11 +467,12 @@ function OnPluginEnable ()
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
 			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"])) or "none"
-			hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
-			hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 			if Spellups["EX"]["clanskill"] == "none" or Spellups["EX"]["clanskill"] == nil or Spellups["EX"]["clanskill"] == "" then
 				hadarprint("Your Clan skill is not noted, please contact hadar","error")
+				return
 			else
+				hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+				hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 				hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 			end
 		end
