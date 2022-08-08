@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.80"
+   version="0.82"
    >
 
 </plugin>
@@ -458,11 +458,19 @@ function OnPluginEnable ()
 	maxmana = tonumber(gmcp("char.maxstats.maxmana")) or -1
 	currentmana = tonumber(gmcp("char.vitals.mana")) or -1
 	
-	Spellups["GL"]["clan"] = gmcp("char.base.clan") or "" -- fetch char.base and return it as a Lua table
+	Spellups["GL"]["clan"] = gmcp("char.base.clan") or "none" -- fetch char.base and return it as a Lua table
 	 
 	if Spellups["GL"]["clan"] == "loner" or Spellups["GL"]["clan"] == "outcast" or Spellups["GL"]["clan"] == "exile" then
 		Spellups["GL"]["clan"] = "none"
 	end
+
+	injectVars()
+	if currentState == 3 then
+		SendSlistCommand()
+	end
+
+	hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 	
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
@@ -471,16 +479,9 @@ function OnPluginEnable ()
 				hadarprint("Your Clan skill is not noted, please contact hadar","error")
 				return
 			else
-				hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
-				hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 				hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 			end
 		end
-	end
-	
-	injectVars()
-	if currentState == 3 then
-		SendSlistCommand()
 	end
 
 	if maxmana == nil or maxmana == -1 then
