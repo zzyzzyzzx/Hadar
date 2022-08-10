@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.82"
+   version="0.83"
    >
 
 </plugin>
@@ -290,8 +290,11 @@ TODO:
 | cast 'gaias focus' earth
 | cast 'gaias revenge'
 | cast 'gaias revenge'
-| 
-| -Scars
+
+longer recovery times mess up recast
+Holy shield              : resistance to negative +37 (14:57)
+                           : resistance to shadow +37 (14:57)
+Shielding                : 14:37
 
 ]]
 
@@ -406,6 +409,15 @@ function OnPluginBroadcast(msg, id, name, text)
 				Spellups["EX"]["percentageStop"] = 0
 			else
 				Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+			end
+		end
+		if Spellups["GL"]["disabled"] == "yes" then
+			local percentage = maxmana * 0.7
+			if currentmana >= percentage then
+				if Spellups["GL"]["failed"] >= 5 then
+					Spellups["GL"]["failed"] = 0
+					HSPDisable("silent")
+				end
 			end
 		end
 	end --end if char status
@@ -573,6 +585,7 @@ function injectVars()
 	v["QU"] = {} --spellup queue
 	v["EX"] = {} --exceptions
 	v["QS"] = {} --queued spells
+	v["FC"] = {} --failed counter
 	v["RT"] = {} --recovery
 	v["MS"] = {} --messages
 	v["CG"] = {} --configs (mainly for special cases)
@@ -598,6 +611,7 @@ function injectVars()
 	v["GL"]["thirtytimer"] = "yes"
 	v["GL"]["tentimer"] = "yes"
 	v["GL"]["seespells"] = "yes"
+	v["GL"]["failed"] = 0
 
 	v["EX"]["clanskill"] = "none"
 	v["EX"]["clanskillV1"] = -1
@@ -957,7 +971,14 @@ function sfail(name,line,wc)
 	end
 
 	if fl == 4 then
-		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		Spellups["GL"]["failed"] = Spellups["GL"]["failed"] + 1
+		if tonumber(Spellups["GL"]["failed"]) > 5 then
+			HSPDisable("silent")
+			hadarprint("HSP Turned off due to mana issues - failed 5 spells, please restore mana above 70% to reenable or type hsp disable","script")
+			return
+		else
+			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		end
 	end
 
     if fl == 3 then 
@@ -1221,6 +1242,15 @@ function noAutoList(sn)
   			end
 		else
 			hadarprint("Please input a valid SN","error")
+		end
+	elseif table.find(sn,Spellups["AS"]["namelist"]) ~= nil then
+		local sname = tonumber(Spellups["AS"]["namelist"][sn]["skillnum"])
+		if contains(Spellups["EX"]["noAuto"], sname) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sname]["name"].." from the NOAUTO list","script")
+  			remove(Spellups["EX"]["noAuto"], sname)
+		else
+			hadarprint("Adding "..Spellups["AS"]["list"][sname]["name"].." to the NOAUTO list","script")	
+  			table.insert(Spellups["EX"]["noAuto"], sname)
 		end
 	elseif sn == "clear" then
 		Spellups["EX"]["noAuto"] = {}
