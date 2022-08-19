@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.52"
+   version="1.53"
    >
 
 </plugin>
@@ -33,7 +33,7 @@
      <trigger
      enabled="y"
      match="^you dont see a player with that name\.$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgmnoplayer"
      sequence="100"
@@ -42,7 +42,7 @@
      <trigger
      enabled="y"
      match="^(.+) is a member of another group\.$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgminanothergroup"
      sequence="100"
@@ -51,7 +51,7 @@
      <trigger
      enabled="y"
      match="^(.+) does not want to talk to you\!$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgminvitedmob"
      sequence="100"
@@ -499,7 +499,8 @@ function hgmGroupMessage(msg)
 
      if msg == nil then return end
      
-     local player, message = msg:match("^%(Group%) (.+): '(.+)'")
+     local message = msg:match("^%(Group%) .+: '(.+)'")
+     local player = gmcp("comm.channel.player")
      local command
      local args
      local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick, Here"
@@ -559,7 +560,7 @@ function hgmGroupMessage(msg)
      
      if two == "" or two == " " then two = nil end
      if hgmiscommand(command) and one == nil then 
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
+          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
      return
      end
      
@@ -598,11 +599,22 @@ function hgmGroupMessage(msg)
                end
           end
      elseif command == "leader" and HGMVariable["GT"]["leader"] == "yes" and ismember(player,"TR") then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-          SendSpecial("group leader "..args)
+          if args == "me" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
+               SendSpecial("group leader "..player)
+          else
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
+               SendSpecial("group leader "..args)
+          end
      elseif command == "leader" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-          SendSpecial("group leader "..args)
+          if args == "me" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
+               SendSpecial("group leader "..player)
+          else
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
+               SendSpecial("group leader "..args)
+          end
      elseif command == "rename" and HGMVariable["GT"]["rename"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
@@ -1274,7 +1286,7 @@ function hgmpwarimport()
 end
 
 function HadarHelp()
-hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086------------------------+","helpfile")
+hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086-----------------------+","helpfile")
 hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|","helpfile")
 hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|","helpfile")
 hadarprint("@x086|                  @x208Default set to: invite                              @x086|","helpfile")
