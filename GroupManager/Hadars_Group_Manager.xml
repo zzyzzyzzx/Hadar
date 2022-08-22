@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.53"
+   version="1.54"
    >
 
 </plugin>
@@ -643,7 +643,7 @@ function hgmGroupMessage(msg)
      elseif command == "kick" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
-     elseif command == "here" then
+     elseif command == "here" and args == "" then
           hgmrefresh()
           hgmishere()
      else
@@ -1179,13 +1179,21 @@ function hgmishere(args)
      group_list = {}
      HGMVariable["GL"]["count"] = 0
      local chan
+     local one
+     local two
 
      if fullgroup.reason == "no group" or fullgroup.reason == "group disband" or fullgroup.reason == "group leave" then
           hadarprint("Please join a group before using this command","error")
           return
      end
 
-     local one, two = args:match("(%w+)%s*(.*)")
+     if args == nil then
+          one = nil
+          two = nil
+     else
+          one, two = args:match("(%w+)%s*(.*)")
+     end
+
      if one == nil or one == "" or one ==" " then
           one = nil
      else
