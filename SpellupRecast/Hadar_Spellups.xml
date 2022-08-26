@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.83"
+   version="0.84"
    >
 
 </plugin>
@@ -843,11 +843,16 @@ function affoff(name,line,wc)
 	local sn = tonumber(wc.sn)
 	local wraithcastable = false
 	local wraithcounted = 0
-
-	Spellups["AF"]["list"][sn] = nil
 	
 	if Spellups["GL"]["disabled"] == "yes" then
+		Spellups["AF"]["list"][sn] = nil
 		return
+	end
+
+	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
+		if tonumber(Spellups["AF"]["list"][sn]) <= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+			return
+		end
 	end
 
 	if sn == 121 then
@@ -1375,20 +1380,38 @@ function recoff(n,l,wc)
 	local skillnum = Spellups["RT"][sn]["skillnum"]
 	local skilltype = Spellups["RT"][sn]["type"]
 	local skillname = Spellups["RT"][sn]["name"]
+
+	--Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+	--hadarprint("adding to queue (affoff): "..Spellups["AS"]["list"][sn]["name"],"debug")
+
+	--cast_spells()
+
+	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
+		if Spellups["AF"]["list"][sn] ~= nil then
+			if tonumber(Spellups["AF"]["list"][sn]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+				return
+			end
+		end
+	end
+
 	Spellups["RT"]["affectedrecovery"][sn] = nil
 
 	if sn == 16 then
 		if Spellups["CG"]["totemcast"] == "force" then
 			if Spellups["GL"]["seespells"] == "yes" then
 				Send("cast 'totem force'")
+				return
 			else
 				SendNoEcho("cast 'totem force'")
+				return
 			end --end seespell check
 		elseif Spellups["CG"]["totemcast"] == "guidance" then
 			if Spellups["GL"]["seespells"] == "yes" then
 				Send("cast 'totem guidance'")
+				return
 			else
 				SendNoEcho("cast 'totem guidance'")
+				return
 			end --end seespell check
 		else
 			hadarprint("Autocasting totem guidance or totem focus not set")
