@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.85"
+   version="0.86"
    >
 
 </plugin>
@@ -1035,6 +1035,14 @@ function cast_spells()
 
 				if sn == 518 then
 					if contains(Spellups["QS"],552) then
+						cast_this(552,Spellups["AS"]["list"][552]["type"])
+						cast_this(518,Spellups["AS"]["list"][518]["type"])
+						break
+					end
+				end
+
+				if sn == 522 then
+					if contains(Spellups["QS"],518) then
 						cast_this(552,Spellups["AS"]["list"][552]["type"])
 						cast_this(518,Spellups["AS"]["list"][518]["type"])
 						break
