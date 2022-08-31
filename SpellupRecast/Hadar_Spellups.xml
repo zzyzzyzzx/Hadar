@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.77"
+   version="0.85"
    >
 
 </plugin>
@@ -281,6 +281,22 @@ Saori, tester
 
 
 TODO:
+| It's not really hurting anything like this, but I kinda doubt you expected
+| this to be how it worked:
+| 
+| You lose your control over Gaia's Focus.
+| cast 'gaias focus' earth
+| You are no longer blessed with Gaia's Revenge.
+| cast 'gaias focus' earth
+| cast 'gaias revenge'
+| cast 'gaias revenge'
+
+longer recovery times mess up recast
+Holy shield              : resistance to negative +37 (14:57)
+                           : resistance to shadow +37 (14:57)
+Shielding                : 14:37
+
+(Group) Selitos: 'when gaias revenge and gaias focus where off right before i start combat it of course says 'you can concentrat...blah' and attempts to recast then when combat is over, except when its over it recasts them in reverse order so it does gaias first then focus, so the focus doesn't work becuase it has to be cast before gaias. Make sense?'
 
 
 ]]
@@ -398,6 +414,15 @@ function OnPluginBroadcast(msg, id, name, text)
 				Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
 			end
 		end
+		if Spellups["GL"]["disabled"] == "yes" then
+			local percentage = maxmana * 0.7
+			if currentmana >= percentage then
+				if Spellups["GL"]["failed"] >= 5 then
+					Spellups["GL"]["failed"] = 0
+					HSPDisable("silent")
+				end
+			end
+		end
 	end --end if char status
 end
 
@@ -448,28 +473,30 @@ function OnPluginEnable ()
 	maxmana = tonumber(gmcp("char.maxstats.maxmana")) or -1
 	currentmana = tonumber(gmcp("char.vitals.mana")) or -1
 	
-	Spellups["GL"]["clan"] = gmcp("char.base.clan") -- fetch char.base and return it as a Lua table
+	Spellups["GL"]["clan"] = gmcp("char.base.clan") or "none" -- fetch char.base and return it as a Lua table
 	 
 	if Spellups["GL"]["clan"] == "loner" or Spellups["GL"]["clan"] == "outcast" or Spellups["GL"]["clan"] == "exile" then
 		Spellups["GL"]["clan"] = "none"
 	end
+
+	injectVars()
+	if currentState == 3 then
+		SendSlistCommand()
+	end
+
+	hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
 	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 	
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
 			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"])) or "none"
-			hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
 			if Spellups["EX"]["clanskill"] == "none" or Spellups["EX"]["clanskill"] == nil or Spellups["EX"]["clanskill"] == "" then
 				hadarprint("Your Clan skill is not noted, please contact hadar","error")
+				return
 			else
 				hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 			end
 		end
-	end
-	
-	injectVars()
-	if currentState == 3 then
-		SendSlistCommand()
 	end
 
 	if maxmana == nil or maxmana == -1 then
@@ -561,6 +588,7 @@ function injectVars()
 	v["QU"] = {} --spellup queue
 	v["EX"] = {} --exceptions
 	v["QS"] = {} --queued spells
+	v["FC"] = {} --failed counter
 	v["RT"] = {} --recovery
 	v["MS"] = {} --messages
 	v["CG"] = {} --configs (mainly for special cases)
@@ -586,6 +614,7 @@ function injectVars()
 	v["GL"]["thirtytimer"] = "yes"
 	v["GL"]["tentimer"] = "yes"
 	v["GL"]["seespells"] = "yes"
+	v["GL"]["failed"] = 0
 
 	v["EX"]["clanskill"] = "none"
 	v["EX"]["clanskillV1"] = -1
@@ -817,11 +846,17 @@ function affoff(name,line,wc)
 	local sn = tonumber(wc.sn)
 	local wraithcastable = false
 	local wraithcounted = 0
-
-	Spellups["AF"]["list"][sn] = nil
 	
 	if Spellups["GL"]["disabled"] == "yes" then
+		Spellups["AF"]["list"][sn] = nil
 		return
+	end
+
+	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
+		print(Spellups["AF"]["list"][sn])
+		if tonumber(Spellups["AF"]["list"][sn]) <= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+			return
+		end
 	end
 
 	if sn == 121 then
@@ -945,7 +980,14 @@ function sfail(name,line,wc)
 	end
 
 	if fl == 4 then
-		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		Spellups["GL"]["failed"] = Spellups["GL"]["failed"] + 1
+		if tonumber(Spellups["GL"]["failed"]) > 5 then
+			HSPDisable("silent")
+			hadarprint("HSP Turned off due to mana issues - failed 5 spells, please restore mana above 70% to reenable or type hsp disable","script")
+			return
+		else
+			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		end
 	end
 
     if fl == 3 then 
@@ -997,6 +1039,14 @@ function cast_spells()
 
 				if sn == 518 then
 					if contains(Spellups["QS"],552) then
+						cast_this(552,Spellups["AS"]["list"][552]["type"])
+						cast_this(518,Spellups["AS"]["list"][518]["type"])
+						break
+					end
+				end
+
+				if sn == 552 then
+					if contains(Spellups["QS"],518) then
 						cast_this(552,Spellups["AS"]["list"][552]["type"])
 						cast_this(518,Spellups["AS"]["list"][518]["type"])
 						break
@@ -1210,6 +1260,15 @@ function noAutoList(sn)
 		else
 			hadarprint("Please input a valid SN","error")
 		end
+	elseif table.find(sn,Spellups["AS"]["namelist"]) ~= nil then
+		local sname = tonumber(Spellups["AS"]["namelist"][sn]["skillnum"])
+		if contains(Spellups["EX"]["noAuto"], sname) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sname]["name"].." from the NOAUTO list","script")
+  			remove(Spellups["EX"]["noAuto"], sname)
+		else
+			hadarprint("Adding "..Spellups["AS"]["list"][sname]["name"].." to the NOAUTO list","script")	
+  			table.insert(Spellups["EX"]["noAuto"], sname)
+		end
 	elseif sn == "clear" then
 		Spellups["EX"]["noAuto"] = {}
 		hadarprint("Your list of no cast spells has been cleared.","script")
@@ -1333,20 +1392,38 @@ function recoff(n,l,wc)
 	local skillnum = Spellups["RT"][sn]["skillnum"]
 	local skilltype = Spellups["RT"][sn]["type"]
 	local skillname = Spellups["RT"][sn]["name"]
+
+	--Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+	--hadarprint("adding to queue (affoff): "..Spellups["AS"]["list"][sn]["name"],"debug")
+
+	--cast_spells()
+
+	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
+		if Spellups["AF"]["list"][sn] ~= nil then
+			if tonumber(Spellups["AF"]["list"][sn]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+				return
+			end
+		end
+	end
+
 	Spellups["RT"]["affectedrecovery"][sn] = nil
 
 	if sn == 16 then
 		if Spellups["CG"]["totemcast"] == "force" then
 			if Spellups["GL"]["seespells"] == "yes" then
 				Send("cast 'totem force'")
+				return
 			else
 				SendNoEcho("cast 'totem force'")
+				return
 			end --end seespell check
 		elseif Spellups["CG"]["totemcast"] == "guidance" then
 			if Spellups["GL"]["seespells"] == "yes" then
 				Send("cast 'totem guidance'")
+				return
 			else
 				SendNoEcho("cast 'totem guidance'")
+				return
 			end --end seespell check
 		else
 			hadarprint("Autocasting totem guidance or totem focus not set")
