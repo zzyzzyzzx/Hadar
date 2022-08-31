@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.85"
+   version="0.84"
    >
 
 </plugin>
@@ -295,9 +295,6 @@ longer recovery times mess up recast
 Holy shield              : resistance to negative +37 (14:57)
                            : resistance to shadow +37 (14:57)
 Shielding                : 14:37
-
-(Group) Selitos: 'when gaias revenge and gaias focus where off right before i start combat it of course says 'you can concentrat...blah' and attempts to recast then when combat is over, except when its over it recasts them in reverse order so it does gaias first then focus, so the focus doesn't work becuase it has to be cast before gaias. Make sense?'
-
 
 ]]
 
@@ -853,7 +850,6 @@ function affoff(name,line,wc)
 	end
 
 	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
-		print(Spellups["AF"]["list"][sn])
 		if tonumber(Spellups["AF"]["list"][sn]) <= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
 			return
 		end
@@ -1039,14 +1035,6 @@ function cast_spells()
 
 				if sn == 518 then
 					if contains(Spellups["QS"],552) then
-						cast_this(552,Spellups["AS"]["list"][552]["type"])
-						cast_this(518,Spellups["AS"]["list"][518]["type"])
-						break
-					end
-				end
-
-				if sn == 552 then
-					if contains(Spellups["QS"],518) then
 						cast_this(552,Spellups["AS"]["list"][552]["type"])
 						cast_this(518,Spellups["AS"]["list"][518]["type"])
 						break

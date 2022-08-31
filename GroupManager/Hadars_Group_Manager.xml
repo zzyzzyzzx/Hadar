@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.51"
+   version="1.55"
    >
 
 </plugin>
@@ -33,7 +33,7 @@
      <trigger
      enabled="y"
      match="^you dont see a player with that name\.$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgmnoplayer"
      sequence="100"
@@ -42,7 +42,7 @@
      <trigger
      enabled="y"
      match="^(.+) is a member of another group\.$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgminanothergroup"
      sequence="100"
@@ -51,7 +51,7 @@
      <trigger
      enabled="y"
      match="^(.+) does not want to talk to you\!$"
-     omit_from_output="y"
+     omit_from_output="n"
      regexp="y"
      script="hgminvitedmob"
      sequence="100"
@@ -128,6 +128,7 @@ require "tprint"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 local pluscount = 0
 local utfset = false
+local group_list = {}
 
 local ascii_2_utf8 = {
      ["7C"]="E29482", -- │
@@ -202,6 +203,8 @@ function OnPluginEnable ()
      HGMVariable["BL"] = {} --blacklist
      HGMVariable["AI"] = {} --Auto Invite
      HGMVariable["TR"] = {} --Trusted
+     HGMVariable["GM"] = "none"
+     groupmembers = {} --group members
      HGMVariableTrust = {}
      HGMVariableBlacklist = {}
 	
@@ -225,6 +228,8 @@ function OnPluginEnable ()
    	else
 		utfset = false
    end
+
+   hgmrefresh()
 end
 
 function checkExist(tbl, idx, val) 
@@ -257,6 +262,10 @@ function injectVars()
      v["GL"]["Phrase"] = "invite"
      v["GL"]["Clan"] = "no"
      v["GL"]["Friend"] = "no"
+     v["GL"]["count"] = 0
+     v["GL"]["LevelHigh"] = 201
+     v["GL"]["LevelLow"] = 200
+     v["GL"]["HereChan"] = "gt"
      
      
      v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
@@ -275,7 +284,9 @@ function injectVars()
      v["GT"]["samegroup"] = "no"
      v["GT"]["offline"] = "no"
      v["GT"]["lastmsg"] = "none"
-     
+     v["GT"]["HereMsg"] = "yes"
+     v["GT"]["NotHere"] = "none"
+
      v["BL"]["Remove"] = 0
      
      v["AI"]["Remove"] = 0
@@ -332,6 +343,9 @@ function hgmMain(n,l,wc)
           hgmrefresh()
      elseif first == "import" then
           hgmpwarimport()
+     elseif first == "here" then
+          hgmrefresh()
+          hgmishere(rest)
      else
           HadarHelp()
      end
@@ -359,6 +373,8 @@ function OnPluginBroadcast (msg, id, name, text)
           elseif (text == "group") then
                HGMVariable["GL"]["Leader"] = gmcp("group.leader")
                HGMVariable["GT"]["Name"] = gmcp("group.groupname")
+               HGMVariable["GL"]["count"] = gmcp("group.count")
+               fullgroup = gmcp("group")
           elseif (text == "comm.channel") then
                local channel = gmcp("comm.channel.chan")
 			local msg = strip_colours(gmcp("comm.channel.msg"))
@@ -483,10 +499,11 @@ function hgmGroupMessage(msg)
 
      if msg == nil then return end
      
-     local player, message = msg:match("^%(Group%) (.+): '(.+)'")
+     local message = msg:match("^%(Group%) .+: '(.+)'")
+     local player = gmcp("comm.channel.player")
      local command
      local args
-     local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick"
+     local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick, Here"
      
      if message == nil then
           return
@@ -499,7 +516,7 @@ function hgmGroupMessage(msg)
           args = string.lower(args)
      end
      
-     if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" then
+     if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" or command == "here" then
           if ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] == player then
                return
           elseif ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] ~= player then
@@ -534,13 +551,16 @@ function hgmGroupMessage(msg)
      elseif command == "ihelp" and args == "kick" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick <person>- kicks a person "..hgmcheckSettings("kick"))
           return
+     elseif command == "ihelp" and args == "here" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."here - sends a message with who is here "..hgmcheckSettings("here"))
+          return
      end
      
      local one, two = args:match("(%w+)%s*(.*)") or nil
      
      if two == "" or two == " " then two = nil end
      if hgmiscommand(command) and one == nil then 
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
+          --SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
      return
      end
      
@@ -578,12 +598,22 @@ function hgmGroupMessage(msg)
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
           end
-     elseif command == "leader" and HGMVariable["GT"]["leader"] == "yes" and ismember(player,"TR") then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-          SendSpecial("group leader "..args)
-     elseif command == "leader" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-          SendSpecial("group leader "..args)
+     elseif command == "leader" and HGMVariable["GT"]["leader"] == "yes" then
+          if args == "me" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
+               SendSpecial("group leader "..player)
+          else
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
+               SendSpecial("group leader "..args)
+          end
+     elseif command == "leader" and ismember(player,"TR") then
+          if args == "me" then
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
+               SendSpecial("group leader "..player)
+          else
+               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
+               SendSpecial("group leader "..args)
+          end
      elseif command == "rename" and HGMVariable["GT"]["rename"] == "yes" and ismember(player,"TR") then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
@@ -612,6 +642,9 @@ function hgmGroupMessage(msg)
      elseif command == "kick" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
+     elseif command == "here" and args == "" then
+          hgmrefresh()
+          hgmishere()
      else
           --dont put shit here, causes a loop
      end
@@ -770,6 +803,14 @@ function hgmcheckSettings(arg)
           if HGMVariable["GT"]["blacklist"] == "no" then
                return untrusted
           elseif HGMVariable["GT"]["blacklist"] == "yes" then
+               return trusted
+          else
+               return leader
+          end
+     elseif arg == "here" then
+          if HGMVariable["GT"]["HereMsg"] == "no" then
+               return untrusted
+          elseif HGMVariable["GT"]["HereMsg"] == "yes" then
                return trusted
           else
                return leader
@@ -1106,6 +1147,17 @@ function hgmConfig(args)
                HGMVariable["GT"]["kick"] = "yes"
                hadarprint("Setting kick to trusted","script")
           end
+     elseif one == "here" then
+          if HGMVariable["GT"]["HereMsg"] == "yes" then
+               HGMVariable["GT"]["HereMsg"] = "no"
+               hadarprint("Setting Here message to all","script")
+          elseif HGMVariable["GT"]["HereMsg"] == "no" then
+               HGMVariable["GT"]["HereMsg"] = "leader"
+               hadarprint("Setting Here message to leader","script")
+          elseif HGMVariable["GT"]["HereMsg"] == "leader" then
+               HGMVariable["GT"]["HereMsg"] = "yes"
+               hadarprint("Setting Here message to trusted","script")
+          end
      elseif one == "all" or one == "show" then
           hadarprint("@x240Leader is set to: "..hgmcheckSettings("leader"))
           hadarprint("@x232Invite is set to: "..hgmcheckSettings("invite"))
@@ -1113,10 +1165,99 @@ function hgmConfig(args)
           hadarprint("@x232Flag is set to: "..hgmcheckSettings("flag"))
           hadarprint("@x240Cancel is set to: "..hgmcheckSettings("cancel"))
           hadarprint("@x232Kick is set to: "..hgmcheckSettings("kick"))
+          hadarprint("@x232Here message is set to: "..hgmcheckSettings("here"))
      else
           hadarprint("Please do a valid selection which is@W:@R Invite@W,@R Leader@W,@R Rename@W,@R Flag@W,@R Cancel@W,@R Kick@W,@R All@w","script")
      end
      SaveState()
+end
+
+function hgmishere(args)
+     HGMVariable["GT"]["NotHere"] = "none"
+     group_list = nil
+     group_list = {}
+     HGMVariable["GL"]["count"] = 0
+     local chan
+     local one
+     local two
+
+     if fullgroup.reason == "no group" or fullgroup.reason == "group disband" or fullgroup.reason == "group leave" then
+          hadarprint("Please join a group before using this command","error")
+          return
+     end
+
+     if args == nil then
+          one = nil
+          two = nil
+     else
+          one, two = args:match("(%w+)%s*(.*)")
+     end
+
+     if one == nil or one == "" or one ==" " then
+          one = nil
+     else
+          one = string.lower(one)
+     end
+     if two == "" or two == " " then two = nil end
+
+     if one == "setlow" then
+          if tonumber(two) ~= nil then
+               HGMVariable["GL"]["LevelLow"] = two
+               hadarprint("Set here Low level to:"..HGMVariable["GL"]["LevelLow"])
+               return
+          else
+               hadarprint("HGM here setlow <number> expected number got something else","error")
+               return
+          end
+     elseif one == "sethigh" then
+          if tonumber(two) ~= nil then
+               HGMVariable["GL"]["LevelHigh"] = two
+               hadarprint("Set here high level to:"..HGMVariable["GL"]["LevelHigh"])
+               return
+          else
+               hadarprint("HGM here sethigh <number> expected number got something else","error")
+               return
+          end
+     elseif one == "sh" then
+          HGMVariable["GL"]["LevelLow"] = 200
+          HGMVariable["GL"]["LevelHigh"] = 201
+          hadarprint("Here set to SH range","script")
+          return
+     elseif one == "setchan" then
+          HGMVariable["GL"]["HereChan"] = two
+          hadarprint("Channel set to:"..HGMVariable["GL"]["HereChan"],"script")
+          return
+     elseif one == "tell" then
+          chan = args
+     else
+          if one~=nil or one ~= "" or one ~= " " then
+               chan = one
+          end
+     end
+
+     for i,v in ipairs(fullgroup.members) do
+          table.insert(group_list,v)
+     end 
+     
+     for i,v in ipairs(group_list) do
+          if tonumber(v.info.lvl) >= tonumber(HGMVariable["GL"]["LevelLow"]) and tonumber(v.info.lvl) <= tonumber(HGMVariable["GL"]["LevelHigh"]) then
+               if tonumber(v.info.here) == 0 then
+                    if HGMVariable["GT"]["NotHere"] == "none" then
+                         HGMVariable["GL"]["count"] = HGMVariable["GL"]["count"] + 1
+                         HGMVariable["GT"]["NotHere"] = "@R"..v.name
+                    else
+                         HGMVariable["GL"]["count"] = HGMVariable["GL"]["count"] + 1
+                         HGMVariable["GT"]["NotHere"] = HGMVariable["GT"]["NotHere"] .."@W,@R ".. v.name
+                    end
+               end
+          end
+     end
+     
+     if chan == nil or chan == "" or chan == " " then
+          SendSpecial(HGMVariable["GL"]["HereChan"].." @CNot Here@g(@Y"..HGMVariable["GL"]["count"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
+     else
+          SendSpecial(chan.." @CNot Here@g(@Y"..HGMVariable["GL"]["count"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
+     end
 end
 
 function hgmpwarimport()
@@ -1152,7 +1293,7 @@ function hgmpwarimport()
 end
 
 function HadarHelp()
-hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086------------------------+","helpfile")
+hadarprint("@x086+--------------------------@g[@CG@croup@CM@canager @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086-----------------------+","helpfile")
 hadarprint("@x086| @x214hgm help       @x110- @x214Displays this helpfile                              @x086|","helpfile")
 hadarprint("@x086| @x208hgm pass       @x110- @x208Change word used for invite, EG: tell hadar join    @x086|","helpfile")
 hadarprint("@x086|                  @x208Default set to: invite                              @x086|","helpfile")
@@ -1176,12 +1317,16 @@ hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friend
 hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|","helpfile")
 hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinvite              @x086|","helpfile")
 hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|","helpfile")
-hadarprint("@x086|                  @x208commands@W: @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@x086|","helpfile")
+hadarprint("@x086|                  @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@W, @GHere@x086    |","helpfile")
 hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|","helpfile")
 hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|","helpfile")
 hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|","helpfile")
 hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|","helpfile")
 hadarprint("@x086| @x214hgm import     @x110- @x208imports auto list from pwar's invter                @x086|","helpfile")
+hadarprint("@x086| @x208hgm here <cmd> @x110-@x208 shows a list of who is here to gt                   @x086|","helpfile")
+hadarprint("@x086|                @x110-@x208 sethigh/setlow <level> will set a range to check    @x086|","helpfile")
+hadarprint("@x086|                @x110-@x208 setchan - change default channel                    @x086|","helpfile")
+hadarprint("@x086|                @x110-@x208 sh - set the low/high to 200/201 for SH only        @x086|","helpfile")
 hadarprint("@x086+----------------------------------------------------------------------+","helpfile")
 
 end
