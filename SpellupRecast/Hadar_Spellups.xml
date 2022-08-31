@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.84"
+   version="0.85"
    >
 
 </plugin>
@@ -1586,6 +1586,7 @@ function hspsettotem(str)
 		Spellups["CG"]["totemcast"] = "guidance"
 		hadarprint("When able you will cast @Gtotem guidance@w","script")
 	else
+		hadarprint("You are currently using @G"..Spellups["CG"]["totemcast"].." totem@w","script")
 		hadarprint("You need to enter which totem you want to cast either @R[@Ghsp totem force@R]@c, or @R[@Ghsp totem guidance@R]@w","script")
 	end
 end
