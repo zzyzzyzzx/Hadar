@@ -873,7 +873,7 @@ function affoff(name,line,wc)
 		end--end for loop
 	end
 
-	if sn == 552 then
+	--[[if sn == 552 then
 		if table.find(518,Spellups["AF"]["list"]) then
 			--left empty becaue
 		else
@@ -887,7 +887,7 @@ function affoff(name,line,wc)
 				cast_this(518,ctyperevenge)
 			end
 		end
-	end
+	end]]
 
 	if sn == 518 then
 		Spellups["AF"]["list"][sn] = tm
