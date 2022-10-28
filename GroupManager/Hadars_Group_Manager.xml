@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.55"
+   version="1.56"
    >
 
 </plugin>
@@ -125,6 +125,7 @@
 require "serialize"
 require "gmcphelper"
 require "tprint"
+require "string_split"
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 local pluscount = 0
 local utfset = false
@@ -386,9 +387,10 @@ function OnPluginBroadcast (msg, id, name, text)
                end
                if channel == "tell" then
                     local playerName = strip_colours(gmcp("comm.channel.player"))
-                    local _, message = string.match(msg, "^(.+) tells you '(.+)'")
+                    --local _, message = string.match(msg, "^(.+) tells you \'(.*)'$")
+                    local message = string.split(msg, ' tells you ', false, 1)
                     hgmrefresh()
-                    hgmTellMessage(playerName,message)
+                    hgmTellMessage(playerName,message[2])
                end
 		end
 	end
