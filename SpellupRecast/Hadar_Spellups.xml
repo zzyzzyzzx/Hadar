@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.88"
+   version="0.89"
    >
 
 </plugin>
@@ -457,7 +457,7 @@ function OnPluginEnable ()
 	-- the following lines need to be in onpluginenable to recheck stuff and set current state for buildslist
 	
 	charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
-      currentState = tonumber(charstatus.state)
+    currentState = tonumber(charstatus.state)
 	maxmana = tonumber(gmcp("char.maxstats.maxmana")) or -1
 	currentmana = tonumber(gmcp("char.vitals.mana")) or -1
 	
@@ -471,9 +471,6 @@ function OnPluginEnable ()
 	if currentState == 3 then
 		SendSlistCommand()
 	end
-
-	hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
-	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 	
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
@@ -486,6 +483,9 @@ function OnPluginEnable ()
 			end
 		end
 	end
+
+	hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
 
 	if maxmana == nil or maxmana == -1 then
 		Spellups["EX"]["percentageStop"] = 0
@@ -788,8 +788,13 @@ function setdebug()
 end
 
 function testshow(arg)
-    tprint(Spellups["AS"]["attack"])
-
+    for i,v in pairs(Spellups["AS"]["list"]) do
+		for j,k in pairs(v) do
+			if j == "target" and tonumber(k) == 0 then
+				print(Spellups["AS"]["list"][i]["name"])
+			end
+		end
+	end
 end
 
 function invmon(nm,ln,wc)
@@ -830,12 +835,6 @@ function affoff(name,line,wc)
 		return
 	end
 
-	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
-		if tonumber(Spellups["AF"]["list"][sn]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
-			return
-		end
-	end
-
 	if sn == 121 then
 		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
 	end
@@ -859,7 +858,7 @@ function affoff(name,line,wc)
 		return
 	end
 	
-	if Spellups["AS"]["list"][sn]["target"] == 2 or Spellups["AS"]["list"][sn]["target"] == 3 or sn == Spellups["EX"]["clanskill"] or sn == Spellups["EX"]["clanskillV1"] then
+	if Spellups["AS"]["list"][sn]["target"] == 2 or Spellups["AS"]["list"][sn]["target"] == 3 or sn == Spellups["EX"]["clanskill"] or sn == Spellups["EX"]["clanskillV1"] or sn == 569 then
 		if currentState == 8 then
 			if sn == 71 or sn == 102 or sn == 180 then
 				if sn == 71 or sn == 102 then
@@ -965,13 +964,11 @@ function cast_spells()
 	if Spellups["GL"]["disabled"] == "yes" then
 		return
 	end
-
 	if currentmana == nil or currentmana == -1 then
 		--left blank to test something
 	elseif Spellups["EX"]["percentageStop"] >= currentmana then
 		return
 	end
-	
 	for i,v in pairs (Spellups["QS"]) do
         local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
 
@@ -1340,8 +1337,9 @@ function recoff(n,l,wc)
 	local skillname = Spellups["RT"][sn]["name"]
 
 	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
-		if Spellups["AF"]["list"][sn] ~= nil then
-			if tonumber(Spellups["AF"]["list"][sn]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+		if Spellups["AF"]["list"][skillnum] ~= nil then
+			if tonumber(Spellups["AF"]["list"][skillnum]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+				Spellups["RT"]["affectedrecovery"][sn] = nil
 				return
 			end
 		end
