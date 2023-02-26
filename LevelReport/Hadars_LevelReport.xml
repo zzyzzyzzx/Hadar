@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.06"
+   version="3.07"
    >
 
 </plugin>
@@ -157,7 +157,7 @@ TODO:
 	<trigger
 		name="HLRRecoveriesStart"
 		enabled="n"
-		match="^\{recoveries noprompt\}$"
+		match="^\{recoveries hlr\}$"
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
@@ -201,7 +201,7 @@ TODO:
 		name="HLRListStart"
 		group="HLRslistCapture"
 		enabled="n"
-		match="\{spellheaders noprompt\}$"
+		match="\{spellheaders hlr\}$"
 		regexp="y"
 		omit_from_output="y"
 		sequence="100"
@@ -553,10 +553,10 @@ function OnPluginEnable ()
      charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
      currentState = tonumber(charstatus.state)
      
-     if HLRVariable["SK"]["initilized"] == "no" then
-          buildSlist()
-          HLRVariable["SK"]["initilized"] = "yes"
-     end
+
+     if currentState == 3 then
+		buildSlist()
+	end
           
 end
 
@@ -664,6 +664,7 @@ function HLRmain(n,l,wc)
      elseif first == "config" then
           hlr_config(rest)
      elseif first == "list" then
+          slistCommandSent = false
           buildSlist()
      elseif first == "show" then
           showthis()
@@ -1005,12 +1006,6 @@ function SkillGain(name, line, wildcards)
           end
 end
 
-function begin_sList()
-		EnableTriggerGroup("HLRslistCapture", true)
-		EnableTrigger("RecoveriesStart", true)
-		hadarprint("***Geting Skills/Spells","script")
-end
-
 function stop_sList()
 		EnableTriggerGroup("HLRslistCapture", false)
 		SaveState()
@@ -1018,21 +1013,19 @@ function stop_sList()
 		hadarprint("***Got all skills/spells","script")
 end
 
-function SendSlistCommand()
-	if (slistCommandSent == false) then
-		slistCommandSent = true
-		begin_sList()
-		SendNoEcho("slist noprompt")
-	end
-end
 	
 function buildSlist()
-     if (currentState == 3) then
-          SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
+     SendPkt (string.char (IAC, SB, TELOPT, SKILLGAINS, 1, IAC, SE))
 
-          HLRVariable["SK"]["List"] = {}
-          SendSlistCommand()
-     end
+     HLRVariable["SK"]["List"] = {}
+     
+     if (slistCommandSent == false) then
+		slistCommandSent = true
+          EnableTriggerGroup("HLRslistCapture", true)
+		EnableTrigger("HLRRecoveriesStart", true)
+		hadarprint("***Getting Skills/Spells","script")
+		SendNoEcho("slist hlr")
+	end
 end
 
 function SlistUpdate(name, line, wildcards)
