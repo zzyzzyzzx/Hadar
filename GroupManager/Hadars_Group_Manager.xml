@@ -102,15 +102,15 @@
      sequence="100"
      >
      </trigger>
-  <trigger
-   enabled="y"
-   match="^\(Friend\)\: (.+) has entered Aardwolf\.$"
-   regexp="y"
-   script="hgmfriendjoined"
-   keep_evaluating="n"
-   sequence="99"
-  >
-  </trigger>
+     <trigger
+     enabled="y"
+     match="^\(Friend\)\: (.+) has entered Aardwolf\.$"
+     regexp="y"
+     script="hgmfriendjoined"
+     keep_evaluating="n"
+     sequence="99"
+     >
+     </trigger>
 
 </triggers>
 
