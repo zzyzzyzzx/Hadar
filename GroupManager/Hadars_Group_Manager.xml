@@ -497,6 +497,53 @@ function hgmMakeGroupMessage(msg)
      end
 end
 
+function canI(command, player)
+     -- can player do command
+
+     if player == nil then
+          hadarprint("CanI just tried to check a non-existant player.", "error")
+          return false
+     end
+
+     if hgmiscommand(command) == false then
+          hadarprint("CanI just tried to check a non-existant command.", "error")
+          return false
+     end
+
+     if ismember(player,"BL") then
+          -- player is blacklisted, they can't ever do anything
+          return false
+     end
+
+     -- this is a challenge on this variable for its contents
+     -- HGMVariable["GT"][command]
+     -- no is all, yes is trusted, leader is leader
+
+     -- is command set to leader
+     if HGMVariable["GT"][command] == "leader" then
+          -- is the player leader, leaders can do all.
+          if HGMVariable["GL"]["Leader"] == player then
+               return true
+          end
+
+     -- is the command set to trusted
+     elseif HGMVariable["GT"][command] == "yes" then
+          -- is the player on the trusted list
+          return ismember(player,"TR")
+
+     -- is the command set to all
+     elseif HGMVariable["GT"][command] == "no" then
+          -- return true
+          return true
+
+     -- else
+     else
+          -- return false
+          return false
+     end
+
+end
+
 function hgmGroupMessage(msg)
 
      if msg == nil then return end
@@ -600,7 +647,7 @@ function hgmGroupMessage(msg)
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                end
           end
-     elseif command == "leader" and HGMVariable["GT"]["leader"] == "yes" then
+     elseif command == "leader" and canI(player, command) then
           if args == "me" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
                SendSpecial("group leader "..player)
@@ -608,18 +655,7 @@ function hgmGroupMessage(msg)
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
                SendSpecial("group leader "..args)
           end
-     elseif command == "leader" and ismember(player,"TR") then
-          if args == "me" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
-               SendSpecial("group leader "..player)
-          else
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-               SendSpecial("group leader "..args)
-          end
-     elseif command == "rename" and HGMVariable["GT"]["rename"] == "yes" and ismember(player,"TR") then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
-          SendSpecial("group rename "..args)
-     elseif command == "rename" then
+     elseif command == "rename" and canI(player, command) then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
           SendSpecial("group rename "..args)
      elseif command == "flag" and HGMVariable["GT"]["flag"] == "yes" and ismember(player,"TR") then
