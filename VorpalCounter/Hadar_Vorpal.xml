@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="2.0"
+   version="3.53"
    save_state="y"
    >
 <description trim="y">
@@ -44,28 +44,29 @@ mmm mobs losing heads
    sequence="100"
   >
   </trigger>
+  <trigger
+   enabled="y"
+   match="^You receive (.*) experience points?\."
+   omit_from_output="n"
+   regexp="y"
+   group=""
+   script="vorpKills"
+   sequence="100"
+  >
+</trigger>
 </triggers>
 
 <aliases>
     <alias
-   match="^vorpshow ?(.*)?$"
+   match="^hvc ?(.*)?$"
    enabled="y"
    send_to="12"
    sequence="100"
    regexp="y"
-   script="VorpShow"
+   script="vorpMain"
   >
   </alias>
-  <alias
-   match="^vorpset (?:(message|channel))?(?:\s(.*))?$"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-   regexp="y"
-   script="vorpset"
-  >
-  </alias>
-  <alias match="^(?:had|vorpal) help$"
+  <alias match="^had help$"
 	enabled="y"
 	sequence="100"
 	send_to="12"
@@ -80,10 +81,80 @@ mmm mobs losing heads
 
 <script>
 <![CDATA[
-require "checkplugin"
 require "serialize"
+require "gmcphelper"
+require "tprint"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
-vorpalInfo = {}
+function vorpTimeDiff(t2,t1,script)
+	local d1,d2,carry,diff = os.date('*t',t1),os.date('*t',t2),false,{}
+	local colMax = {60,60,24,os.date('*t',os.time{year=d1.year,month=d1.month+1,day=0}).day,12}
+	d2.hour = d2.hour - (d2.isdst and 1 or 0) + (d1.isdst and 1 or 0) -- handle dst
+	for i,v in ipairs({'sec','min','hour','day','month','year'}) do
+		diff[v] = d2[v] - d1[v] + (carry and -1 or 0)
+		carry = diff[v] < 0
+		if carry then diff[v] = diff[v] + colMax[i] end
+	end
+	for i,v in pairs(diff) do
+		vorpalInfo[script][i] = v
+	end
+	return diff
+end
+
+function vorpMain(n,l,wc)
+     local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     
+     if first == "set" then
+          vorpSet()
+     elseif first == "show" then
+          vorpShow(rest)
+     elseif first == "channel" then
+          vorpChannel(rest)
+     elseif first == "window" then
+          vorpWindow(rest)
+     elseif first == "comm" then
+          vorpComm(rest)
+     elseif first == "reset" then
+          vorpReset()
+     else
+          HadarHelp()
+     end
+end
+
+function interp(s, tab)
+  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+end
+
+function vorpReset()
+
+     vorpalInfo["MT"] = {} --Mort
+     vorpalInfo["AT"] = {} --All Time
+     vorpalInfo["SN"] = {} --Session
+     vorpalInfo["LS"] = {} --Session
+     injectVars()
+     
+     hadarprint("Vorpal counter has been reset","script")
+     
+end
+
+function hadarprint(str,level)
+
+	if level == "error" then
+          AnsiNote(ColoursToANSI("@R[@MHVC @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CH@cV@CC]@c "..str))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
 
 function OnPluginInstall ()
 	if GetVariable ("enabled") == "false" then
@@ -92,30 +163,30 @@ function OnPluginInstall ()
 		return
 	end -- they didn't enable us last time
 	
-	print("Had help (to see all of hadar's plugin helpfiles), or vorpal help to just see this one")
+	print("Had help (to see all of hadar's plugin helpfiles), or HVC help to just see this one")
   
 	OnPluginEnable ()
 end -- endinstall
 
 function OnPluginEnable ()
 	vorpalInfo = {}
+     vorpalInfo["GL"] = {}
+     vorpalInfo["MT"] = {} --Mort
+     vorpalInfo["AT"] = {} --All Time
+     vorpalInfo["SN"] = {} --Session
+     vorpalInfo["LS"] = {} --Session
 	
-	if GetVariable ("pastfirstinstall") == "true" then
+	if GetVariable ("vorpPastFirstInstall") == "true" then
 		assert (loadstring (GetVariable ("vorpalInfo") or "")) ()
+          injectVars()
 	else
-		buildInitial()
+          injectVars()
 	end
-	
-	vorpalInfo.session = 0
+     
+     vorpalInfo["SN"]["killCount"] = 0
+     vorpalInfo["SN"]["sessionCount"] = 0
+     vorpalInfo["SN"]["startTime"] = os.time()
 
-end
-
-function buildInitial()
-	vorpalInfo.total = 0
-	vorpalInfo.mort = 0
-	vorpalInfo.session = 0
-	vorpalInfo.channel = "gt"
-	vorpalInfo.message = "@CS@c[@R${session}@c] @CM@c[@R${mort}@c] @CT@c[@R${total}@c]@w"
 end
 
 function OnPluginSaveState ()
@@ -123,70 +194,328 @@ function OnPluginSaveState ()
 	SetVariable ("vorpPastFirstInstall", "true")
 end --end save state
 
-function interp(s, tab)
-  return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+function checkExist(tbl, idx, val) 
+
+     if not vorpalInfo[tbl] then
+          vorpalInfo[tbl] = {}
+     end
+
+     if not vorpalInfo[tbl][idx] then
+     print(tbl..idx)
+               vorpalInfo[tbl][idx] = val
+               SetVariable("vorpalInfo", serialize.save("vorpalInfo")) 
+     end
+     
+end
+
+function injectVars()
+     local v = {}
+     v["GL"] = {}
+     v["MT"] = {} --Mort
+     v["AT"] = {} --All Time
+     v["SN"] = {} --Session
+     v["LS"] = {} --last Vorpal only
+-----------------------global vars----------------------------
+     v["GL"]["commLog"] = "off"
+     v["GL"]["mainWindow"] = "on"
+     v["GL"]["commLogTab"] = nil
+     v["GL"]["Channel"] = "echo"
+     v["GL"]["Logo"] = "@G[@CV@corpal@CC@counter@G]@c "
+     v["GL"]["Message"] = "${logo} @CA@cfter @R${kills} @ckills @W-@R ${mob}@c brings the totals to@W: @CS@c[@R${session}@c] @CM@c[@R${mort}@c] @CT@c[@R${total}@c]@w"
+     v["GL"]["Debug"] = 0
+---------------------Mort Vars-------------------------------
+     v["MT"]["mortCount"] = 0
+     v["MT"]["killCount"] = 0
+-------------------Session Vars------------------------------
+     v["SN"]["killCount"] = 0
+     v["SN"]["sessionCount"] = 0
+     v["SN"]["startTime"] = os.time()
+------------------all time Vars------------------------------
+     v["AT"]["killCount"] = 0
+     v["AT"]["allCount"] = 0
+     v["AT"]["Installed"] = os.time()
+     v["AT"]["Date"] = os.date("*t")
+------------------Last Vorpal only---------------------------
+     v["LS"]["killCount"] = 0
+     v["LS"]["lastVorpalTime"] = os.time()
+     v["LS"]["lastVorpalDate"] = 0
+     v["LS"]["lastVorpalMob"] = "None"
+-------------------------------------------------------------
+
+     for a,b in pairs(v) do
+          for c,d in pairs(b) do
+               checkExist(a,c,d)
+          end
+     end
+end
+
+function vorpKills()
+     vorpalInfo["MT"]["killCount"] = vorpalInfo["MT"]["killCount"] + 1
+     vorpalInfo["SN"]["killCount"] = vorpalInfo["SN"]["killCount"] + 1
+     vorpalInfo["AT"]["killCount"] = vorpalInfo["AT"]["killCount"] + 1
+     vorpalInfo["LS"]["killCount"] = vorpalInfo["LS"]["killCount"] + 1
 end
 
 function ResetMort()
-	vorpalInfo.mort = 0
+	vorpalInfo["MT"]["mortCount"] = 0
+     vorpalInfo["MT"]["killCount"] = 0
 end
 
-function VorpCount(name, line, wildcards)
-	vorpalInfo.total=vorpalInfo.total+1
-	vorpalInfo.mort=vorpalInfo.mort+1
-	vorpalInfo.session=vorpalInfo.session+1
-		
-	local message = interp(vorpalInfo.message, {session = vorpalInfo.session, mort = vorpalInfo.mort, total = vorpalInfo.total})
+function makeMessage(chan)
+     vorpTimeDiff(os.time(),vorpalInfo["SN"]["startTime"],"SN")
+     vorpTimeDiff(os.time(),vorpalInfo["LS"]["lastVorpalTime"],"SN")
+     chan = string.lower(chan)
+     local str = interp(vorpalInfo["GL"]["Message"], {logo = vorpalInfo["GL"]["Logo"], kills = vorpalInfo["LS"]["killCount"] ,mob = vorpalInfo["LS"]["lastVorpalMob"], session = vorpalInfo["SN"]["sessionCount"], mort = vorpalInfo["MT"]["mortCount"], total = vorpalInfo["AT"]["allCount"]})
+     
+     if vorpalInfo["GL"]["commLog"] == "on" and vorpalInfo["GL"]["mainWindow"] == "off" then
+          CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",str, vorpalInfo["GL"]["commLogTab"], true)
+          vorpalInfo["LS"]["killCount"] = 0
+          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
+          return
+     elseif vorpalInfo["GL"]["commLog"] == "off" and vorpalInfo["GL"]["mainWindow"] == "on" then
+          if chan == "echo" or chan == "print" then
+               hadarprint(str)
+          else
+               SendSpecial(chan.." "..str)
+          end
+          vorpalInfo["LS"]["killCount"] = 0
+          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
+     elseif vorpalInfo["GL"]["commLog"] == "on" and vorpalInfo["GL"]["mainWindow"] == "on" then
+          CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",str, vorpalInfo["GL"]["commLogTab"], true)
+          vorpalInfo["LS"]["killCount"] = 0
+          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
+          return
+     end
+     
+end
 
-	SendSpecial(vorpalInfo.channel.." "..message)
+function VorpCount(name, line, wildcards, styles)
+	vorpalInfo["AT"]["allCount"] = vorpalInfo["AT"]["allCount"]+1
+	vorpalInfo["MT"]["mortCount"] = vorpalInfo["MT"]["mortCount"] + 1
+	vorpalInfo["SN"]["sessionCount"] = vorpalInfo["SN"]["sessionCount"]+1
+     vorpalInfo["LS"]["lastVorpalDate"] = os.date("*t")
+     vorpalInfo["LS"]["lastVorpalMob"] = wildcards[2]
+		
+	makeMessage(vorpalInfo["GL"]["Channel"])
 	SaveState()
 end
 
-function VorpShow(name, line, wildcards)
-local channel
-	if wildcards[1] == nil then
-		channel = vorpalInfo.channel
-	else
-		channel = wildcards[1]
-	end
-	
-	local message = interp(vorpalInfo.message, {session = vorpalInfo.session, mort = vorpalInfo.mort, total = vorpalInfo.total})
-
-	SendSpecial(channel.." "..message)
+function getDay(val)
+     local str
+     if val == 1 then
+          str = "@CS@cunday"
+     elseif val == 2 then
+          str = "@CM@conday"
+     elseif val == 3 then
+          str = "@CT@cuesday"
+     elseif val == 4 then
+          str = "@CW@cednesday"
+     elseif val == 5 then
+          str = "@CT@chursday"
+     elseif val == 6 then
+          str = "@CF@criday"
+     elseif val == 7 then
+          str = "@CS@caturday"
+     end
+          
+     return str
+end
+     
+function getMonth(val)
+     local str
+     if val == 1 then
+          str = "@CJ@can@W."
+     elseif val == 2 then
+          str = "@CF@ceb@W."
+     elseif val == 3 then
+          str = "@CM@car@W."
+     elseif val == 4 then
+          str = "@CA@cpr@W."
+     elseif val == 5 then
+          str = "@CM@cay"
+     elseif val == 6 then
+          str = "@CJ@cun@W."
+     elseif val == 7 then
+          str = "@CJ@cul@W."
+     elseif val == 8 then
+          str = "@CA@cug@W."
+     elseif val == 9 then
+          str = "@CS@cept@W."
+     elseif val == 10 then
+          str = "@CO@cct@W."
+     elseif val == 11 then
+          str = "@CN@cov@W."
+     elseif val == 12 then
+          str = "@CD@cec@W."
+     end
+         
+     return str
 end
 
-function vorpset(name, lines, wildcards)
+function vorpShow(str)
+     
+     local channel
+	if str == nil or str == "" or str ==" " then
+		channel = vorpalInfo["GL"]["Channel"]
+	else
+		channel = str
+	end
+     
+     if str == "echo" or str == "print" then
+          local vorpdate = getDay(vorpalInfo["AT"]["Date"]["wday"]) .. "@W, " .. getMonth(vorpalInfo["AT"].Date.month) .. " @G" .. vorpalInfo["AT"].Date.day .. " @G" .. vorpalInfo["AT"].Date.year
+          local vorptime = "@G"..vorpalInfo["AT"].Date.hour.."@W:@G"..vorpalInfo["AT"].Date.min.."@W:@G"..vorpalInfo["AT"].Date.sec
+          local vorpdatetime = vorpdate .. " @Dat " .. vorptime .. "@w"
+          local DTlen = string.len(strip_colours(vorpdatetime))
+          local math1 = 50-DTlen
+          
+          local vorpdate2 = getDay(vorpalInfo["LS"]["lastVorpalDate"]["wday"]) .. "@W, " .. getMonth(vorpalInfo["LS"].lastVorpalDate.month) .. " @G" .. vorpalInfo["LS"].lastVorpalDate.day .. " @G" .. vorpalInfo["LS"].lastVorpalDate.year
+          local vorptime2 = "@G"..vorpalInfo["LS"].lastVorpalDate.hour.."@W:@G"..vorpalInfo["LS"].lastVorpalDate.min.."@W:@G"..vorpalInfo["LS"].lastVorpalDate.sec
+          local vorpdatetime2 = vorpdate2 .. " @Dat " .. vorptime2 .. "@w"
+          local DTlen2 = string.len(strip_colours(vorpdatetime2))
+          local math2 = 50-DTlen2
+          
+          local avgsession = tonumber(vorpalInfo["SN"]["sessionCount"])/tonumber(vorpalInfo["SN"]["killCount"])
+          local avgmort = tonumber(vorpalInfo["MT"]["mortCount"])/tonumber(vorpalInfo["MT"]["killCount"])
+          local avgalltime = tonumber(vorpalInfo["AT"]["allCount"])/tonumber(vorpalInfo["AT"]["killCount"])
+          
+          
+          hadarprint("@x165+@x247--------------------------@x046[@CV@corpal @CC@counter@x046]@x247----------------------------@x165+@w")
+          hadarprint("@x165|                                                                      |")
+          hadarprint("@x165|                     @CT@cracker @CS@ctarted @CT@cracking @Co@cn@W:                     @x165|")
+          hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",vorpdatetime," ").."@x165|")
+          hadarprint("@x165|                                                                      |")
+          hadarprint("@x165|                          @CC@current @CC@counter @CA@ct@W:                         @x165|")
+          hadarprint("@x165|       @CS@cince @CL@cogin@G[@Y"..string.format("%-3s",vorpalInfo["SN"]["sessionCount"]).."@G]      @CR@ce@W-@CM@cort@G[@Y"..string.format("%-5s",vorpalInfo["MT"]["mortCount"]).."@G]    @CA@cll@W-@CT@cime@G[@Y"..string.format("%-7s",vorpalInfo["AT"]["allCount"]).."@G]@x165      |")
+          hadarprint("@x165|                                                                      |")
+          hadarprint("@x165|                            @CA@cverage @Ck@cills@W:                            @x165|")
+          hadarprint("@x165|      @CS@cince @CL@cogin@G: @Y"..string.format("%-3g",avgsession).."   @CR@ce@W-@CM@cort@G: @Y"..string.format("%-5g",avgmort).."   @CA@cll@W-@CT@cime@G:@Y   "..string.format("%-7g",avgalltime).." @x165        |")
+          hadarprint("@x165|                                                                      |")
+          hadarprint("@x165|                           @CL@cast @CV@corpal@W:                               @x165|")
+          hadarprint("@x165|                        @G"..string.format("%-20s",vorpalInfo["LS"]["lastVorpalMob"]).." @x165                         |")
+          hadarprint("@x165|                  "..string.format("%-"..DTlen2.."s%"..math2.."s",vorpdatetime2," ").."  @x165|")
+          hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
+          return
+     end
+	
+	makeMessage(channel)
+end
 
-	if wildcards[1] == "channel" and wildcards[2] == "echo" then
-		vorpalInfo.channel = wildcards[2]
-		SendNoEcho("echo Your channel has been set to: " .. vorpalInfo.channel)
-	elseif wildcards[1] == "message" then
-		HadarBackup = vorpalInfo.message
-		vorpalInfo.message = utils.inputbox ("${session} - shows vorpals for this session\n${mort} - shows vorpals for this mort\n${total} - shows total vorpals\n", "look of vorpal counter", vorpalInfo.message, "Courier", 9)
+function vorpChannel(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("Your current output channel is set to: @G"..vorpalInfo["GL"]["Channel"],"script")
+     else
+          vorpalInfo["GL"]["Channel"] = str
+          hadarprint("Your vorpal report channel is set to: @G"..vorpalInfo["GL"]["Channel"])
+     end
+end
+
+function vorpSet()
+
+	local HadarBackup = vorpalInfo["GL"]["Message"]
+	vorpalInfo["GL"]["Message"] = utils.inputbox ("${session} - shows vorpals for this session\n${mort} - shows vorpals for this mort\n${total} - shows total vorpals\n", "look of vorpal counter", vorpalInfo["GL"]["Message"], "Courier", 9)
 		
-		if vorpalInfo.message ~= nil then
-			SendNoEcho("echo vorpal message will look like: "..vorpalInfo.message)
-		else
-			vorpalInfo.message = HadarBackup
-		end
-		
-	else 
-		SendNoEcho("echo use vorpset channel channel - to set the channel, or vorpset message to change the look of the message")
+	if vorpalInfo["GL"]["Message"] ~= nil then
+		hadarprint("vorpal message will look like: "..vorpalInfo["GL"]["Message"],"script")
+	else
+		vorpalInfo["GL"]["Message"] = HadarBackup
 	end
 	
-		SaveState()
+	SaveState()
+end
+
+function vorpWindow(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("Your current window Config is@W:@w","script")
+          if vorpalInfo["GL"]["mainWindow"] == "on" then
+               hadarprint("Main Window@W:@G ACTIVE@w")
+          else
+               hadarprint("Main Window@W:@R DE-ACTIVE@w")
+          end
+          if vorpalInfo["GL"]["commLog"] == "on" then
+               hadarprint("Comm Window@W: @GACTIVE@w")
+          else
+               hadarprint("Comm Window@W: @RDE-ACTIVE@w")
+          end
+          return
+     end
+     local first, second = str:match("(%w+)%s*(.*)")
+     
+     if second == " " or second == "" then
+          second = nil
+     end
+     
+     if first == "main" and second == nil then
+          if vorpalInfo["GL"]["mainWindow"] then
+               vorpalInfo["GL"]["mainWindow"] = "off"
+               hadarprint("Main Window@W:@R DE-ACTIVE@w","script")
+          else
+               vorpalInfo["GL"]["mainWindow"] = "on"
+               hadarprint("Main Window@W:@G ACTIVE@w","script")
+          end
+     elseif first == "main" and second == "enable" then
+          vorpalInfo["GL"]["mainWindow"] = "on"
+          hadarprint("Main Window@W:@G ACTIVE@w","script")
+     elseif first == "main" and second == "disable" then
+          vorpalInfo["GL"]["mainWindow"] = "off"
+          hadarprint("Main Window@W:@R DE-ACTIVE@w","script")
+     end
+     
+     if first == "comm" and second == nil then
+          if vorpalInfo["GL"]["commLog"] then
+               vorpalInfo["GL"]["commLog"] = "off"
+               hadarprint("Comm Log@W:@R DE-ACTIVE@w","script")
+          else
+               vorpalInfo["GL"]["commLog"] = "on"
+               hadarprint("Comm Log@W:@G ACTIVE@w","script")
+          end
+     elseif first == "comm" and second == "enable" then
+          vorpalInfo["GL"]["commLog"] = "on"
+          hadarprint("Comm Log@W:@G ACTIVE@w","script")
+     elseif first == "comm" and second == "disable" then
+          vorpalInfo["GL"]["commLog"] = "off"
+          hadarprint("Comm Log@W:@R DE-ACTIVE@w","script")
+     end
+     
+     if not vorpalInfo["GL"]["mainWindow"] and not vorpalInfo["GL"]["commLog"] then
+          hadarprint("Both main window and comm log can not be deactivated","error")
+          hadarprint("Activating main winow","script")
+          vorpalInfo["GL"]["mainWindow"] = "on"
+     end
+     
+end
+
+function vorpComm(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("Your current Commlog Config is@W:@w","script")
+          if vorpalInfo["GL"]["commLogTab"] == nil then
+               hadarprint("Your current Commlog tab is@W:@w NIL","script")
+               hadarprint("If you do not know what this is, or you dont have multiple tabs")
+               hadarprint("do not mess with this setting")
+          end
+          return
+     end
+     local first, second = str:match("(%w+)%s*(.*)")
+     if second == " " or second == "" then
+          second = nil
+     end
+     
+     if first ~= nil then
+          vorpalInfo["GL"]["commLogTab"] = second
+          hadarprint("You will now report vorpals to the @W"..second.."@w communication log","script")
+     end
 end
 
 function HadarHelp()
-	ColourNote("#159FE5","","+----------------------------------","Green","","[","Cyan","","V","Teal","","orpal","Cyan",""," C","Teal","","ounter","Green","","]","#159FE5","","----------------------------------+")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpshow <channel>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," show your vorpals on a channel."),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpset channel <channel>"),"#159FE5","","-","#F1D566","",string.format("%-57s"," set the channel to report to on a vorpal"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," vorpset message"),"#159FE5","","-","#F1D566","",string.format("%-64s"," how the vorpal message looks"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
-	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+hadarprint("@x086+-----------------------@G[@CV@corpal @CC@counter @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086------------------------+")
+hadarprint("@x086| @x214hvc help               @x110- @x214Displays this helpfile                      @x086|")
+hadarprint("@x086| @x208hvc show <channel>     @x110- @x208Shows the current vorpals to a channel      @x086|")
+hadarprint("@x086|                          @x208Echo shows a full report                    @x086|")
+hadarprint("@x086| @x214hvc set <message|logo> @x110- @x214hanges the look of the message or logo      @x086|")
+hadarprint("@x086| @x208hvc channel <channel>  @x110- @x208Sets default reporting channel              @x086|")
+hadarprint("@x086| @x214hvc window <main|comm> @x110- @x214Sets the default output window              @x086|")
+hadarprint("@x086| @x208hvc comm <number>      @x110- @x208if multiple comm tabs, set the reporting tab@x086|")
+hadarprint("@x086| @x214hvc reset              @x110- @x214resets the vorpal counter                   @x086|")
+hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
 ]]>

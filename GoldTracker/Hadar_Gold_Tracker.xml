@@ -7,7 +7,7 @@
 
 <muclient>
 <plugin
-   name="HadarGoldTracker"
+   name="Hadar_Gold_Tracker"
    author="Hadar"
    id="ff007fc4c4258417ba53eebf"
    language="Lua"
@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="1.0"
+   version="2.86"
    >
 
 </plugin>
@@ -90,69 +90,223 @@
    sequence="100"
   >
   </trigger>
+  <trigger
+   enabled="y"
+   match="^You fence .* for ([+-]?[0-9,]+) gold."
+   regexp="y"
+   send_to="12"
+   script="GainGoldFence"
+   sequence="100"
+  >
+  </trigger>
 
 </triggers>
 
 <aliases>
   <alias
-   match="goldtracked"
+   match="^hgt ?(.*)?$"
    enabled="y"
+   regexp="y"
    send_to="12"
-   sequence="50"
-   script="GoldTracked"
+   sequence="100"
+   script="hgtMain"
   >
   </alias>
+  <alias match="^had help$"
+	enabled="y"
+	sequence="100"
+	send_to="12"
+	regexp="y"
+	keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+     </alias>
 </aliases>
-
 <script>
 <![CDATA[
 
 require "checkplugin"
 require "serialize"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+
+function hgtMain(n,l,wc)
+     local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     
+     if first == "session" then
+          goldSession(rest)
+     elseif first == "fullreset" then
+          goldFullReset()
+     elseif first == "show" then
+          GoldTracked(rest)
+     elseif first == "set" then
+          GoldSet(rest)
+     elseif first == "config" then
+          GoldConfig(rest)
+     elseif first == "channel" then
+          GoldChannel(rest)
+     else
+          HadarHelp()
+     end
+end
 
 function OnPluginInstall()
-   print("Track all the gold!")
-   
    	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
 		check (EnablePlugin(GetPluginID (), false))
 		return
 	end -- they didn't enable us last time
+     hadarprint("had help (to see all of hadar's plugin helpfiles), or hgt help to just see this one","script")
   
 	OnPluginEnable ()
+     
+     for i = 23,0,-1 do 
+          AddTimer ("Gold_timer_"..i, i, 0, 0, "", 3, "hourReport")
+     end
 end
 
-function GoldTracked()
-print("Gold Gained all time:"..GoldTrack.alltime)
-print("Gold Gained from Crumbles:"..GoldTrack.Crumble)
-print("Gold Gained from Mobs:"..GoldTrack.MobGold)
-print("Gold Gained from Selling:"..GoldTrack.ABuyGold)
-print("Gold Gained from Gives:"..GoldTrack.AGiveGold)
-print("")
-print("Gold Lost from Gives:"..GoldTrack.LGiveGold)
-print("Gold Lost from buying:"..GoldTrack.LBuyGold)
-print("")
-print("Gold from this Session:"..GoldTrack.Session)
+function interp(s, tab)
+	if s == nil then
+		hadarprint("@RYou forgot to fill in a message please use @Chgt help@R and run the message commands to see which one.")
+	else
+		return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	end
+end
+
+function hadarprint(str,level)
+
+	if level == "debug" and GoldTrack["GL"].Debug == true then
+		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
+	elseif level == "error" then
+          AnsiNote(ColoursToANSI("@R[@Mhgt @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CG@cold@CT@cracker@G]@c"..str))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
+
+local function getDay(val)
+     local str
+     if val == 1 then
+          str = "@CS@cunday"
+     elseif val == 2 then
+          str = "@CM@conday"
+     elseif val == 3 then
+          str = "@CT@cuesday"
+     elseif val == 4 then
+          str = "@CW@cednesday"
+     elseif val == 5 then
+          str = "@CT@chursday"
+     elseif val == 6 then
+          str = "@CF@criday"
+     elseif val == 7 then
+          str = "@CS@caturday"
+     end
+          
+     return str
+end
+     
+function getMonth(val)
+     local str
+     if val == 1 then
+          str = "@CJ@can@W."
+     elseif val == 2 then
+          str = "@CF@ceb@W."
+     elseif val == 3 then
+          str = "@CM@car@W."
+     elseif val == 4 then
+          str = "@CA@cpr@W."
+     elseif val == 5 then
+          str = "@CM@cay"
+     elseif val == 6 then
+          str = "@CJ@cun@W."
+     elseif val == 7 then
+          str = "@CJ@cul@W."
+     elseif val == 8 then
+          str = "@CA@cug@W."
+     elseif val == 9 then
+          str = "@CS@cept@W."
+     elseif val == 10 then
+          str = "@CO@cct@W."
+     elseif val == 11 then
+          str = "@CN@cov@W."
+     elseif val == 12 then
+          str = "@CD@cec@W."
+     end
+         
+     return str
+end
+
+function GoldTracked(str)
+
+     if str == nil or str == "" or str == " " then 
+     
+     local golddate = getDay(GoldTrack["AT"].Date.wday) .. "@W, " .. getMonth(GoldTrack["AT"].Date.month) .. " @G" .. GoldTrack["AT"].Date.day .. " @G" .. GoldTrack["AT"].Date.year
+     local goldtime = "@G"..GoldTrack["AT"].Date.hour.."@W:@G"..GoldTrack["AT"].Date.min.."@W:@G"..GoldTrack["AT"].Date.sec
+     local golddatetime = golddate .. " @Dat " .. goldtime .. "@w"
+     local DTlen = string.len(strip_colours(golddatetime))
+     local math1 = 50-DTlen
+     
+     
+     hadarprint("@x165+@x247---------------------------@x046[@CG@cold @CT@cracker@x046]@x247-----------------------------@x165+@w")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|                     @CT@Dracker @CS@Dtarted @CT@Dracking @Co@Dn@W:                     @x165|")
+     hadarprint("@x165|                    "..string.format("%-"..DTlen.."s%"..math1.."s",golddatetime," ").."@x165|")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|     @CAll @cTime @CTracked @cGold @W- @RLost@W:@x165                                    |")
+     hadarprint("@x165|      @CT@caxed@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Taxed"])).." @CG@civen Away@W: @R"..string.format("%-14s",comma_value(GoldTrack["AT"]["lostGive"])).." @CB@cought@W: @R"..string.format("%-10s",comma_value(GoldTrack["AT"]["Buy"])).."@x165 |")
+     hadarprint("@x165|                                                                      |")
+     hadarprint("@x165|     @cAll @CTime @cTracked @CGold @W- @RGained@W:@x165                                  |")
+     hadarprint("@x165|      @CC@crumble@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Crumble"])).." @CM@cob@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Mob"])).." @CG@civen@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Give"])).." @x165  |")
+     hadarprint("@x165|      @CS@cold@W:@R "..string.format("%-14s",comma_value(GoldTrack["AT"]["Sell"])).."@x165  @CF@cenced@W:@R "..string.format("%-10s",comma_value(GoldTrack["AT"]["Fence"])).."@x165                        |")
+     hadarprint("@x165+@x247----------------------------------------------------------------------@x165+@w")
+     else
+          local ATmessage = interp(GoldTrack["AT"].Message, {
+                    crumble = comma_value(GoldTrack["AT"].Crumble),
+                    mob = comma_value(GoldTrack["AT"].Mob),
+                    give = comma_value(GoldTrack["AT"].Give),
+                    sell = comma_value(GoldTrack["AT"].Sell),
+                    fence = comma_value(GoldTrack["AT"].Fence),
+                    taxed = comma_value(GoldTrack["AT"].Taxed),
+                    gave = comma_value(GoldTrack["AT"].lostGive),
+                    bought = comma_value(GoldTrack["AT"].Buy),
+                    logo = GoldTrack["GL"].Logo,
+                    wday = getDay(GoldTrack["AT"]["Date"].wday),
+                    month = getMonth(GoldTrack["AT"]["Date"].month),
+                    day = GoldTrack["AT"]["Date"].day,
+                    year = GoldTrack["AT"]["Date"].year,
+                    hour = GoldTrack["AT"]["Date"].hour,
+                    min = GoldTrack["AT"]["Date"].min,
+                    sec = GoldTrack["AT"]["Date"].sec
+          })
+          
+          SendSpecial(str .. " " .. ATmessage)
+     end
 end
 
 function OnPluginEnable ()
-	GoldTrack={}
 	
-	GoldTrack.alltime = 0
-	GoldTrack.Crumble = 0
-	GoldTrack.MobGold = 0
-	GoldTrack.TaxedGold = 0
-	GoldTrack.AGiveGold = 0
-	GoldTrack.LGiveGold = 0
-	GoldTrack.LBuyGold = 0
-	GoldTrack.ABuyGold = 0
-	GoldTrack.Session = 0
-	GoldTrack.LostAll = 0
-		
+     GoldTrack={}
+     GoldTrack["GL"] = {}
+     GoldTrack["SN"] = {}
+     GoldTrack["AT"] = {}
+     GoldTrack["HR"] = {}
+
 	if GetVariable ("pastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("GoldTrack") or "")) ()
-		GoldTrack.Session = 0
 	end
+     injectVars()
+     
 end -- endenable
 
 function OnPluginSaveState ()
@@ -165,55 +319,497 @@ function NoMoreComma(num)
 	return tonumber(numstr)
 end
 
+function comma_value(n) -- credit http://richard.warburton.it
+	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
+end
+
+function checkExist(tbl, idx, val) 
+
+     if not GoldTrack[tbl] then
+          GoldTrack[tbl] = {}
+     end
+
+     if not GoldTrack[tbl][idx] then
+               GoldTrack[tbl][idx] = val
+               SetVariable("GoldTrack", serialize.save("GoldTrack")) 
+     end
+     
+end
+
+function goldTimeDiff(t2,t1,script)
+	local d1,d2,carry,diff = os.date('*t',t1),os.date('*t',t2),false,{}
+	local colMax = {60,60,24,os.date('*t',os.time{year=d1.year,month=d1.month+1,day=0}).day,12}
+	d2.hour = d2.hour - (d2.isdst and 1 or 0) + (d1.isdst and 1 or 0) -- handle dst
+	for i,v in ipairs({'sec','min','hour','day','month','year'}) do
+		diff[v] = d2[v] - d1[v] + (carry and -1 or 0)
+		carry = diff[v] < 0
+		if carry then diff[v] = diff[v] + colMax[i] end
+	end
+	for i,v in pairs(diff) do
+		GoldTrack[script][i] = v
+	end
+	return diff
+end
+
+function injectVars()
+     local v = {}
+     v["GL"] = {}
+     v["SN"] = {}
+     v["HR"] = {}
+     v["AT"] = {}
+-----------------------global vars----------------------------
+     v["GL"]["Hour"] = "yes"
+     v["GL"]["double"] = "yes"
+     v["GL"]["normal"] = "yes"
+     v["GL"]["commLog"] = "no"
+     v["GL"]["mainWindow"] = "yes"
+     v["GL"]["commLogTab"] = nil
+     v["GL"]["Channel"] = "echo"
+     v["GL"]["Logo"] = "@G[@CG@cold@CT@cracker@G]@c "
+     v["GL"]["Debug"] = "no"
+     v["GL"]["Type"] = nil
+---------------------Hour Vars-------------------------------
+     --track gold over hours
+     v["HR"]["message"] = "${logo}Last Hour we got ${goldin} and spent ${goldout} for a total of ${goldtotal}"
+     v["HR"]["Taxed"] = 0
+     v["HR"]["lostGive"] = 0
+     v["HR"]["Buy"] = 0
+     v["HR"]["Crumble"] = 0
+     v["HR"]["Mob"] = 0
+     v["HR"]["Give"] = 0
+     v["HR"]["Sell"] = 0
+     v["HR"]["Fence"] = 0
+-------------------Session Vars------------------------------
+     --track gold over a session
+     v["SN"]["lostGive"] = 0
+     v["SN"]["Taxed"] = 0
+     v["SN"]["Buy"] = 0
+     v["SN"]["Crumble"] = 0
+     v["SN"]["Mob"] = 0
+     v["SN"]["Give"] = 0
+     v["SN"]["Sell"] = 0
+     v["SN"]["Fence"] = 0
+     v["SN"]["startTime"] = nil
+     v["SN"]["Active"] = "no"
+     v["SN"]["Message"] = "${logo}Your session was @R${day}@W:@R${hour}@W:@R${min}@W:@R${sec}@c long, netting @R${totalgold}@G[@CM@cob@W:@R${mob} @CG@civen@W:@R${given} @CC@crumble@W:@R${crumble}@G]@w"
+------------------all time Vars------------------------------
+     --track gold over alltime
+     v["AT"]["Taxed"] = 0
+     v["AT"]["lostGive"] = 0
+     v["AT"]["Buy"] = 0
+     v["AT"]["Crumble"] = 0
+     v["AT"]["Mob"] = 0
+     v["AT"]["Give"] = 0
+     v["AT"]["Sell"] = 0
+     v["AT"]["Fence"] = 0
+     v["AT"]["Message"] = "${logo} @CI@cnstalled@W:@G${wday}@W,@G${month} ${day} ${year} @Ca@Ct @G${hour}@W:@G${min}@W:@G${sec} @CT@cotal Gained: @D[@CM@cob@W:@R ${mob} @CG@civen@W:@R ${give} @CS@cold@W:@R ${sell} @CF@cenced@W: @R${fence} @CC@crumbles@W:@R${crumble}@D] Total Lost: @D[@CT@caxed@W: @R${taxed} @CG@civen@W:@R ${gave} @CB@cuy@W:@R${bought}@D]@w"
+     v["AT"]["Installed"] = os.time()
+     v["AT"]["Date"] = os.date("*t")
+-------------------------------------------------------------
+
+     for a,b in pairs(v) do
+          for c,d in pairs(b) do
+               checkExist(a,c,d)
+          end
+     end
+end
+
+function goldFullReset()
+     GoldTrack = nil
+     GoldTrack={}
+     GoldTrack["GL"] = {}
+     GoldTrack["SN"] = {}
+     GoldTrack["AT"] = {}
+     GoldTrack["HR"] = {}
+     injectVars()
+     hadarprint("Have fully reset all variables","script")
+end
+function makeOutput()
+     local message
+
+     if GoldTrack["GL"]["Type"] == "HR" then
+          local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
+          local gainedGold = tonumber(GoldTrack["HR"].Crumble) + tonumber(GoldTrack["HR"].Mob) + tonumber(GoldTrack["HR"].Give) + tonumber(GoldTrack["HR"].Sell) + tonumber(GoldTrack["HR"].Fence)
+          local goldtotal = tonumber(gainedGold-goldLost)
+          
+          message = interp(GoldTrack["HR"].message, {
+               goldin = comma_value(gainedGold),
+               goldout = comma_value(goldLost),
+               crumble = comma_value(GoldTrack["HR"].Crumble),
+               mob = comma_value(GoldTrack["HR"].Mob),
+               given = comma_value(GoldTrack["HR"].Give),
+               sold = comma_value(GoldTrack["HR"].Sell),
+               fence = comma_value(GoldTrack["HR"].Fence),
+               taxed = comma_value(GoldTrack["HR"].Taxed),
+               gave = comma_value(GoldTrack["HR"].lostGive),
+               bought = comma_value(GoldTrack["HR"].Buy),
+               logo = GoldTrack["GL"].Logo,
+               goldtotal = comma_value(goldtotal)
+          })
+     elseif GoldTrack["GL"]["Type"] == "SN" then
+          local goldLost = tonumber(GoldTrack["SN"].Taxed) + tonumber(GoldTrack["SN"].lostGive) + tonumber(GoldTrack["SN"].Buy)
+          local gainedGold = tonumber(GoldTrack["SN"].Crumble) + tonumber(GoldTrack["SN"].Mob) + tonumber(GoldTrack["SN"].Give) + tonumber(GoldTrack["SN"].Sell) + tonumber(GoldTrack["SN"].Fence)
+          local goldtotal = tonumber(gainedGold-goldLost)
+          
+          message = interp(GoldTrack["SN"].Message, {
+                    goldin = comma_value(gainedGold),
+                    goldout = comma_value(goldLost),
+                    crumble = comma_value(GoldTrack["SN"].Crumble),
+                    mob = comma_value(GoldTrack["SN"].Mob),
+                    given = comma_value(GoldTrack["SN"].Give),
+                    sold = comma_value(GoldTrack["SN"].Sell),
+                    fence = comma_value(GoldTrack["SN"].Fence),
+                    taxed = comma_value(GoldTrack["SN"].Taxed),
+                    gave = comma_value(GoldTrack["SN"].lostGive),
+                    bought = comma_value(GoldTrack["SN"].Buy),
+                    logo = GoldTrack["GL"].Logo,
+                    day = GoldTrack["SN"].day,
+                    hour = GoldTrack["SN"].hour,
+                    min = GoldTrack["SN"].min,
+                    sec = GoldTrack["SN"].sec,
+                    totalgold = comma_value(goldtotal)
+               })
+     elseif GoldTrack["GL"]["Type"] == "AT" then
+     end
+     
+     if message ~= nil then
+          
+          if GoldTrack["GL"]["mainWindow"] == "yes" then
+               if GoldTrack["GL"]["Channel"] == "echo" or GoldTrack["GL"]["Channel"] == "print" then
+                    hadarprint(message)
+               else
+                    SendSpecial(GoldTrack["GL"]["Channel"] .. " " ..message)
+               end
+          end
+          
+          if GoldTrack["GL"]["commLog"] == "yes" then
+               CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, GoldTrack["GL"]["commLogTab"], true)
+          end
+          
+          if GoldTrack["GL"]["commLog"] == "no" and GoldTrack["GL"]["mainWindow"] == "no" then
+               hadarprint("You have both reporting to Comm log and reporting to main window off, cant report","error")
+          end
+          
+     end
+     
+     GoldTrack["GL"]["Type"] = nil
+end
+
+function goldSession(str)
+
+     if str == nil then
+          hadarprint("You need to give an argument","error")
+          return
+     end
+     
+     str = string.lower(str)
+     
+     if str == "start" then
+          if GoldTrack["SN"]["Active"] == "no" then
+               GoldTrack["SN"]["Active"] = "yes"
+               GoldTrack["SN"]["startTime"] = os.time()
+               hadarprint("You have started a Gold Session, use @Ghgt session stop@c to end","script")
+          else
+               hadarprint("You already have a session running use @Ghgt session stop@c to end","script")
+          end
+     elseif str == "stop" then
+          if GoldTrack["SN"]["Active"] == "yes" then
+               goldTimeDiff(os.time(),GoldTrack["SN"]["startTime"],"SN")
+               GoldTrack["GL"]["Type"] = "SN"
+               
+               makeOutput()
+               
+               GoldTrack["SN"]["lostGive"] = 0
+               GoldTrack["SN"]["Taxed"] = 0
+               GoldTrack["SN"]["Buy"] = 0
+               GoldTrack["SN"]["Crumble"] = 0
+               GoldTrack["SN"]["Mob"] = 0
+               GoldTrack["SN"]["Give"] = 0
+               GoldTrack["SN"]["Sell"] = 0
+               GoldTrack["SN"]["Fence"] = 0
+               GoldTrack["SN"]["Active"] = "no"
+               SaveState()
+          else
+               hadarprint("You @RDO NOT@c have a session running use @Ghgt session start@c to begin","script")
+          end
+     elseif str == "status" then
+          if GoldTrack["SN"]["Active"] == "yes" then
+               goldTimeDiff(os.time(),GoldTrack["SN"]["startTime"],"SN")
+               GoldTrack["GL"]["Type"] = "SN"
+               
+               makeOutput()
+               
+          else
+               hadarprint("You DO NOT have a session running use @Ghgt session start@c to begin","script")
+          end
+     else
+          hadarprint("@cPlease use the following command@W:@Ghgt session <start|stop|status>@w","error")
+     end
+     
+end
+
+function hourReport()
+
+
+     if GoldTrack["GL"]["Hour"] == "yes" then
+     
+     
+     GoldTrack["GL"]["Type"] = "HR"
+     
+     makeOutput()
+     
+     GoldTrack["HR"].Mob = 0
+     GoldTrack["HR"].Give = 0
+     GoldTrack["HR"].Sell = 0
+     GoldTrack["HR"].Fence = 0
+     GoldTrack["HR"].Taxed = 0
+     GoldTrack["HR"].lostGive = 0
+     GoldTrack["HR"].Buy = 0
+     GoldTrack["HR"].Crumble = 0
+     end
+end
+
 function AddGoldCrumble(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
-GoldTrack.Crumble = GoldTrack.Crumble+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
-SaveState()
+     local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Crumble = tonumber(GoldTrack["AT"].Crumble) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Crumble = tonumber(GoldTrack["HR"].Crumble) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Crumble = tonumber(GoldTrack["SN"].Crumble) + gold
+     end
+     GoldTrack["AT"].Crumble = tonumber(GoldTrack["AT"].Crumble) + tonumber(gold)
+     SaveState()
 end
 
 function AddMobGold(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
-GoldTrack.MobGold = GoldTrack.MobGold+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Mob = tonumber(GoldTrack["HR"].Mob) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Mob = tonumber(GoldTrack["SN"].Mob) + gold
+     end
+     GoldTrack["AT"].Mob = tonumber(GoldTrack["AT"].Mob) + tonumber(gold)
+     SaveState()
 end
 
 function TaxedGold(name, line, wildcards)
-GoldTrack.TaxedGold = GoldTrack.TaxedGold+NoMoreComma(wildcards[1])
-GoldTrack.LostAll = GoldTrack.LostAll+NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Taxed = tonumber(GoldTrack["AT"].Taxed) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Taxed = tonumber(GoldTrack["HR"].Taxed) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Taxed = tonumber(GoldTrack["SN"].Taxed) + gold
+     end
+     SaveState()
 end
 
 function AddGiveGold(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
-GoldTrack.AGiveGold = GoldTrack.AGiveGold+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Give = tonumber(GoldTrack["AT"].Give) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Give = tonumber(GoldTrack["HR"].Give) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Give = tonumber(GoldTrack["SN"].Give) + gold
+     end
+     SaveState()
 end
 
 function LoseGoldGive(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
-GoldTrack.LGiveGold = GoldTrack.LGiveGold+NoMoreComma(wildcards[1])
-GoldTrack.LostAll = GoldTrack.LostAll+NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].lostGive = tonumber(GoldTrack["AT"].lostGive) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].lostGive = tonumber(GoldTrack["HR"].lostGive) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].lostGive = tonumber(GoldTrack["SN"].lostGive) + gold
+     end
+     SaveState()
 end
 
 function LoseGoldBuy(name, line, wildcards)
-GoldTrack.LBuyGold = GoldTrack.LBuyGold+NoMoreComma(wildcards[1])
-GoldTrack.LostAll = GoldTrack.LostAll-NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Buy = gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Buy = tonumber(GoldTrack["HR"].Buy) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Buy = tonumber(GoldTrack["SN"].Buy) + gold
+     end
+     SaveState()
 end
 
 function GainGoldSell(name, line, wildcards)
-GoldTrack.alltime = GoldTrack.alltime+NoMoreComma(wildcards[1])
-GoldTrack.ABuyGold = GoldTrack.ABuyGold+NoMoreComma(wildcards[1])
-GoldTrack.Session = GoldTrack.Session+NoMoreComma(wildcards[1])
-SaveState()
+local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Sell = tonumber(GoldTrack["AT"].Sell) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Sell = tonumber(GoldTrack["HR"].Sell) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Sell = tonumber(GoldTrack["HR"].Sell) + gold
+     end
+     SaveState()
 end
 
-function GoldVal()
-      return serialize.save_simple(GoldTrack)
+function GainGoldFence(name, line, wildcards)
+     local gold = tonumber(NoMoreComma(wildcards[1]))
+     GoldTrack["AT"].Fence = tonumber(GoldTrack["AT"].Fence) + gold
+     if  GoldTrack["GL"].Hour == "yes" then
+          GoldTrack["HR"].Fence = tonumber(GoldTrack["HR"].Fence) + gold
+     end
+     if GoldTrack["SN"]["Active"] == "yes" then
+          GoldTrack["SN"].Fence = tonumber(GoldTrack["HR"].Fence) + gold
+     end
+     SaveState()
+end
+
+
+function GoldSet(str)
+     if str == nil or str == " " or str == "" then
+          hadarprint("Set Cannot be blank, please input something @GEG. @Whgt set hour","error")
+          return
+     end
+          str = string.lower(str)
+          
+     if str == "session" then
+          HadarBackup = GoldTrack["SN"].Message
+		GoldTrack["SN"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Look for Gold Session", GoldTrack["SN"].Message, "Courier", 9)
+		
+		if GoldTrack["SN"].Message ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["SN"].Message,"script")
+		else
+			GoldTrack["SN"].Message = HadarBackup
+		end
+     elseif str == "alltime" then
+          HadarBackup = GoldTrack["AT"].Message
+		GoldTrack["AT"].Message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo\n${wday} - day of week installed\n${month} - mon can change with year day hour min sec for respective time", "Look for alltime", GoldTrack["AT"].Message, "Courier", 9)
+		
+		if GoldTrack["AT"].Message ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["AT"].Message,"script")
+		else
+			GoldTrack["AT"].Message = HadarBackup
+		end
+     elseif str == "hour" then
+          HadarBackup = GoldTrack["HR"].message
+		GoldTrack["HR"].message = utils.inputbox ("${goldin} - how much gold made\n${goldout} - how much gold lost\n${totalgold} - total of goldin/goldout\n${crumble} - how much gold made from crumbles\n{given} - when given gold\n${sold} - how much you made from selling\n${fence} - how much you made from fencing\n${taxed} - how much lost from tax\n${gave} - how much given away\n${bought} - how much spent on buying\n${logo} - displays the logo", "Change Look for Gold Hour Message", GoldTrack["HR"].message, "Courier", 9)
+		
+		if GoldTrack["HR"].message ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["HR"].message,"script")
+		else
+			GoldTrack["HR"].message = HadarBackup
+		end
+     elseif str == "logo" then
+          HadarBackup = GoldTrack["GL"].Logo
+		GoldTrack["GL"].Logo = utils.inputbox ("Change the look for the logo", "Change Logo", GoldTrack["GL"].Logo, "Courier", 9)
+		
+		if GoldTrack["GL"].Logo ~= nil then
+			hadarprint("message will look like@W: @w"..GoldTrack["GL"].Logo,"script")
+		else
+			GoldTrack["GL"].Logo = HadarBackup
+		end
+     else
+          hadarprint("Please make a valid selection: @Wsession, alltime, hour, logo@w","error")
+     end
+end
+
+function GoldConfig(str)
+     if str == nil or str == "" or str == " " then
+          hadarprint("@cYou need to give an argument EG: @Ghgt config commlog","error")
+          return
+     end
+     
+     local first, second = str:match("(%w+)%s*(.*)")
+     
+     first = string.lower(first)
+     
+     if second == " " or second == "" then
+          second = nil
+     end
+     
+     if first == "commlog" and second == nil then
+          if GoldTrack["GL"]["commLog"] == "yes" then
+               GoldTrack["GL"]["commLog"] = "no"
+               hadarprint("GoldTrack Commlog @RDisabled@w","script")
+          else
+               GoldTrack["GL"]["commLog"] = "yes"
+               hadarprint("GoldTrack Commlog @GEnabled@w","script")
+          end
+     elseif first == "commlog" and second == "on" then
+          GoldTrack["GL"]["commLog"] = "yes"
+          hadarprint("GoldTrack Commlog @GEnabled@w","script")
+     elseif first == "commlog" and second == "off" then
+          GoldTrack["GL"]["commLog"] = "no"
+          hadarprint("GoldTrack Commlog @RDisabled@w","script")
+     elseif first == "mainwindow" and second == nil then
+          if GoldTrack["GL"]["mainWindow"] == "yes" then
+               GoldTrack["GL"]["mainWindow"] = "no"
+               hadarprint("GoldTrack mainWindow @RDisabled@w","script")
+          else
+               GoldTrack["GL"]["mainWindow"] = "yes"
+               hadarprint("GoldTrack mainWindow @GEnabled@w","script")
+          end
+     elseif first == "mainwindow" and second == "on" then
+          GoldTrack["GL"]["mainWindow"] = "yes"
+          hadarprint("GoldTrack mainWindow @GEnabled@w","script")
+     elseif first == "mainwindow" and second == "off" then
+          GoldTrack["GL"]["mainWindow"] = "no"
+          hadarprint("GoldTrack mainWindow @RDisabled@w","script")
+     elseif first == "hour" and second == nil then
+          if GoldTrack["GL"]["Hour"] == "yes" then
+               GoldTrack["GL"]["Hour"] = "no"
+               hadarprint("Hour Message Disabled","script")
+          else
+               GoldTrack["GL"]["Hour"] = "yes"
+               hadarprint("Hour message Enabled","script")
+          end
+     elseif first == "hour" and second == "on" then
+          GoldTrack["GL"]["Hour"] = "yes"
+          hadarprint("Hour message Enabled","script")
+     elseif first == "hour" and second == "off" then
+          GoldTrack["GL"]["Hour"] = "no"
+          hadarprint("Hour Message Disabled","script")
+     end
+     
+     if second ~= nil and second ~= "on" and second ~= "off" then
+          GoldTrack["GL"]["commLogTab"] = second
+          hadarprint("You will now report gold to the @W"..second.."@w communication log","script")
+     end
+          
+          SaveState()
+end
+
+function GoldChannel(str)
+     if str ~= nil and str ~= "" and str ~= " " then
+		GoldTrack["GL"].Channel = str
+		hadarprint("Default channel set to@w: @G" .. GoldTrack["GL"].Channel,"script")
+	else
+          hadarprint("Current Channel:"..GoldTrack["GL"].Channel,script)
+		hadarprint("@cPlease use the following command@W:@Ghgt channel <channel you want to output to>@w","error")
+	end
+     
+     SaveState()
+end
+
+function HadarHelp()
+hadarprint("@x086+-----------------------@g[@CG@cold @CT@cracker @WV:"..GetPluginInfo (GetPluginID (), 19).."@g]@x086--------------------------+")
+hadarprint("@x086| @x214hgt help                @x110- @x214Displays this helpfile                     @x086|")
+hadarprint("@x086| @x208hgt fullreset           @x110- @x208resets the plugin to default variables     @x086|")
+hadarprint("@x086| @x214hgt channel <channel>   @x110- @x214no arguments displays the channel          @x086|")
+hadarprint("@x086|                           @REG@W.@G @x214hgt channel spouse                     @x086|")
+hadarprint("@x086| @x208hgt show <echo|channel> @x110- @x208Shows report based on all time             @x086|")
+hadarprint("@x086| @x214hgt set <thing>         @x110- @x214edit the message for thing                 @x086|")
+hadarprint("@x086|                           @x214Session, logo, hour, alltime               @x086|")
+hadarprint("@x086| @x208hgt session <command>   @x110-@x208 Start, Stop, Status .. tracks gold over    @x086|")
+hadarprint("@x086|                           @x208a time between start and stop              @x086|")
+hadarprint("@x086| @x214hgt config <thing>      @x110- @x214Choose some configs to change such as:     @x086|")
+hadarprint("@x086|                           @x214commlog(displays info into the commlog)    @x086|")
+hadarprint("@x086|                           @x214mainwindow(displays info into the main)    @x086|")
+hadarprint("@x086|                           @x214hour (enables and disables hour tracking)  @x086|")
+hadarprint("@x086+----------------------------------------------------------------------+")
 end
 
 ]]>

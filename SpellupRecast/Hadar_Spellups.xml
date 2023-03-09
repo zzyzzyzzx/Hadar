@@ -1,0 +1,1985 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Hadar_Spellup_Caster"
+   author="Hadar"
+   id="d2b6d276d6d22cf20d77d46f"
+   language="Lua"
+   purpose="Spellup Script"
+   save_state="y"
+   date_written="2021-12-31 00:00:00"
+   requires="4.00"
+   version="0.89"
+   >
+
+</plugin>
+
+<!--  Triggers
+<trigger
+   enabled="y"
+   match=""
+   omit_from_output="y"
+   regexp="y"
+   group=""
+   script=""
+   sequence="100"
+  >
+</trigger>
+
+  -->
+
+<triggers>
+
+ <trigger
+	name="HSPListStart"
+	group="HSPslistCapture"
+	enabled="n"
+	match="\{spellheaders hsp\}$"
+	regexp="y"
+	omit_from_output="y"
+	sequence="100"
+>
+</trigger>
+<trigger
+	name="HSPListEnd"
+	group="HSPslistCapture"
+	enabled="n"
+	match="^\{\/spellheaders\}$"
+	regexp="y"
+	omit_from_output="y"
+    sequence="100"
+	script="HSP_stop_sList"
+>
+</trigger>
+<trigger
+	name="HSPListCapture"
+    group="HSPslistCapture"
+    enabled="n"
+    match="^(\d+),(.*),(\d+),(\d+),(\d+),([+-]?[0-9,]+),(\d+)$"
+    regexp="y"
+    omit_from_output="y"
+    sequence="100"
+    script="SlistUpdate"
+>
+</trigger>
+<trigger
+	name="HSPRecoveriesStart"
+	enabled="n"
+	match="^\{recoveries hsp\}$"
+	regexp="y"
+	omit_from_output="y"
+	sequence="100"
+	send_to="12"
+>
+<send>
+	EnableTrigger("HSPRecoveriesStart", false)
+	EnableTrigger("HSPRecoveriesCapture", true)
+	EnableTrigger("HSPRecoveriesEnd", true)
+</send>
+</trigger>
+<trigger
+	name="HSPRecoveriesCapture"
+	enabled="n"
+	match="^[0-9]+,[^,]+,[0-9]+$"
+	regexp="y"
+	omit_from_output="y"
+	sequence="100"
+>
+</trigger>
+<trigger
+	name="HSPRecoveriesEnd"
+	enabled="n"
+	match="^\{\/recoveries\}$"
+	regexp="y"
+	omit_from_output="y"
+	sequence="100"
+	send_to="12"
+>
+<send>
+	EnableTrigger("HSPRecoveriesStart", false)
+	EnableTrigger("HSPRecoveriesCapture", false)
+     EnableTrigger("HSPRecoveriesEnd", false)
+</send>
+</trigger>
+
+<trigger
+     name="sfail"
+     group="SpellupTags"
+     enabled="y"
+     match="^\{sfail\}(?<sn>(-|)[0-9]{1,3})\,(?<tg>[0-9]{1,3})\,(?<fl>[0-9]{1,3})\,(?<rc>(-|)[0-9]{1,3})"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+     script="sfail"
+	 send_to="12"
+>
+</trigger>
+<trigger
+     name="affoff"
+     group="SpellupTags"
+     enabled="y"
+     match="^\{affoff\}(?<sn>[0-9]{1,3})"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+     script="affoff"
+>
+</trigger>
+<trigger
+     name="affon"
+     group="SpellupTags"
+     enabled="y"
+     match="^\{affon\}(?<sn>[0-9]{1,3}),(?<time>[0-9]{1,5})"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+     script="affon"
+>
+</trigger>
+<trigger
+     name="invmontag"
+     enabled="y"
+     match="^\{invmon\}(?<action>[0-9]{1,2}),(?<id>[0-9]+),\-?[0-9]+,(?<loc>(-|)[0-9]+)"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+     script="invmon"
+>
+</trigger>
+<trigger
+     name="invitem"
+     enabled="y"
+     match="^\{invitem\}.*"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+>
+</trigger>
+<trigger
+     name="recon"
+     enabled="y"
+     match="^\{recon\}(?<sn>[0-9]{1,2})\,(?<timer>[0-9]{1,4})$"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+	script="recon"
+>
+</trigger>
+<trigger
+     name="recoff"
+     enabled="y"
+     match="^\{recoff\}(?<sn>[0-9]{1,2})$"
+     regexp="y"
+     omit_from_output="y"
+     sequence="100"
+	script="recoff"
+>
+</trigger>
+<trigger
+   enabled="y"
+   match="^\{skillgain\}(?<sn>[0-9]{1,3})\,(?<perc>[0-9]{1,3})$"
+   omit_from_output="y"
+   regexp="y"
+   script="hspskillgain"
+   sequence="100"
+  >
+  </trigger>
+
+</triggers>
+
+<aliases>
+     <alias
+          match="^hsp ?(.*)?"
+          enabled="y"
+          regexp="y"
+          sequence="100"
+          send_to="12"
+          script="HSPmain"
+     >
+     </alias>
+	<alias
+          match="^hsu ?(.*)?"
+          enabled="y"
+          regexp="y"
+          sequence="100"
+          send_to="12"
+          script="HSU"
+     >
+     </alias>
+     
+     <alias match="^had help$"
+          enabled="y"
+          sequence="100"
+          send_to="12"
+          regexp="y"
+          keep_evaluating="y"
+	>
+	<send>
+		HadarHelp()
+	</send>
+	</alias>
+	<alias
+		name="do_vis"
+		match="vis"
+		script="make_vis"
+		enabled="y"
+		sequence="1"
+		ignore_case="y"
+	>
+	</alias>
+
+</aliases>
+
+<script>
+<![CDATA[
+require "serialize"
+require "gmcphelper"
+require "tprint"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+dofile(GetInfo(60).."telnet_options.lua")
+TelnetOptionOn(TELOPT_SPELLUP) -- fiendish recommends this way to enable the spellup tags silently
+TelnetOptionOn(20)
+TelnetOptionOn(TELOPT_SKILLGAINS)
+local currentState = -1 -- uninitialized
+local maxmana = -1 -- uninitialized
+local currentmana = -1 -- uninitialized
+local slistCommandSent = false
+local pluscount = 0
+local pluscount2 = 0
+local utfset = false
+
+local ascii_2_utf8 = {
+	["7C"]="E29482", -- │
+	["2D"]="E29480", -- ─
+	["0F"]="E2948C", -- ┌
+	["1F"]="E29490", -- ┐
+	["5F"]="E29498", -- ┘
+	["4F"]="E29494", -- └
+	["3F"]="E294A4", -- ┤
+	["2F"]="E2949C", -- ├
+	["5D"]="E2949C", -- ├
+	["5B"]="E294A4" -- ┤
+	}
+local ascii_2_utf82 = {
+		["7C"]="E29482", -- │
+		["2D"]="E29480", -- ─
+		["0F"]="E2948C", -- ┌
+		["1F"]="E29490", -- ┐
+		["3F"]="E29498", -- ┘
+		["2F"]="E29494", -- └
+		}
+
+--[[
+
+Special thanks to:
+Khadaji, assisted in adding in some functions
+Selitos, assisted with pRanger functions
+scars, tester
+ladydragon, tester
+Saori, tester
+
+
+TODO:
+longer recovery times mess up recast
+Holy shield              : resistance to negative +37 (14:57)
+                         : resistance to shadow +37 (14:57)
+Shielding                : 14:37
+
+]]
+
+function hadarprint(str,level)
+
+	if level == "debug" then
+		if Spellups["GL"]["Debug"] == "yes" then
+			AnsiNote(ColoursToANSI("@G[@YHSP DEBUG@G]@W:@w"..str))
+		end
+	elseif level == "error" then
+          AnsiNote(ColoursToANSI("@R[@Mhsp @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+		if type(str) == "table" then
+			tprint(str)
+		else
+			AnsiNote(ColoursToANSI("@G[@CS@cpellup@G]@c "..str))
+		end
+	elseif level == "helpfile" then
+		if utfset then
+			text = utils.tohex(str)
+			if string.find(text,"2B") ~= nil then
+				text = text:gsub('2B', 
+					function(x) 
+						c = pluscount.."F"
+						if pluscount == 5 then
+							pluscount = 0
+						else
+							pluscount = pluscount + 1
+						end
+						return ascii_2_utf8[c]
+					end)
+			end
+			text = string.gsub(text, ("(%x%x)"), ascii_2_utf82)
+			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+		else
+			AnsiNote(ColoursToANSI(str))
+		end
+	elseif level == "helpfile2" then
+		if utfset then
+			text = utils.tohex(str)
+			if string.find(text,"2B") ~= nil then
+				text = text:gsub('2B', 
+					function(x) 
+						c = pluscount2.."F"
+						if pluscount2 == 3 then
+							pluscount2 = 0
+						else
+							pluscount2 = pluscount2 + 1
+						end
+						return ascii_2_utf82[c]
+					end)
+			end
+			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
+			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+		else
+			AnsiNote(ColoursToANSI(str))
+		end
+	elseif level == "noclan" then
+		AnsiNote(ColoursToANSI("@G[@x214hsp @YNO CLAN@G]@W:@w"..str))
+	else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
+
+function interp(s, tab)
+	if s == nil then
+		hadarprint("@RYou forgot to fill in a message please use @Chsp help@R and run the message commands to see which one.")
+	else
+		return (s:gsub('($%b{})', function(w) return tab[w:sub(3, -2)] or w end))
+	end
+end
+
+function OnPluginBroadcast(msg, id, name, text)
+	if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
+		if (text == "char.status") then
+
+               res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+               luastmt = "gmcpdata = " .. gmcparg
+               assert (loadstring (luastmt or "")) ()
+               currentState = tonumber(gmcpval("status.state"))
+			
+			if currentState == 3 and Spellups["GL"]["autoaura"] == "yes" and Spellups["GL"]["autoaurafired"] == "no" then
+				hadarprint("Should be wearing eqipment "..Spellups["GL"]["float"],"debug")
+				Spellups["GL"]["autoaurafired"] = "yes"
+				SendNoEcho("wear "..Spellups["GL"]["float"])
+				Spellups["GL"]["sancoff"] = "no"
+				if Spellups["GL"]["aurabag"] ~= 0 then
+					SendNoEcho("put "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+				end
+			end		
+			cast_spells()
+			SendSlistCommand()
+		end	
+		if (text == "char.vitals") then
+			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+            luastmt = "gmcpdata = " .. gmcparg
+            assert (loadstring (luastmt or "")) ()
+			
+			currentmana = tonumber(gmcpval("vitals.mana"))
+			if type(currentmana) ~= "number" then
+				currentmana = nil
+			end
+		end
+		if (text == "char.maxstats") then
+			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
+            luastmt = "gmcpdata = " .. gmcparg
+            assert (loadstring (luastmt or "")) ()
+			
+			maxmana = tonumber(gmcpval("maxstats.maxmana"))
+			if maxmana == nil or maxmana == -1 then
+				Spellups["EX"]["percentageStop"] = 0
+			else
+				Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+			end
+		end
+		if Spellups["GL"]["disabled"] == "yes" then
+			local percentage = maxmana * 0.7
+			if currentmana >= percentage then
+				if Spellups["GL"]["failed"] >= 5 then
+					Spellups["GL"]["failed"] = 0
+					HSPDisable("silent")
+				end
+			end
+		end
+	end --end if char status
+end
+
+function OnPluginSaveState ()
+	Spellups["GL"]["initilized"] = "yes"
+	SetVariable ("Spellups", "Spellups = " .. serialize.save_simple (Spellups))
+	SetVariable ("pastfirstinstall", "true")
+end -- function OnPluginSaveState
+
+
+function OnPluginInstall ()
+   	if GetVariable ("enabled") == "false" then
+		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
+		check (EnablePlugin(GetPluginID (), false))
+		return
+	end -- they didn't enable us last time
+	hadarprint("@YInstalling @c"..GetPluginName().."@Y version @c"..GetPluginInfo (GetPluginID (), 19).."@Y...","script")
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or hsp help to just see this one","script")
+  
+	OnPluginEnable ()
+end
+
+function OnPluginEnable ()
+
+	Spellups = {}
+	Spellups["GL"] = {}
+      Spellups["AS"] = {}
+	Spellups["AF"] = {} --affected by
+	Spellups["NA"] = {} --not affected by
+	Spellups["QU"] = {} --spellup queue
+	Spellups["EX"] = {} --exceptions
+	Spellups["QS"] = {} --queued spells
+	Spellups["RT"] = {} --recoverys
+	Spellups["MS"] = {} --messages
+	Spellups["CG"] = {} --configs (mainly for special cases)
+	
+	if GetVariable ("pastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("Spellups") or "")) ()
+	else
+		hadarprint("@CLooks like this is your first install, Lets get you setup! @Ghsp@C for help","script")
+		buildInitial()
+	end
+	
+	-- the following lines need to be in onpluginenable to recheck stuff and set current state for buildslist
+	
+	charstatus = gmcp("char.status") -- fetch char.status and return it as a Lua table
+    currentState = tonumber(charstatus.state)
+	maxmana = tonumber(gmcp("char.maxstats.maxmana")) or -1
+	currentmana = tonumber(gmcp("char.vitals.mana")) or -1
+	
+	Spellups["GL"]["clan"] = gmcp("char.base.clan") or "none" -- fetch char.base and return it as a Lua table
+	 
+	if Spellups["GL"]["clan"] == "loner" or Spellups["GL"]["clan"] == "outcast" or Spellups["GL"]["clan"] == "exile" then
+		Spellups["GL"]["clan"] = "none"
+	end
+
+	injectVars()
+	if currentState == 3 then
+		SendSlistCommand()
+	end
+	
+	if Spellups["GL"]["clan"] ~= "none" then 
+		if Spellups["GL"]["clan"] ~= "" then
+			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"])) or "none"
+			if Spellups["EX"]["clanskill"] == "none" or Spellups["EX"]["clanskill"] == nil or Spellups["EX"]["clanskill"] == "" then
+				hadarprint("Your Clan skill is not noted, please contact hadar","error")
+				return
+			else
+				hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
+			end
+		end
+	end
+
+	hadarprint("Clan skill:"..Spellups["EX"]["clanskill"],"debug")
+	hadarprint("Current clan is "..Spellups["GL"]["clan"],"debug")
+
+	if maxmana == nil or maxmana == -1 then
+		Spellups["EX"]["percentageStop"] = 0
+	else
+		Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+	end
+
+	local fonts = utils.getfontfamilies ()
+   	
+	if fonts["Courier New"] then
+    	utfset = true
+   	elseif fonts ["Lucida Console"] then
+		utfset = true
+   	elseif fonts ["Liberation Mono"] then
+    	utfset = true
+   	else
+		utfset = false
+   end
+end
+
+function buildInitial()
+	Spellups["AS"]["spellup"] = {}
+	Spellups["AS"]["other"] = {}
+	Spellups["AS"]["recovery"] = {}
+	Spellups["AS"]["attack"] = {}
+	Spellups["AS"]["spells"] = {}
+	Spellups["AS"]["skills"] = {}
+	Spellups["AS"]["list"] = {}
+	Spellups["AS"]["namelist"] = {}
+	Spellups["AF"]["list"] = {}
+	Spellups["EX"]["exceptions"] = { 
+	[1] = 53,
+	[2] = 211,
+	[3] = 258,
+	[4] = 259,
+	[5] = 335,
+	[6] = 526,
+	[7] = 530
+	}
+    Spellups["EX"]["noAuto"] = {}
+    Spellups["AS"]["cSkills"] = {
+    ["twinlobe"] = 468,
+    ["watchmen"] = 483,
+    ["seekers"] =  489,
+    ["emerald"] =  492,
+    ["light"] = 463,
+    ["baal"] = 466,
+    ["hook"] = 470,
+    ["bard"] = 505,
+    ["crusader"] = 488,
+    ["xunti"] = 498,
+    ["imperium"] = 479,
+    ["crimson"] = 471,
+    ["retribution"] = 480,
+    ["druid"] = 475,
+    ["amazon"] = 490,
+    ["pyre"] = 485,
+    ["masaki"] = 481,
+    ["rhabdo"] = 524,
+    ["perdition"] = 497,
+    ["loqui"] = 510,
+    ["gaardian"] = 509,
+    ["tao"] = 499,
+    ["touchstone"] = 496,
+    ["boot"] = 606
+    }
+end
+
+function checkExist(tbl, idx, val) 
+
+     if not Spellups[tbl] then
+          Spellups[tbl] = {}
+     end
+
+     if not Spellups[tbl][idx] then
+               Spellups[tbl][idx] = val
+               SetVariable("Spellups", serialize.save("Spellups")) 
+     end
+     
+end
+
+function injectVars()
+	local v = {}
+	v["GL"] = {} --global
+	v["AS"] = {} --all spells
+	v["AF"] = {} --affected by
+	v["NA"] = {} --not affected by
+	v["QU"] = {} --spellup queue
+	v["EX"] = {} --exceptions
+	v["QS"] = {} --queued spells
+	v["FC"] = {} --failed counter
+	v["RT"] = {} --recovery
+	v["MS"] = {} --messages
+	v["CG"] = {} --configs (mainly for special cases)
+
+	v["AS"]["namelist"] = {}
+     
+      v["GL"]["initilized"] = "no"
+	v["GL"]["Debug"] = "no"
+	v["GL"]["autoaura"] = "no"
+	v["GL"]["smartcast"] = "no" --todo item
+	v["GL"]["logo"] = "@G[@CS@cpell@CU@cps@G]@w"
+	v["GL"]["disabled"] = "no"
+	v["GL"]["exceptions"] = "yes"
+	v["GL"]["clan"] = "none"
+	v["GL"]["aurabag"] = 0
+	v["GL"]["auranumber"] = 0
+	v["GL"]["autoaurafired"] = "no"
+	v["GL"]["float"] = "none"
+	v["GL"]["sancoff"] = "no"
+	v["GL"]["mainWindow"] = "yes"
+	v["GL"]["commLog"] = "no"
+	v["GL"]["commLogTab"] = nil
+	v["GL"]["thirtytimer"] = "yes"
+	v["GL"]["tentimer"] = "yes"
+	v["GL"]["seespells"] = "yes"
+	v["GL"]["failed"] = 0
+
+	v["EX"]["clanskill"] = "none"
+	v["EX"]["clanskillV1"] = -1
+	v["EX"]["Timer"] = {}
+	v["EX"]["thirtytimer"] = {}
+	v["EX"]["tentimer"] = {}
+	v["EX"]["wraithform"] = {}
+	v["EX"]["cooldown"] = {}
+	v["EX"]["percentage"] = 0
+	v["EX"]["percentageStop"] = 0
+	
+	v["RT"]["reverse"] = {}
+	v["RT"]["allrecoveries"] = {}
+	v["RT"]["affectedrecovery"] = {}
+	
+	v["MS"]["logo"] = "@G[@CS@cpellup@G]@c"
+	v["MS"]["thirty"] = "${logo} ${spell} is going to fall in 30 seconds"
+	v["MS"]["ten"] = "${logo} ${spell} is going to fall in 10 seconds"
+	v["MS"]["channel"] = "echo"
+
+	v["CG"]["elementward"] = 0
+	v["CG"]["elementfocus"] = 0
+	v["CG"]["totemcast"] = 0
+	v["CG"]["gaiasfocus"] = 0
+
+
+     for a,b in pairs(v) do
+          for c,d in pairs(b) do
+               checkExist(a,c,d)
+          end
+     end
+end
+
+function SendSlistCommand()
+	if (slistCommandSent == false) then
+		slistCommandSent = true
+		EnableTriggerGroup("HSPslistCapture", true)
+		EnableTrigger("HSPRecoveriesStart", true)
+		hadarprint("***Getting Skills/Spells","script")
+		SendNoEcho("slist hsp")
+	end
+end
+
+function HSP_stop_sList()
+		EnableTriggerGroup("HSPslistCapture", false)
+		SaveState()
+		hadarprint("***Got all skills/spells","script")
+end
+
+function SlistUpdate(name, line, wildcards)
+	local sn = tonumber(wildcards[1]) -- skill name
+	local nm = wildcards[2]           -- name of skill
+	local tg = tonumber(wildcards[3]) -- target
+	local du = tonumber(wildcards[4]) -- duration
+	local pc = tonumber(wildcards[5]) -- percent practiced
+	local rc = tonumber(wildcards[6]) -- recovery
+	local ty = tonumber(wildcards[7]) -- type
+	
+	Spellups["AS"]["list"][sn] = {name = nm,target = tg,duration = du,prac = pc,recovery = rc,type = ty}
+	local nm2 = nm:gsub(" ","_")
+	Spellups["AS"]["namelist"][nm2] = {skillnum = sn}
+	
+    if tg == 2 or tg == 3 then
+        Spellups["AS"]["spellup"][sn] = nm
+    end
+    if tg == 5 then
+        Spellups["AS"]["other"][sn] = nm
+    end
+    if rc ~= -1 and tg == 2 then
+        Spellups["AS"]["recovery"][sn] = nm
+    end
+    if tg == 1 then
+		Spellups["AS"]["attack"][sn] = nm
+    end
+	if sn == 574 then
+		Spellups["AS"]["attack"][sn] = nm
+	end
+	if sn == 285 then
+		Spellups["AS"]["attack"][sn] = nm
+	end
+	if ty == 1 then
+		Spellups["AS"]["spells"][sn] = nm
+	elseif ty == 2 then
+		Spellups["AS"]["skills"][sn] = nm
+	end
+
+	if rc ~= -1 then
+		Spellups["RT"]["allrecoveries"][rc] = {skillnum = sn, name = nm, duration = du, type = ty, target = tg}
+	end
+	
+	if rc ~= -1 and pc > 1 then
+		hadarprint("SN:"..sn..", NM:"..nm..", TG:"..tg..", DU:"..du..", PC:"..pc..", RC:"..rc..", TY:"..ty,"debug")
+		Spellups["RT"][rc] = {skillnum = sn, name = nm, duration = du, type = ty, target = tg}
+		Spellups["RT"]["reverse"][sn] = {recovery = rc}
+		
+		
+		if GetVariable ("pastfirstinstall") == "false" then
+			table.insert(Spellups["EX"]["Timer"], sn)
+			Spellups["EX"]["thirtytimer"][sn] = "yes"
+			Spellups["EX"]["tentimer"][sn] = "yes"
+		end
+	end
+		
+end  --end update
+----------------------------------------------------------------------------------------------------
+--							  End Standard Template	 				        --
+--														       	  --
+--							    Start Main Stuff			          	        --
+----------------------------------------------------------------------------------------------------
+
+function HSPmain(name, line, wc)
+
+     local first, rest = wc[1]:match("(%w+)%s*(.*)")
+     
+     if first == nil then
+          HadarHelp()
+          return
+     end
+     
+     first = string.lower(first)
+     
+	if first == "varshow" then
+		testshow(rest)
+	elseif first == "debug" then
+		setdebug()
+	elseif first == "disable" then
+		HSPDisable(rest)
+	elseif first == "noauto" then
+		noAutoList(rest)
+	elseif first == "reload" then
+		HSPreload()
+	elseif first == "autoaura" then
+		autoaura(rest)
+	elseif first == "channel" then
+		hspSetChannel(rest)
+	elseif first == "set" then
+		hspSet(rest)
+	elseif first == "report" then
+		hspWindow(rest)
+	elseif first == "seespells" or first == "seespell" then
+		hspToggleSeeSpells()
+	elseif first == "totem" then
+		hspsettotem(rest)
+	elseif first == "elementalfocus" then
+		hspsetelementalfocus(rest)
+	elseif first == "elementalward" then
+		hspsetelementalward(rest)
+	elseif first == "combat" then
+		hspsetcombat(rest)
+	elseif first == "timer" then
+		hspdotimerexception(rest)
+	elseif first == "fullspellupreset" then
+		SetVariable ("pastfirstinstall", "false")
+		slistCommandSent = false
+		OnPluginEnable ()
+	elseif first == "wraith" then
+		hspsetwraith(rest)
+	elseif first == "gaiasfocus" then
+		hspsetgaiasfocus(rest)
+	elseif first == "help" then
+		HadarHelp(rest)
+	elseif first == "percent" then
+		hspsetpercent(rest)
+	elseif first == "cskill" then
+		hspshowcskill(rest)
+	else
+		HadarHelp("nadda")
+	end
+end
+
+function HSU(name, line, wc)
+	local target = wc[1]
+end
+
+function setdebug()
+	if Spellups["GL"]["Debug"] == "yes" then
+		Spellups["GL"]["Debug"] = "no"
+		hadarprint("Debug set to @ROFF@w","script")
+	elseif Spellups["GL"]["Debug"] == "no" then
+		Spellups["GL"]["Debug"] = "yes"
+		hadarprint("Debug set to @GON@w","script")
+	end
+end
+
+function testshow(arg)
+    for i,v in pairs(Spellups["AS"]["list"]) do
+		for j,k in pairs(v) do
+			if j == "target" and tonumber(k) == 0 then
+				print(Spellups["AS"]["list"][i]["name"])
+			end
+		end
+	end
+end
+
+function invmon(nm,ln,wc)
+	if tonumber(wc.action) == 1 and tonumber(wc.loc) == 27 then
+		if tonumber(Spellups["GL"]["auranumber"]) ~= tonumber(wc.id) then
+			Spellups["GL"]["float"] = tonumber(wc.id)
+		end
+	end
+end
+
+function affon(name, line, wc)
+	local sn = tonumber(wc.sn) --skill number
+	local tm = tonumber(wc.time) --time affected
+	
+	if Spellups["GL"]["disabled"] == "yes" then
+		return
+	end
+	
+	if contains(Spellups["EX"]["Timer"],sn) then
+		hadarprint("fired on lookup for timer","debug")
+		recoveryup(sn,tm)
+	end
+	
+	Spellups["AF"]["list"][sn] = tm
+	Spellups["NA"][sn] = 0 --not affected false
+	hadarprint("Affected by:"..Spellups["AS"]["list"][sn]["name"].." Time:"..tm,"debug")
+	Spellups["QS"][sn] = nil
+	
+end
+
+function affoff(name,line,wc)
+	local sn = tonumber(wc.sn)
+	local wraithcastable = false
+	local wraithcounted = 0
+	
+	if Spellups["GL"]["disabled"] == "yes" then
+		Spellups["AF"]["list"][sn] = nil
+		return
+	end
+
+	if sn == 121 then
+		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+	end
+
+	if sn == 180 then
+		for i,v in pairs(Spellups["EX"]["wraithform"]) do
+
+			if table.find(v,Spellups["AF"]["list"]) then
+				--left empty becaue
+			else
+				local ctype = tonumber(Spellups["AS"]["list"][v]["type"])
+				Spellups["QS"][v] = Spellups["AS"]["list"][v]["name"]
+				cast_spells()
+			end
+
+		end --end for loop
+	end
+
+	if table.find(Spellups["AS"]["list"][sn]["recovery"],Spellups["RT"]["affectedrecovery"]) ~= nil then
+		hadarprint("affected by recovery:"..Spellups["AS"]["list"][sn]["name"].." not recasting","debug")
+		return
+	end
+	
+	if Spellups["AS"]["list"][sn]["target"] == 2 or Spellups["AS"]["list"][sn]["target"] == 3 or sn == Spellups["EX"]["clanskill"] or sn == Spellups["EX"]["clanskillV1"] or sn == 569 then
+		if currentState == 8 then
+			if sn == 71 or sn == 102 or sn == 180 then
+				if sn == 71 or sn == 102 then
+					Spellups["GL"]["sancoff"] = "yes"
+					hadarprint("sancoff = yes","debug")
+					if Spellups["GL"]["autoaura"] == "yes" then
+						affoffautoaura()
+					end
+					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+				end
+				hadarprint("CS = 8, autoaura = on, sn = 71 or 108 or 180","debug")
+				if sn == 180 then
+					Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+				end
+				return
+			end
+		end
+		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		Spellups["NA"][sn] = 1 --not affected true
+		hadarprint("adding to queue (affoff): "..Spellups["AS"]["list"][sn]["name"],"debug")
+	end
+	
+	cast_spells()
+end
+
+function affoffautoaura()
+	if Spellups["GL"]["auranumber"] ~= 0 then
+		hadarprint("autoaura not 0","debug")
+		if Spellups["GL"]["sancoff"] == "yes" then 
+			if Spellups["GL"]["aurabag"] ~= 0 then
+				hadarprint("aurabag not 0","debug")
+				Send("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+				Send("wear "..Spellups["GL"]["auranumber"])
+			else
+				hadarprint("aura bag not set leaving in inventory","debug")
+				Send("wear "..Spellups["GL"]["auranumber"])
+			end
+		else
+			if Spellups["GL"]["aurabag"] ~= 0 then
+				hadarprint("aurabag not 0","debug")
+				Send("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+				Send("wear "..Spellups["GL"]["auranumber"])
+			else
+				hadarprint("aura bag not set leaving in inventory","debug")
+				Send("wear "..Spellups["GL"]["auranumber"])
+			end
+		end
+		Spellups["GL"]["autoaurafired"] = "no"
+	end
+end
+
+function sfail(name,line,wc)
+	--sn == name, tg == target, fl == fail, rc == recovery
+
+	local sn = tonumber(wc.sn) --skill name
+	local tg = wc.tg --target
+	local fl = tonumber(wc.fl) --failed reason 1  - Regular fail, lost concentration. 2  - Already affected.3  - Cast blocked by a recovery, see below.4  - Not enough mana.5  - You are in a nocast room.6  - Fighting or other "can't concentrate".8  - You don't know the spell.9  - Tried to cast self only on other.10  - You are resting / sitting.11  - Skill/spell has been disabled. 12  - Not enough moves.
+	local rc = tonumber(wc.rc) --failed because recovery number
+
+	hadarprint("Spell failed! SN:"..sn..", TG:"..tg..", FL:"..fl,"debug")
+	
+	if Spellups["GL"]["disabled"] == "yes" then
+		return
+	end
+
+	if fl == 4 then
+		Spellups["GL"]["failed"] = Spellups["GL"]["failed"] + 1
+		if tonumber(Spellups["GL"]["failed"]) > 5 then
+			HSPDisable("silent")
+			hadarprint("HSP Turned off due to mana issues - failed 5 spells, please restore mana above 70% to reenable or type hsp disable","script")
+			return
+		else
+			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		end
+	end
+
+    if fl == 3 then 
+        Spellups["QS"][sn] = nil
+        return
+    end
+	
+	if fl == 6 then
+		if Spellups["GL"]["autoaura"] == 1 then
+			--setup auto aura stuff here
+		end
+	end
+	
+	if fl == 1 or fl == 6 then
+		hadarprint("FL 1 or 6!","debug")
+		if sn == 121 then
+			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+		end
+
+		if table.find(sn,Spellups["AS"]["spellup"]) ~= nil then
+			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
+			hadarprint("failed and found in spellup","debug")
+		end
+		cast_spells()
+	end
+end
+
+function cast_spells()
+	if Spellups["GL"]["disabled"] == "yes" then
+		return
+	end
+	if currentmana == nil or currentmana == -1 then
+		--left blank to test something
+	elseif Spellups["EX"]["percentageStop"] >= currentmana then
+		return
+	end
+	for i,v in pairs (Spellups["QS"]) do
+        local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
+
+		if Spellups["GL"]["exceptions"] == "yes" and currentState == 8 then
+			if contains(Spellups["EX"]["exceptions"], i) then
+				hadarprint("found exception","debug")
+				cast_this(i,ctype)
+			end
+		elseif currentState == 3 then
+			if contains(Spellups["EX"]["noAuto"],i) == false then
+
+				if i == 518 then
+                              if Spellups["NA"][552] == 1 then --if not affected by gaias focus
+						cast_this(552,tonumber(Spellups["AS"]["list"][552]["type"]))
+						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
+						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
+                              	hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")                                     
+                              else
+						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
+						hadarprint("Gaias focus reported ON, not casting this time","debug") --why reported on '0' when it was off?
+						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
+                              end
+					return
+
+				elseif i == 552 then
+					Spellups["QS"][i] = nil --remove from queue, cannot cast alone
+                              hadarprint(Spellups["AS"]["list"][i]["name"].." is removed from queue","debug")
+                              return 
+
+				elseif Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
+					cast_this(i,ctype)
+				else
+					Spellups["QS"][i] = nil --if spell not practiced remove from queue
+				end
+			else
+				hadarprint(Spellups["AS"]["list"][i]["name"].." is noauto, removing","debug")
+				Spellups["QS"][i] = nil -- if spell noauto then remove from list
+			end
+		end
+	end
+end
+
+function cast_this(sn,ctype)
+	Spellups["QS"][sn] = nil
+	hadarprint("casting:"..sn,"debug")
+	local castline = nil
+	
+	if sn == 552 then
+		if Spellups["CG"]["gaiasfocus"] == 0 then
+			castline = nil --if random or none, do not cast
+		else
+			castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["gaiasfocus"]
+		end
+	elseif sn == 526 then
+		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementfocus"]
+	elseif sn == 530 then
+		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementward"]
+	elseif ctype == 1 then
+		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."'"
+	elseif sn == 226 and ctype == 2 then
+		castline = "trace"
+	elseif ctype == 2 then
+		local t = utils.split(Spellups["AS"]["list"][sn]["name"]," ",2)
+		castline = t[1]
+	end
+	
+	if castline ~= nil then
+		if Spellups["GL"]["seespells"] == "yes" then
+			Send(castline)
+		else
+			SendNoEcho(castline)
+		end 
+	end
+end
+
+function table.find(val, tbl) 
+	tbl = tbl or {}
+	if (tbl[val] ~= nil) then
+		return tbl[val]
+	end
+	return nil
+end
+
+function table.count(tbl)
+	tbl = tbl or {}
+	local tblcount = 0
+	for i,v in pairs(tbl) do
+		tblcount = tblcount + 1
+	end
+	return tblcount
+end
+
+function HSPDisable(arg)
+	if string.lower(arg) == "silent" then
+		if Spellups["GL"]["disabled"] == "yes" then
+			Spellups["GL"]["disabled"] = "no"
+		elseif Spellups["GL"]["disabled"] == "no" then
+			Spellups["GL"]["disabled"] = "yes"
+		end
+	elseif string.lower(arg) == "check" then
+		if Spellups["GL"]["disabled"] == "yes" then
+			hadarprint("Spellup Autocast is currently @RDISABLED@w","script")
+		elseif Spellups["GL"]["disabled"] == "no" then
+			hadarprint("Spellup Autocast is currently @GENABLED@w","script")
+		end
+	else
+		if Spellups["GL"]["disabled"] == "yes" then
+			Spellups["GL"]["disabled"] = "no"
+			hadarprint("Autocast set to @GON@w","script") -- changed from Spellup because hadarprint already uses [SPELLUP]
+		elseif Spellups["GL"]["disabled"] == "no" then
+			Spellups["GL"]["disabled"] = "yes"
+			hadarprint("Spellup Autocast set to @ROFF@w","script")
+		end
+	end
+end
+
+function autoaura(str)
+	local first, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	
+	local arg = string.lower(first)
+	
+	if arg == "aura" then
+		auraset(rest)
+	elseif arg == "bag" then
+		aurasetbag(rest)
+	elseif arg == "on" then
+		auraseton()
+	elseif arg == "off" then
+		aurasetoff()
+	else
+	end
+end
+
+function auraseton()
+	if Spellups["GL"]["autoaura"] == "no" then
+		if Spellups["GL"]["auranumber"] == 0 then
+			hadarprint("Auto aura @RNOT@c turned on","script")
+			hadarprint("You will need to set an aura number use command @Ghsp autoaura aura <number>@w","error")
+			hadarprint("also if you have not set the bag you can do so with @Ghsp autoaura bag <number>@w","error")
+		else
+			Spellups["GL"]["autoaura"] = "yes"
+			hadarprint("Auto aura set to @GON","script")
+		end
+	else
+		hadarprint("Auto aura already set to on, please use @Ghsp autoaura off","error")
+	end
+end
+
+function aurasetoff()
+	if Spellups["GL"]["autoaura"] == "yes" then
+			Spellups["GL"]["autoaura"] = "no"
+			hadarprint("Auto aura set to @ROFF","script")
+	else
+		hadarprint("Auto aura already set to off, please use @Ghsp autoaura on","error")
+	end
+end
+
+function auraset(arg)
+	local thing = tonumber(arg) or string.lower(arg)
+	
+	if type(thing) == "number" then
+		Spellups["GL"]["auranumber"] = thing
+		hadarprint("Aura set to: "..Spellups["GL"]["auranumber"],"script")
+		return
+	end
+
+	if thing == nil or thing == "" or thing == " " then
+		HadarBackup = Spellups["GL"]["auranumber"]
+		Spellups["GL"]["auranumber"] = utils.inputbox ("Set your aura of sanctuary number", "Aura sanctuary here", Spellups["GL"]["auranumber"], "Courier", 9,{box_width = 400,box_height = 350,prompt_height = 200,reply_width = 398,reply_height = 40,})
+	
+		if Spellups["GL"]["auranumber"] ~= nil then
+			hadarprint("Aura set to: "..Spellups["GL"]["auranumber"],"script")
+		else
+			Spellups["GL"]["auranumber"] = HadarBackup
+		end
+		return
+	end
+
+end
+
+function aurasetbag(arg)
+	local arg = tonumber(arg) or string.lower(arg)
+	
+	if arg == nil or arg == "" or arg == " " then
+		HadarBackup = Spellups["GL"]["aurabag"]
+		Spellups["GL"]["aurabag"] = utils.inputbox ("Set bag where aura is stored\n use 'none' if in inventory", "Set bag where aura saved", Spellups["GL"]["aurabag"], "Courier", 9,{box_width = 400,box_height = 350,prompt_height = 200,reply_width = 398,reply_height = 40,})
+	
+		if Spellups["GL"]["aurabag"] ~= nil then
+			hadarprint("Aura bag set to: "..Spellups["GL"]["aurabag"],"script")
+		else
+			Spellups["GL"]["aurabag"] = HadarBackup
+		end
+		return
+	end
+	
+	if type(arg) == "number" then
+		Spellups["GL"]["aurabag"] = arg
+		hadarprint("Aura bag set to: "..Spellups["GL"]["aurabag"],"script")
+	end
+end
+
+function contains(tableToSearch, value)
+	for i,v in ipairs(tableToSearch) do
+		if (v == value) then
+			return true
+		end
+	end
+	return false
+  end
+
+  function remove(tableToSearch, value)
+	for i,v in ipairs(tableToSearch) do
+		if (v == value) then
+			   table.remove(tableToSearch, i)
+		   return
+		end
+	end
+  end
+  
+	
+function noAutoList(sn)
+	sn = tonumber(sn) or string.lower(sn)
+	if type(sn) == "number" then
+		if table.find(sn, Spellups["AS"]["list"]) ~= nil then
+  			if contains(Spellups["EX"]["noAuto"], sn) then 
+  				hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the NOAUTO list","script")
+  				remove(Spellups["EX"]["noAuto"], sn)
+  			else
+				hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the NOAUTO list","script")	
+  				table.insert(Spellups["EX"]["noAuto"], sn)
+  			end
+		else
+			hadarprint("Please input a valid SN","error")
+		end
+	elseif table.find(sn,Spellups["AS"]["namelist"]) ~= nil then
+		local sname = tonumber(Spellups["AS"]["namelist"][sn]["skillnum"])
+		if contains(Spellups["EX"]["noAuto"], sname) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sname]["name"].." from the NOAUTO list","script")
+  			remove(Spellups["EX"]["noAuto"], sname)
+		else
+			hadarprint("Adding "..Spellups["AS"]["list"][sname]["name"].." to the NOAUTO list","script")	
+  			table.insert(Spellups["EX"]["noAuto"], sname)
+		end
+	elseif sn == "clear" then
+		Spellups["EX"]["noAuto"] = {}
+		hadarprint("Your list of no cast spells has been cleared.","script")
+	elseif sn == "show" then
+		hadarprint("@W+@x086--------------@G[@CN@co @CA@cuto @CC@cast @CS@cpells@G]@x086-------------@W+@w")
+		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+		if Spellups["EX"]["noAuto"][1] == nil then
+			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp noauto <number>    @W|@w")
+		end
+		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
+			local numbersize = 24-string.len(v)
+			local numberpad1 = math.ceil(numbersize/2)
+			local numberpad2 = math.floor(numbersize/2)
+			local shownumber = string.rep(" ",numberpad1)..v..string.rep(" ",numberpad2)
+
+			local wordsize = 23-string.len(Spellups["AS"]["list"][tonumber(v)]["name"])
+			local wordpad1 = math.ceil(wordsize/2)
+			local wordpad2 = math.floor(wordsize/2)
+			local showword = string.rep(" ",wordpad1)..Spellups["AS"]["list"][tonumber(v)]["name"]..string.rep(" ",wordpad2)
+			
+			hadarprint("@W|@c"..shownumber.."@W|@c"..showword.."@W|@w")
+		end
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+	else
+		hadarprint("@W+@x086--------------@G[@CN@co @CA@cuto @CC@cast @CS@cpells@G]@x086-------------@W+@w")
+		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+		if Spellups["EX"]["noAuto"][1] == nil then
+			hadarprint("@W|@c      No Spells are set to not autocast         @W|@w")
+			hadarprint("@W|@c      to set a spell use hsp noauto <number>    @W|@w")
+		end
+		for i ,v in pairs(Spellups["EX"]["noAuto"]) do
+			local numbersize = 24-string.len(v)
+			local numberpad1 = math.ceil(numbersize/2)
+			local numberpad2 = math.floor(numbersize/2)
+			local shownumber = string.rep(" ",numberpad1)..v..string.rep(" ",numberpad2)
+
+			local wordsize = 23-string.len(Spellups["AS"]["list"][tonumber(v)]["name"])
+			local wordpad1 = math.ceil(wordsize/2)
+			local wordpad2 = math.floor(wordsize/2)
+			local showword = string.rep(" ",wordpad1)..Spellups["AS"]["list"][tonumber(v)]["name"]..string.rep(" ",wordpad2)
+			
+			hadarprint("@W|@c"..shownumber.."@W|@c"..showword.."@W|@w")
+		end
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+	end
+end
+
+function make_vis()
+	hadarprint("Letting you go visible","script")
+	EnableAlias("do_vis", false)
+		
+	if Spellups["GL"]["disabled"] == "yes" then
+		return
+	end
+	
+	Spellups["GL"]["disabled"] = "yes"
+	
+	SendNoEcho("vis")
+	EnableAlias("do_vis", true)
+	
+	DoAfterSpecial(1, "hsp disable silent", 10) -- execute
+end
+
+function HSPreload()
+	hadarprint("Reloading Spellup plugin","script")
+	slistCommandSent = false
+	SendSlistCommand()
+end
+
+function recoveryup(sn,timer)
+	hadarprint("SN:"..sn..", TIMER:"..timer,"debug")
+	
+	local sn = tonumber(sn)
+	local tm = tonumber(timer)
+	local uptime1 = tm - 30
+	local uptime2 = tm - 10
+	
+	local firstwarn = "warn_30_"..sn
+	local secondwarn = "warn_10_"..sn
+	
+	local remaining1 = uptime1 % 86400
+	local hours1 = math.floor(remaining1/3600)
+	remaining1 = remaining1 % 3600
+	local minutes1 = math.floor(remaining1/60)
+	remaining1 = remaining1 % 60
+	local seconds1 = remaining1
+	local remaining2 = uptime2 % 86400
+	local hours2 = math.floor(remaining2/3600)
+	remaining2 = remaining2 % 3600
+	local minutes2 = math.floor(remaining2/60)
+	remaining2 = remaining2 % 60
+	local seconds2 = remaining2
+	
+	hadarprint("1)"..firstwarn..":"..uptime1.." hours:"..hours1..", minutes:"..minutes1..", seconds:"..seconds1,"debug")
+	hadarprint("2)"..secondwarn..":"..uptime2.." hours:"..hours2..", minutes:"..minutes2..", seconds:"..seconds2,"debug")
+	
+	if Spellups["EX"]["thirtytimer"][sn] == "yes" then
+		hadarprint("Added 30 timer for: "..firstwarn,"debug")
+		check(AddTimer (firstwarn, hours1, minutes1, seconds1, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+
+	if Spellups["EX"]["tentimer"][sn] == "yes" then
+		hadarprint("Added 10 timer for: "..secondwarn,"debug")
+		check(AddTimer (secondwarn, hours2, minutes2, seconds2, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+end
+
+function recon(n,l,wc)
+	local sn = tonumber(wc.sn)
+	local tm = tonumber(wc.timer)
+	
+	Spellups["RT"]["affectedrecovery"][sn] = tm
+	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
+end
+
+function recoff(n,l,wc)
+	local sn = tonumber(wc.sn)
+	local skillnum = Spellups["RT"][sn]["skillnum"]
+	local skilltype = Spellups["RT"][sn]["type"]
+	local skillname = Spellups["RT"][sn]["name"]
+
+	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
+		if Spellups["AF"]["list"][skillnum] ~= nil then
+			if tonumber(Spellups["AF"]["list"][skillnum]) >= tonumber(Spellups["RT"]["affectedrecovery"][sn]) then
+				Spellups["RT"]["affectedrecovery"][sn] = nil
+				return
+			end
+		end
+	end
+
+	Spellups["RT"]["affectedrecovery"][sn] = nil
+
+	if sn == 16 then
+		if Spellups["CG"]["totemcast"] == "force" then
+                  Spellups["QS"][512] = Spellups["AS"]["list"][512]["name"]
+			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][512]["name"],"debug")
+		elseif Spellups["CG"]["totemcast"] == "guidance" then
+			Spellups["QS"][511] = Spellups["AS"]["list"][511]["name"]
+			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][511]["name"],"debug")
+		else
+			hadarprint("Autocasting for totem guidance or totem force not set @Ghsp totem <spell>@w")
+		end
+	else
+		if table.find(skillnum,Spellups["AS"]["attack"]) == nil then
+			hadarprint("recasting:"..skillname,"debug")
+
+			Spellups["QS"][skillnum] = Spellups["AS"]["list"][skillnum]["name"]
+			hadarprint("adding to queue (recovery off): "..Spellups["AS"]["list"][skillnum]["name"],"debug")
+		end
+            cast_spells()
+	end --end elemental focus recoverynumber
+						
+end
+
+function rcwarning(arg)
+	local t = utils.split(arg,"_")
+	local nm = Spellups["AS"]["list"][tonumber(t[3])]["name"]
+	local message
+
+	hadarprint("1:"..t[1].." 2:"..t[2].." 3:"..t[3].." nm:"..nm,"debug")
+	
+	if t[2] == "30" then
+		message = interp(Spellups["MS"]["thirty"], {logo = Spellups["MS"]["logo"], spell = nm})
+	elseif t[2] == "10" then
+		message = interp(Spellups["MS"]["ten"], {logo = Spellups["MS"]["logo"], spell = nm})
+	else
+		message = "danger will robinson i dont know how i got here!"
+	end
+
+
+	if message ~= nil then
+          
+		if Spellups["GL"]["mainWindow"] == "yes" then
+			 if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+				  hadarprint(message)
+			 else
+				  SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 end
+		end
+		
+		if Spellups["GL"]["commLog"] == "yes" then
+			 CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+		end
+		
+		if Spellups["GL"]["commLog"] == "no" and Spellups["GL"]["mainWindow"] == "no" then
+			 hadarprint("You have both reporting to Comm log and reporting to main window off, cant report","error")
+		end
+		
+   end
+end
+
+function hspSet(param)
+	param = string.lower(param)
+	if param == "30" then
+		HadarBackup = Spellups["MS"]["thirty"]
+		Spellups["MS"]["thirty"] = utils.inputbox ("${logo} - Shows the logo of the script\n${spell} - shows the name of the spell", "look of thirty seconds until spell expires", Spellups["MS"]["thirty"], "Courier", 9)
+	   
+		if Spellups["MS"]["thirty"] ~= nil then
+			hadarprint("30 seconds left will look like@W: @w"..Spellups["MS"]["thirty"],"script")
+		else
+			Spellups["MS"]["thirty"] = HadarBackup
+		end
+	elseif param == "10" then
+		HadarBackup = Spellups["MS"]["ten"]
+		Spellups["MS"]["ten"] = utils.inputbox ("${logo} - Shows the logo of the script\n${spell} - shows the name of the spell", "look of ten seconds until spell expires", Spellups["MS"]["ten"], "Courier", 9)
+	   
+		if Spellups["MS"]["ten"] ~= nil then
+			hadarprint("10 seconds left will look like@W: @w"..Spellups["MS"]["ten"],"script")
+		else
+			Spellups["MS"]["ten"] = HadarBackup
+		end
+	elseif param == "logo" then
+		HadarBackup = Spellups["MS"]["logo"]
+		Spellups["MS"]["logo"] = utils.inputbox ("how would you like the logo to look?", "look of logo", Spellups["MS"]["logo"], "Courier", 9)
+   
+		if Spellups["MS"]["logo"] ~= nil then
+			hadarprint("the logo will look like@W: @w"..Spellups["MS"]["logo"],"script")
+		else
+			Spellups["MS"]["logo"] = HadarBackup
+		end
+	else
+		hadarprint("@cYou need to input one of the following@w: @Glogo@w, @G30@w,@G 10@w @C.@c.@C. @YEG:@R hsp set 10@w","error")
+	end
+	SaveState()
+end
+
+function hspSetChannel(str)
+	if str ~= nil and str ~= "" and str ~= " " then
+		Spellups["MS"]["channel"] = str
+		hadarprint("Default channel set to@w: @G" .. Spellups["MS"]["channel"],"script")
+   else
+		hadarprint("Current Channel:"..Spellups["MS"]["channel"],script)
+		hadarprint("@cPlease use the following command@W:@Ghsp channel <channel you want to output to>@w","error")
+   end
+	SaveState()
+end
+
+function hspWindow(str)
+	if str == nil or str == "" or str == " " then
+		 hadarprint("@cYou need to give an argument EG: @Ghsp report main","error")
+		 return
+	end
+	
+	local first, second = str:match("(%w+)%s*(.*)")
+	
+	first = string.lower(first)
+	
+	if second == " " or second == "" then
+		 second = nil
+	end
+	  
+
+	if first == "main" and second == nil then
+		if Spellups["GL"]["mainWindow"] == "yes" then
+			  Spellups["GL"]["mainWindow"] = "no"
+			  hadarprint("You will @RNOT @creport spellup info to the main window","script")
+		 else
+			  Spellups["GL"]["mainWindow"] = "yes"
+			  hadarprint("You @GWILL@c report spellup info to the main window","script")
+		 end
+	elseif first == "main" and second == "on" then
+		 Spellups["GL"]["mainWindow"] = "yes"
+		 hadarprint("You @GWILL@c report spellup info to the main window","script")
+	elseif first == "main" and second == "off" then
+		 Spellups["GL"]["mainWindow"] = "no"
+		 hadarprint("You will @RNOT @creport spellup info to the main window","script")
+	elseif first == "comm" and second == nil then
+		 if Spellups["GL"]["commLog"] == "yes" then
+			  Spellups["GL"]["commLog"] = "no"
+			  hadarprint("You will @RNOT @creport spellup info to the comm window","script")
+		 else
+			  Spellups["GL"]["commLog"] = "yes"
+			  hadarprint("You @GWILL@c report spellup info to the comm window","script")
+		 end
+	elseif first == "comm" and second == "on" then
+		 Spellups["GL"]["commLog"] = "yes"
+		 hadarprint("You @GWILL@c report spellup info to the main window","script")
+	elseif first == "comm" and second == "off" then
+		Spellups["GL"]["commLog"] = "no"
+		 hadarprint("You will @RNOT @creport spellup info to the main window","script")
+	end
+	
+	if second ~= nil and second ~= "on" and second ~= "off" then
+		Spellups["GL"]["commLogTab"] = second
+		hadarprint("You will now report spellup info to the @W"..second.."@w communication log","script")
+	end
+	
+	SaveState()
+end
+
+function hspToggleSeeSpells()
+	if Spellups["GL"]["seespells"] == "yes" then
+		Spellups["GL"]["seespells"] = "no"
+		hadarprint("Seeing the recast message @RDISABLED@w","script")
+	else
+		Spellups["GL"]["seespells"] = "yes"
+		hadarprint("Seeing the recast message @GENABLED@w","script")
+	end
+end
+
+function hspsettotem(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "force" then
+		Spellups["CG"]["totemcast"] = "force"
+		hadarprint("When able you will cast @Gtotem force@w","script")
+	elseif arg == "guidance" then
+		Spellups["CG"]["totemcast"] = "guidance"
+		hadarprint("When able you will cast @Gtotem guidance@w","script")
+	else
+		hadarprint("You are currently using @Gtotem "..Spellups["CG"]["totemcast"],"script")
+		hadarprint("Enter which totem you want to cast: @R[@Ghsp totem force@R]@c or @R[@Ghsp totem guidance@R]@w","script")
+	end
+end
+
+function hspsetelementalfocus(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "earth" or arg == "air" or arg == "fire" or arg == "water" then
+		Spellups["CG"]["elementfocus"] = arg
+		hadarprint("Elemental @rfocus@c set to: @G"..Spellups["CG"]["elementfocus"],"script")
+	else
+		hadarprint("You need to enter which element you want to cast @CEarth@c, @CAir@c, @CFire@c, @CWater @C... @GEG hsp elementalfocus fire@w","script")
+	end
+end
+
+function hspsetelementalward(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "earth" or arg == "air" or arg == "fire" or arg == "water" then
+		Spellups["CG"]["elementward"] = arg
+		hadarprint("Elemental @Cward@c set to: @G"..Spellups["CG"]["elementward"],"script")
+	else
+		hadarprint("You need to enter which element you want to cast @CEarth@c, @CAir@c, @CFire@c, @CWater @C... @GEG hsp elementalward fire@w","script")
+	end
+end
+
+function hspsetgaiasfocus(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "random" or arg == "none" then
+		Spellups["CG"]["gaiasfocus"] = 0
+		hadarprint("Gaia's @Cfocus@c set to: @GRandom","script")
+		return
+	end
+	if arg == "earth" or arg == "air" or arg == "cold" or arg == "water" or arg == "electric" then
+		Spellups["CG"]["gaiasfocus"] = arg
+		hadarprint("Gaias @Cfocus@c set to: @G"..Spellups["CG"]["gaiasfocus"],"script")
+	else
+            hadarprint("Gaias focus set to: @G"..Spellups["CG"]["gaiasfocus"],"script")
+		hadarprint("Enter which element you want to focus on: @Cearth@c, @Cair@c, @Ccold@c, @Cwater@c, @Celectric@c, or @Crandom","script")
+	end
+end
+
+function hspskillgain(n,l,wc)
+	local sn = tonumber(wc.sn)
+	local pc = tonumber(wc.perc)
+
+	Spellups["AS"]["list"][sn]["prac"] = pc
+end
+
+function hspdotimerexception(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+	local nm2
+	
+	if arg ~= nil and arg ~= "" and arg ~= " " and type(arg) == "string" then
+		nm2 = arg:gsub(" ","_")
+	end
+
+
+	if type(arg) == "number" then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
+			if contains(Spellups["EX"]["Timer"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the timers list","script")
+				remove(Spellups["EX"]["Timer"], arg)
+				Spellups["EX"]["thirtytimer"][arg] = "no"
+				Spellups["EX"]["tentimer"][arg] = "no"
+			else
+				hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the timers list, turned on 30 second warning, and 10 second warning","script")	
+				table.insert(Spellups["EX"]["Timer"], arg)
+				Spellups["EX"]["thirtytimer"][arg] = "yes"
+				Spellups["EX"]["tentimer"][arg] = "yes"
+			end
+		else
+			hadarprint("Please enter a valid SN","error")
+		end
+	elseif arg == "set" then
+		addorremovetimers(rest)
+	elseif table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
+		local sn = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
+
+		if contains(Spellups["EX"]["Timer"], sn) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the timers list","script")
+			remove(Spellups["EX"]["Timer"], sn)
+			Spellups["EX"]["thirtytimer"][sn] = "no"
+			Spellups["EX"]["tentimer"][sn] = "no"
+		else
+			hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the timers list, turned on 30 second warning, and 10 second warning","script")	
+			table.insert(Spellups["EX"]["Timer"], sn)
+			Spellups["EX"]["thirtytimer"][sn] = "yes"
+			Spellups["EX"]["tentimer"][sn] = "yes"
+		end
+	else
+		hadarprint("@W+@x086------------------------------@G[@CS@cpell @CT@cimers]------------------------------@W+@w")
+		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came        @W|     @CA@cctive @CT@cimer@x086'@cs     @W|@w")
+		hadarprint("@W+@x086--------------------------------------------------------------------------@W+@w")
+	
+		if Spellups["EX"]["Timer"][1] == nil then
+			hadarprint("@W|@c     No Spells are set to have a timer        @W|@w")
+		end
+
+		for i ,v in pairs(Spellups["EX"]["Timer"]) do
+			local timerstring1 = nil
+			local timerstring2 = nil
+			local timerstring3
+			local timerstring3nude
+			if Spellups["EX"]["thirtytimer"][v] == "yes" then
+				timerstring1 = "yes"
+			end
+
+			if Spellups["EX"]["tentimer"][v] == "yes" then
+				timerstring2 = "yes"
+			end
+
+			if timerstring1 == nil and timerstring2 == nil then
+				timerstring3 = "@Rnone"
+				timerstring3nude = "none"
+			elseif timerstring1 == "yes" and timerstring2 == nil then
+				timerstring3 = "@G30"
+				timerstring3nude = "30"
+			elseif timerstring1 == nil and timerstring2 == "yes" then
+				timerstring3 = "@g10"
+				timerstring3nude = "10"
+			elseif timerstring1 == "yes" and timerstring2 == "yes" then
+				timerstring3 = "@G30@W,@G10"
+				timerstring3nude = "30,10"
+			end
+
+
+			local numbersize = 24-string.len(v)
+			local numberpad1 = math.ceil(numbersize/2)
+			local numberpad2 = math.floor(numbersize/2)
+			local shownumber = string.rep(" ",numberpad1)..v..string.rep(" ",numberpad2)
+
+			local wordsize = 24-string.len(Spellups["AS"]["list"][tonumber(v)]["name"])
+			local wordpad1 = math.ceil(wordsize/2)
+			local wordpad2 = math.floor(wordsize/2)
+			local showword = string.rep(" ",wordpad1)..Spellups["AS"]["list"][tonumber(v)]["name"]..string.rep(" ",wordpad2)
+
+			local timersize = 24-string.len(timerstring3nude)
+			local timerpad1 = math.ceil(timersize/2)
+			local timerpad2 = math.floor(timersize/2)
+			local showtimer = string.rep(" ",timerpad1)..timerstring3..string.rep(" ",timerpad2)
+			
+			hadarprint("@W|@c"..shownumber.."@W|@c"..showword.."@W|@c"..showtimer.."@W|@w")
+		end
+		hadarprint("@W+@x086--------------------------------------------------------------------------@W+@w")
+		
+	end
+end
+
+function addorremovetimers(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+	rest = tonumber(rest) or string.lower(rest)
+	
+	if type(arg) == "string" then
+		local nm2 = arg:gsub(" ","_")
+		
+		if table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
+			arg = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
+		else
+			hadarprint("Expected name or SN, Syntax is hsp exception timer set <skill number or name> 10 or hsp exception timer set <skill number or name> 30","script")
+		end
+	end
+	
+	if type(rest) ~= "number" then
+		hadarprint("Expected number, Syntax is hsp exception timer set <skill number> 10 or hsp exception timer set <skill number> 30","script")
+		return
+	end
+
+	if rest == 10 then 
+		if Spellups["EX"]["tentimer"][arg] == "yes" then
+			Spellups["EX"]["tentimer"][arg] = "no"
+			hadarprint("10 second timer @RDISABLED@c for "..Spellups["AS"]["list"][arg]["name"],"script")
+		else
+			Spellups["EX"]["tentimer"][arg] = "yes"
+			hadarprint("10 second timer @GENABLED@c for "..Spellups["AS"]["list"][arg]["name"],"script")
+		end
+	end
+
+	if rest == 30 then 
+		if Spellups["EX"]["thirtytimer"][arg] == "yes" then
+			Spellups["EX"]["thirtytimer"][arg] = "no"
+			hadarprint("30 second timer @RDISABLED@c for "..Spellups["AS"]["list"][arg]["name"],"script")
+		else
+			Spellups["EX"]["thirtytimer"][arg] = "yes"
+			hadarprint("30 second timer @GENABLED@c for "..Spellups["AS"]["list"][arg]["name"],"script")
+		end
+	end
+end
+
+function hspsetcombat(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+	local nm2
+	
+	if arg ~= nil and arg ~= "" and arg ~= " " and type(arg) == "string" then
+		nm2 = arg:gsub(" ","_")
+	end
+
+	if type(arg) == "number" then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
+			if contains(Spellups["EX"]["exceptions"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the exceptions list","script")
+				remove(Spellups["EX"]["exceptions"], arg)
+			else
+		  		hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the exceptions list","script")	
+				table.insert(Spellups["EX"]["exceptions"], arg)
+			end
+		else
+			hadarprint("Please enter a valid SN","error")
+		end
+	elseif table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
+		local sn = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
+		if contains(Spellups["EX"]["exceptions"], sn) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the exceptions list","script")
+			remove(Spellups["EX"]["exceptions"], sn)
+		else
+		  hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the exceptions list","script")	
+			table.insert(Spellups["EX"]["exceptions"], sn)
+		end
+	else
+		hadarprint("@W+@x086---------------@G[@CC@combat @CE@cxceptions@G]@x086--------------@W+@w")
+		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+	
+		if Spellups["EX"]["exceptions"][1] == nil then
+			hadarprint("@W|@c     No Spells are set to cat in combat       @W|@w")
+			hadarprint("@W|@c     to set a spell use hsp combat <number>   @W|@w")
+		end
+
+		for i ,v in pairs(Spellups["EX"]["exceptions"]) do
+			local numbersize = 24-string.len(v)
+			local numberpad1 = math.ceil(numbersize/2)
+			local numberpad2 = math.floor(numbersize/2)
+			local shownumber = string.rep(" ",numberpad1)..v..string.rep(" ",numberpad2)
+
+			local wordsize = 23-string.len(Spellups["AS"]["list"][tonumber(v)]["name"])
+			local wordpad1 = math.ceil(wordsize/2)
+			local wordpad2 = math.floor(wordsize/2)
+			local showword = string.rep(" ",wordpad1)..Spellups["AS"]["list"][tonumber(v)]["name"]..string.rep(" ",wordpad2)
+			
+			hadarprint("@W|@c"..shownumber.."@W|@c"..showword.."@W|@w")
+		end
+
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+	end
+end
+
+function hspsetwraith(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+	local nm2
+	
+	if arg ~= nil and arg ~= "" and arg ~= " " and type(arg) == "string" then
+		nm2 = arg:gsub(" ","_")
+	end
+
+	if type(arg) == "number" then
+		if table.find(arg, Spellups["AS"]["list"]) ~= nil then
+			if contains(Spellups["EX"]["wraithform"], arg) then 
+				hadarprint("Removing "..Spellups["AS"]["list"][arg]["name"].." from the wraith form list","script")
+				remove(Spellups["EX"]["wraithform"], arg)
+			else
+	  			hadarprint("Adding "..Spellups["AS"]["list"][arg]["name"].." to the wraith form list","script")	
+				table.insert(Spellups["EX"]["wraithform"], arg)
+			end
+		else
+			hadarprint("Please enter a valid SN","error")
+		end
+	elseif table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
+		local sn = tonumber(Spellups["AS"]["namelist"][nm2]["skillnum"])
+		if contains(Spellups["EX"]["wraithform"], sn) then 
+			hadarprint("Removing "..Spellups["AS"]["list"][sn]["name"].." from the wraith form list","script")
+			remove(Spellups["EX"]["wraithform"], sn)
+		else
+	  		hadarprint("Adding "..Spellups["AS"]["list"][sn]["name"].." to the wraith form list","script")	
+			table.insert(Spellups["EX"]["wraithform"], sn)
+		end
+	else
+		hadarprint("@W+@x086---------------@G[@CW@craith @CE@cxceptions@G]@x086--------------@W+@w")
+		hadarprint("@W|      @CS@cpell @CN@cumber      @W|      @CS@cpell @Cn@came       @W|@w")
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+
+		if Spellups["EX"]["wraithform"][1] == nil then
+			hadarprint("@W|@c  No Spells are set to cast before wraith form  @W|@w")
+			hadarprint("@W|@c   to set a spell use hsp wraith <number>       @W|@w")
+		end
+
+		for i ,v in pairs(Spellups["EX"]["wraithform"]) do
+			local numbersize = 24-string.len(v)
+			local numberpad1 = math.ceil(numbersize/2)
+			local numberpad2 = math.floor(numbersize/2)
+			local shownumber = string.rep(" ",numberpad1)..v..string.rep(" ",numberpad2)
+
+			local wordsize = 23-string.len(Spellups["AS"]["list"][tonumber(v)]["name"])
+			local wordpad1 = math.ceil(wordsize/2)
+			local wordpad2 = math.floor(wordsize/2)
+			local showword = string.rep(" ",wordpad1)..Spellups["AS"]["list"][tonumber(v)]["name"]..string.rep(" ",wordpad2)
+		
+			hadarprint("@W|@c"..shownumber.."@W|@c"..showword.."@W|@w")
+		end
+
+		hadarprint("@W+@x086------------------------------------------------@W+@w")
+	end
+end
+
+function hspsetpercent(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+
+	if type(arg) == "number" then
+		if maxmana == nil or maxmana == -1 then
+			hadarprint("mana variable not set","error")
+			return
+		end
+		Spellups["EX"]["percentage"] = arg
+		Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
+		hadarprint("Set autocast pause to @G"..Spellups["EX"]["percentage"].."@c% which is "..Spellups["EX"]["percentageStop"].." mana","script")
+	end
+end
+
+function hspshowcskill(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = tonumber(arg) or string.lower(arg)
+
+	if Spellups["GL"]["clan"] == "none" then
+		local grabmessage = {
+			"You need to be in a clan to do this. (loner and outcast dont count)",
+			"Buuuuut mom, I wish I had a clan skill!",
+			"Can I haz cskill?",
+			"You know, you would have a clan skill if you joined tao! http://aardtao.com",
+			"One day. The day will come, and this command will be useful.",
+			"Teehee, only YOU can see these messages, you know since you have no clan.",
+			"Honey? 'What?' Where is my clan skill? 'What?' Where - IS - MY - CLAN SKILL!",
+			"You know I wish I was funny ... it would make this message that you need a clan skill more interesting.",
+			"What do you call a person without a morgue? clanless!",
+			"If you joined a clan you would not have to put up with these messages.",
+		}
+		local rnd = math.random(1,10)
+		hadarprint(grabmessage[rnd],"noclan")
+		return
+	end
+
+	if arg == "set" and rest ~= nil then
+		local nm2 = rest:gsub(" ","_")
+		if table.find(nm2,Spellups["AS"]["namelist"]) ~= nil then
+			Spellups["EX"]["clanskillV1"] = Spellups["AS"]["namelist"][nm2]["skillnum"]
+			hadarprint("V1 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskillV1"]]["name"].." @C[@G"..Spellups["EX"]["clanskillV1"].."@C]@w","script")
+		elseif nm2 == "none" then
+			Spellups["EX"]["clanskillV1"] = -1
+			hadarprint("V1 Cskill set to @Gnone","script")
+		else
+			hadarprint("Expecting spellname got: "..rest,"error")
+		end
+	else
+		if Spellups["EX"]["clanskillV1"] ~= -1 then
+			hadarprint("You can disable V1 cskill with @Ghsp cskill set none@w","script")
+			hadarprint("Current V1 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskillV1"]]["name"].." @C[@G"..Spellups["EX"]["clanskillV1"].."@C]@w","script")
+		end
+		hadarprint("Current V2 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
+	end
+end
+
+function HadarHelp(str)
+	local arg, rest
+	
+	if str == nil or str == "" or str == " " then
+		arg="nothing"
+	else
+		arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+		arg = tonumber(arg) or string.lower(arg)
+	end
+
+	if arg == "combat" then
+		hadarprint("@x086+-------------------------@G[@CC@combat @CH@celp @CF@ciles]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp combat     @x110- @x214no argument shows a table with the spell number and @x086|","helpfile2")
+		hadarprint("@x086|                  @x214the spell name, these will be re-cast during combat @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp combat <SN or name>    @x110-@x208 will add or remove the skill from the   @x086|","helpfile2")
+		hadarprint("@x086|                              @x208list to recast in combat                @x086|","helpfile2")
+		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
+	elseif arg == "timer" then
+		hadarprint("@x086+-------------------------@G[@CT@cimers @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp timer     @x110- @x214no argument shows a table with the spell number and  @x086|","helpfile2")
+		hadarprint("@x086|                 @x214the spell name, along with what timers are active    @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp timer <SN or name>    @x110- @x208will add or remove the skill from the    @x086|","helpfile2")
+		hadarprint("@x086|                             @x208list to show a timer, when added to the  @x086|","helpfile2")
+		hadarprint("@x086|                             @x208list both 30 second, and 10 second timers@x086|","helpfile2")
+		hadarprint("@x086|                             @x208are activated                            @x086|","helpfile2")
+		hadarprint("@x086| 	                   @REG@x110:@G hsp timer 71                                 @x086|","helpfile2")
+		hadarprint("@x086| 	   @x208turns on both the 30 and the 10 second timer for sanctuary       @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x214hsp timer set <SN or name> [10,30]   @x110-@x214 this will toggle the timer    @x086|","helpfile2")
+		hadarprint("@x086| 	                       @x110-@x214 the 2 timers are 10 seconds, and 30 seconds@x086|","helpfile2")
+		hadarprint("@x086| 	                       @x110-@x214 you can run 1 or both, or neither          @x086|","helpfile2")
+		hadarprint("@x086| 	                   @REG@x110:@G hsp timer set 71 30                          @x086|","helpfile2")
+		hadarprint("@x086| 	         @x214will toggle the 30 second timer to on or off               @x086|","helpfile2")
+		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
+	elseif arg == "wraith" then
+		hadarprint("@x086+-------------------------@G[@CW@craith @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp wraith     @x110- @x214no argument shows a table with the spell number and @x086|","helpfile2")
+		hadarprint("@x086|                  @x214the spell name, these will be cast before the spell @x086|","helpfile2")
+		hadarprint("@x086|                  @x214wraith form is recast                               @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp wraith <SN or name>    @x110-@x208 will add or remove the skill from the   @x086|","helpfile2")
+		hadarprint("@x086|                              @x208list to cast before wraith form         @x086|","helpfile2")
+		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
+	else
+		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w")
+		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w")
+		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w")
+		hadarprint("@x086|                            @x208Spells on this list will not be recast       @x086|@w")
+		hadarprint("@x086|                            @x208Include number to toggle spells on the list  @x086|@w")
+		hadarprint("@x086| @x214hsp noauto clear         @x110- @x214Clears your noauto list                      @x086|@w")
+		hadarprint("@x086| @x208hsp disable <check>      @x110- @x208Toggles script on or off, check gives status @x086|@w")
+		hadarprint("@x086| @x214hsp reload               @x110- @x214Reload skills and spells (after tier)        @x086|@w")
+		hadarprint("@x086| @x208hsp autoaura <command>   @x110- @x208Has multiple commands, they are:             @x086|@w")
+		hadarprint("@x086|                           @x208 On  @x110-@x214 enables wearing aura in combat         @x086|@w")
+		hadarprint("@x086|                           @x208 Off @x110-@x214 diables wearing aura in combat         @x086|@w")
+		hadarprint("@x086|                           @x208 aura <itemid> @x110-@x214 set the id of your aura      @x086|@w")
+		hadarprint("@x086|                           @x208 bag <itemid> @x110-@x214 set the id of bag with aura   @x086|@w")
+		hadarprint("@x086| @x214hsp set <thing>          @x110- @x214Sets the message output for reports          @x086|@w")
+		hadarprint("@x086|                          @x110- @glogo@x110,@G 30@x110,@G 10                                 @x086|@w")
+		hadarprint("@x086| @x208hsp channel <channel>    @x110- @x208no arguments displays the channel            @x086|@w")
+		hadarprint("@x086|                            @REG@W.@G hsp channel spouse                       @x086|@w")
+		hadarprint("@x086| @x214hsp report <screen> <log>@x110- @x214screen main or comm, log = comm log          @x086|@w")
+		hadarprint("@x086|                            @REG@W.@G hsp report comm SpellTracker             @x086|@w")
+		hadarprint("@x086|                            @REG@W.@G hsp report main off                      @x086|@w")
+		hadarprint("@x086| @x208hsp seespells            @x110- @x208Toggle seeing recasts                        @x086|@w")
+		hadarprint("@x086| @x214hsp totem <spell>        @x110- @x214pRanger spell is either guidance or force    @x086|@w")
+		hadarprint("@x086| @x208hsp elementalfocus <ele> @x110- @x208Change the element for elemental focus       @x086|@w")
+		hadarprint("@x086| @x214hsp elementalward <ele>  @x110- @x214Change the element for elemental ward        @x086|@w")
+		hadarprint("@x086| @x208hsp gaiasfocus <element> @x110- @x208Change the element for Gaias focus           @x086|@w")
+		hadarprint("@x086| @x214hsp percent <number>     @x110- @x214Sets mana percentage to stop auto casting    @x086|@w")
+		hadarprint("@x086| @x208hsp cskill [set name]    @x110- @x208Shows your current cskill                    @x086|@w")
+		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w")
+		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w")
+		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w")
+		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w")
+		hadarprint("@x086+-------------------------------------------------------------------------+@w")
+	end
+end
+
+]]>
+</script> 
+
+</muclient>
