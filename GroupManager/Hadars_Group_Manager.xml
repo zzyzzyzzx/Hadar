@@ -84,15 +84,33 @@
      sequence="100"
      >
      </trigger>
-  <trigger
-   enabled="y"
-   match="^\(Friend\)\: (.+) has entered Aardwolf\.$"
-   regexp="y"
-   script="hgmfriendjoined"
-   keep_evaluating="n"
-   sequence="99"
-  >
-  </trigger>
+     <trigger
+     enabled="y"
+     match="^A group already exists with the name (.*)\.$"
+     omit_from_output="n"
+     regexp="y"
+     script="hgmrenamefailureexists"
+     sequence="100"
+     >
+     </trigger>
+     <trigger
+     enabled="y"
+     match="^Group name cannot be more than 25 characters\.$"
+     omit_from_output="n"
+     regexp="y"
+     script="hgmrenamefailurelength"
+     sequence="100"
+     >
+     </trigger>
+     <trigger
+     enabled="y"
+     match="^\(Friend\)\: (.+) has entered Aardwolf\.$"
+     regexp="y"
+     script="hgmfriendjoined"
+     keep_evaluating="n"
+     sequence="99"
+     >
+     </trigger>
 
 </triggers>
 
@@ -650,6 +668,16 @@ function hgmGroupMessage(msg)
      else
           --dont put shit here, causes a loop
      end
+end
+
+function hgmrenamefailureexists(name, line, wildcards)
+     -- rename failed, notify the user.
+     SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." I can't rename the group to that, it can't be the same text with different colours.")
+end
+
+function hgmrenamefailurelength(name, line, wildcards)
+     -- rename failed, notify the user.
+     SendSpecial("gtell "..HGMVariable["GL"]["Logo"].." I can't rename the group to that, maximum 25 characters.")
 end
 
 function hgmrefresh()
