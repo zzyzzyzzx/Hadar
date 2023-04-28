@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.90"
+   version="0.91"
    >
 
 </plugin>
@@ -195,6 +195,15 @@
    sequence="100"
   >
   </trigger>
+  <trigger
+  enabled="y"
+  match="^Questor exclaims \'Make sure to unkeep anything you\'re going to remort auction\!\'$"
+  regexp="y"
+  send_to="12"
+  script="hspRemortDisable"
+  sequence="100"
+ >
+ </trigger>
 
 </triggers>
 
@@ -1111,6 +1120,10 @@ function HSPDisable(arg)
 		elseif Spellups["GL"]["disabled"] == "no" then
 			hadarprint("Spellup Autocast is currently @GENABLED@w","script")
 		end
+	elseif string.lower(arg) == "silentoff"
+		Spellups["GL"]["disabled"] = "yes"
+	elseif string.lower(arg) == "silenton"
+		Spellups["GL"]["disabled"] = "no"
 	else
 		if Spellups["GL"]["disabled"] == "yes" then
 			Spellups["GL"]["disabled"] = "no"
@@ -1999,6 +2012,11 @@ function hspshowcskill(str)
 		end
 		hadarprint("Current V2 Cskill set to: "..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 	end
+end
+
+function hspRemortDisable()
+	hadarprint("Remort Detected, Disabling","script")
+	HSPDisable("silentoff")
 end
 
 function HadarHelp(str)
