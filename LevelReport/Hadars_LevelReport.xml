@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.07"
+   version="3.08"
    >
 
 </plugin>
@@ -1104,6 +1104,7 @@ function hlr_pup_report()
      local mob = tonumber(HLRVariable["PP"]["Mob"])
      local tnl = 1000
      local avg = math.ceil(tnl/mob)
+     local bonusstat = HLRVariable["LU"]["bonusstat"]
 	
 	local Data = interp(HLRVariable["PP"]["message"], {
      year = HLRVariable["PP"]["day"],
@@ -1117,6 +1118,7 @@ function hlr_pup_report()
      all = alltrains,
      mobs = mob,
      avg = avg,
+     stat = bonusstat,
      logo = HLRVariable["GL"]["Logo"],
      })
      
@@ -1152,6 +1154,8 @@ function hlr_pup_report()
      HLRVariable["PP"]["Exp"] = 0
      HLRVariable["PP"]["ExpB"] = 0
      HLRVariable["PP"]["Mob"] = 0
+	HLRVariable["LU"]["bonusstat"] = "none"
+     
 --
 end
 function hlr_level_report()
