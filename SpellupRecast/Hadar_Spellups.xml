@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.89"
+   version="0.90"
    >
 
 </plugin>
@@ -183,6 +183,15 @@
    omit_from_output="y"
    regexp="y"
    script="hspskillgain"
+   sequence="100"
+  >
+  </trigger>
+  <trigger
+   enabled="y"
+   match="^You see your own dead body from above\.$"
+   omit_from_output="n"
+   regexp="y"
+   script="hspdied"
    sequence="100"
   >
   </trigger>
@@ -437,7 +446,7 @@ function OnPluginEnable ()
 
 	Spellups = {}
 	Spellups["GL"] = {}
-      Spellups["AS"] = {}
+    Spellups["AS"] = {}
 	Spellups["AF"] = {} --affected by
 	Spellups["NA"] = {} --not affected by
 	Spellups["QU"] = {} --spellup queue
@@ -583,7 +592,7 @@ function injectVars()
 
 	v["AS"]["namelist"] = {}
      
-      v["GL"]["initilized"] = "no"
+    v["GL"]["initilized"] = "no"
 	v["GL"]["Debug"] = "no"
 	v["GL"]["autoaura"] = "no"
 	v["GL"]["smartcast"] = "no" --todo item
@@ -603,6 +612,9 @@ function injectVars()
 	v["GL"]["tentimer"] = "yes"
 	v["GL"]["seespells"] = "yes"
 	v["GL"]["failed"] = 0
+	v["GL"]["mudsidespellup"] = 1
+	v["GL"]["died"] = 0
+	
 
 	v["EX"]["clanskill"] = "none"
 	v["EX"]["clanskillV1"] = -1
@@ -627,6 +639,7 @@ function injectVars()
 	v["CG"]["elementfocus"] = 0
 	v["CG"]["totemcast"] = 0
 	v["CG"]["gaiasfocus"] = 0
+	v["CG"]["spellstorecast"] = 10
 
 
      for a,b in pairs(v) do
@@ -768,6 +781,10 @@ function HSPmain(name, line, wc)
 		hspsetpercent(rest)
 	elseif first == "cskill" then
 		hspshowcskill(rest)
+	elseif first == "setingame" then
+		hspsetingame(rest)
+	elseif first == "death" then
+		hspdiedtoggle(rest)
 	else
 		HadarHelp("nadda")
 	end
@@ -821,7 +838,11 @@ function affon(name, line, wc)
 	Spellups["AF"]["list"][sn] = tm
 	Spellups["NA"][sn] = 0 --not affected false
 	hadarprint("Affected by:"..Spellups["AS"]["list"][sn]["name"].." Time:"..tm,"debug")
-	Spellups["QS"][sn] = nil
+	if Spellups["QS"] == nil then
+		return
+	else
+		Spellups["QS"][sn] = nil
+	end
 	
 end
 
@@ -875,6 +896,9 @@ function affoff(name,line,wc)
 				end
 				return
 			end
+		end
+		if Spellups["QS"] == nil then
+			Spellups["QS"] = {}
 		end
 		Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
 		Spellups["NA"][sn] = 1 --not affected true
@@ -969,6 +993,10 @@ function cast_spells()
 	elseif Spellups["EX"]["percentageStop"] >= currentmana then
 		return
 	end
+	if Spellups["QS"] == nil then
+		return
+	end
+	
 	for i,v in pairs (Spellups["QS"]) do
         local ctype = tonumber(Spellups["AS"]["list"][i]["type"])
 
@@ -978,6 +1006,15 @@ function cast_spells()
 				cast_this(i,ctype)
 			end
 		elseif currentState == 3 then
+			if tonumber(Spellups["GL"]["mudsidespellup"]) == 1 then
+				if table.count(Spellups["QS"]) >= tonumber(Spellups["CG"]["spellstorecast"]) then
+					print("doing a mudside spellup")
+					SendNoEcho("spellup")
+					Spellups["QS"] = nil
+					Spellups["QS"] = {}
+					break
+				end
+			end
 			if contains(Spellups["EX"]["noAuto"],i) == false then
 
 				if i == 518 then
@@ -1082,6 +1119,39 @@ function HSPDisable(arg)
 			Spellups["GL"]["disabled"] = "yes"
 			hadarprint("Spellup Autocast set to @ROFF@w","script")
 		end
+	end
+end
+
+function hspsetingame(str)
+	local first, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	
+	local arg = string.lower(first) or "help"
+
+	local thing = tonumber(rest) or string.lower(rest)
+
+	if arg == "on" then
+		Spellups["GL"]["mudsidespellup"] = 1
+		hadarprint("@CIn game spellup turned @GON@C will recast after@W:@R"..Spellups["CG"]["spellstorecast"],"script")
+	elseif arg == "off" then
+		Spellups["GL"]["mudsidespellup"] = 0
+		hadarprint("@CIn game spellup turned @ROFF@C","script")
+	elseif arg == "toggle" then
+		if Spellups["GL"]["mudsidespellup"] == 1 then
+			Spellups["GL"]["mudsidespellup"] = 0
+			hadarprint("@CIn game spellup turned @ROFF@C","script")
+		else
+			Spellups["GL"]["mudsidespellup"] = 1
+			hadarprint("@CIn game spellup turned @GON@C will recast after@W:@R"..Spellups["CG"]["spellstorecast"],"script")
+		end
+	elseif arg == "set" then
+		if type(thing) == "number" then
+			Spellups["CG"]["spellstorecast"] = thing
+			hadarprint("@CIn game spellups set to when @R"..thing.."@C spells fall.@w","script")
+		else
+			hadarprint("@CCurrent number of spells set to fall is:@R "..Spellups["CG"]["spellstorecast"],"script")
+		end
+	else
+		hadarprint("@CCurrent number of spells set to fall is:@R "..Spellups["CG"]["spellstorecast"],"script")
 	end
 end
 
@@ -1573,6 +1643,42 @@ function hspsetgaiasfocus(str)
 	end
 end
 
+function hspdied()
+	if tonumber(Spellups["GL"]["died"]) == 1 then
+		if Spellups["GL"]["disabled"] == "no" then
+			HSPDisable("silent")
+			hadarprint("Do to an untimely demise, HSP has been disabled","script")
+		end
+	end
+end
+
+function hspdiedtoggle(str)
+	local first, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	local arg = string.lower(first) or "toggle"
+
+	if arg == "toggle" or arg == "" then
+		if tonumber(Spellups["GL"]["died"]) == 1 then
+			Spellups["GL"]["died"] = 0
+			hadarprint("Spells will be autocast when you die","script")
+		else
+			Spellups["GL"]["died"] = 1
+			hadarprint("Spells will NOT autocast when you die","script")
+		end
+	elseif arg == "on" then
+		Spellups["GL"]["died"] = 1
+		hadarprint("Spells will NOT autocast when you die","script")
+	elseif arg == "off" then
+		Spellups["GL"]["died"] = 0
+		hadarprint("Spells will be autocast when you die","script")
+	else
+		if tonumber(Spellups["GL"]["died"]) == 1 then
+			hadarprint("Spells will be autocast when you die","script")
+		else
+			hadarprint("Spells will NOT autocast when you die","script")
+		end
+	end
+end
+
 function hspskillgain(n,l,wc)
 	local sn = tonumber(wc.sn)
 	local pc = tonumber(wc.perc)
@@ -1971,6 +2077,9 @@ function HadarHelp(str)
 		hadarprint("@x086| @x208hsp gaiasfocus <element> @x110- @x208Change the element for Gaias focus           @x086|@w")
 		hadarprint("@x086| @x214hsp percent <number>     @x110- @x214Sets mana percentage to stop auto casting    @x086|@w")
 		hadarprint("@x086| @x208hsp cskill [set name]    @x110- @x208Shows your current cskill                    @x086|@w")
+		hadarprint("@x086| @x214hsp setingame <param>    @x110- @Gon@w:@x214turns on in game casting, @Goff@w:@x214script cast @x086|@w")
+		hadarprint("@x086| @x208hsp setingame set <num>  @x110- @x208Sets how many spells fall before game command@x086|")
+		hadarprint("@x086| @x214hsp death                @x110- @x214Will auto disable the script if turned on    @x086|")
 		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w")
 		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w")
 		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w")
