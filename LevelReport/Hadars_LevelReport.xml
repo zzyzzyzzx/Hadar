@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.08"
+   version="3.09"
    >
 
 </plugin>
@@ -743,7 +743,7 @@ function hlr_set(str)
 		end
      elseif str == "pup" then
           HadarBackup = HLRVariable["PP"]["message"]
-		HLRVariable["PP"]["message"] = utils.inputbox ("\n${logo} - shows the plugin logo\n${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
+		HLRVariable["PP"]["message"] = utils.inputbox ("\n${logo} - shows the plugin logo\n${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob\n${stat} - shows bonus stats", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
 		
 		if HLRVariable["PP"]["message"] ~= nil then
 			hadarprint("PowerUP message will look like@W: @w"..HLRVariable["PP"]["message"],"script")
