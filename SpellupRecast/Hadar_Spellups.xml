@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.91"
+   version="0.93"
    >
 
 </plugin>
@@ -425,7 +425,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			if currentmana >= percentage then
 				if Spellups["GL"]["failed"] >= 5 then
 					Spellups["GL"]["failed"] = 0
-					HSPDisable("silent")
+					HSPDisable("disablespellsoff")
 				end
 			end
 		end
@@ -623,6 +623,7 @@ function injectVars()
 	v["GL"]["failed"] = 0
 	v["GL"]["mudsidespellup"] = 1
 	v["GL"]["died"] = 0
+	v["GL"]["SpellsDisabled"] = "no"
 	
 
 	v["EX"]["clanskill"] = "none"
@@ -960,7 +961,7 @@ function sfail(name,line,wc)
 	if fl == 4 then
 		Spellups["GL"]["failed"] = Spellups["GL"]["failed"] + 1
 		if tonumber(Spellups["GL"]["failed"]) > 5 then
-			HSPDisable("silent")
+			HSPDisable("disablespellson")
 			hadarprint("HSP Turned off due to mana issues - failed 5 spells, please restore mana above 70% to reenable or type hsp disable","script")
 			return
 		else
@@ -1062,6 +1063,12 @@ function cast_this(sn,ctype)
 	hadarprint("casting:"..sn,"debug")
 	local castline = nil
 	
+	if Spellups["GL"]["SpellsDisabled"] == "yes" then
+		if ctype == 1 then
+			return
+		end
+	end
+
 	if sn == 552 then
 		if Spellups["CG"]["gaiasfocus"] == 0 then
 			castline = nil --if random or none, do not cast
@@ -1120,10 +1127,16 @@ function HSPDisable(arg)
 		elseif Spellups["GL"]["disabled"] == "no" then
 			hadarprint("Spellup Autocast is currently @GENABLED@w","script")
 		end
-	elseif string.lower(arg) == "silentoff"
+	elseif string.lower(arg) == "silentoff" then
 		Spellups["GL"]["disabled"] = "yes"
-	elseif string.lower(arg) == "silenton"
+	elseif string.lower(arg) == "silenton" then
 		Spellups["GL"]["disabled"] = "no"
+	elseif string.lower(arg) == "crowley" then
+		hadarprint("@B[@RMelvin@B]@C Well I mean there is no point in doing that ...@w")
+	elseif string.lower(arg) == "disablespellson" then
+		Spellups["GL"]["SpellsDisabled"] = "yes"
+	elseif string.lower(arg) == "disablespellsoff" then
+		Spellups["GL"]["SpellsDisabled"] = "no"
 	else
 		if Spellups["GL"]["disabled"] == "yes" then
 			Spellups["GL"]["disabled"] = "no"
