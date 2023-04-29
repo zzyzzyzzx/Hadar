@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.93"
+   version="0.95"
    >
 
 </plugin>
@@ -204,6 +204,15 @@
   sequence="100"
  >
  </trigger>
+ <trigger
+ enabled="y"
+ match="^\* Remort transformation complete\!$"
+ regexp="y"
+ send_to="12"
+ script="hspJustRemorted"
+ sequence="100"
+>
+</trigger>
 
 </triggers>
 
@@ -2030,6 +2039,15 @@ end
 function hspRemortDisable()
 	hadarprint("Remort Detected, Disabling","script")
 	HSPDisable("silentoff")
+end
+
+function hspJustRemorted()
+	hadarprint("Congrats on the remort!","script")
+	hadarprint("Let us make sure everything is all set!","script")
+	slistCommandSent = false
+	SendSlistCommand()
+	HSPDisable("silenton")
+	hadarprint("Automatically turned back on!","script")
 end
 
 function HadarHelp(str)
