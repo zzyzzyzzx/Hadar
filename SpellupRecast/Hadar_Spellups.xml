@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.95"
+   version="0.96"
    >
 
 </plugin>
@@ -429,7 +429,7 @@ function OnPluginBroadcast(msg, id, name, text)
 				Spellups["EX"]["percentageStop"] = (maxmana*Spellups["EX"]["percentage"]/100)
 			end
 		end
-		if Spellups["GL"]["disabled"] == "yes" then
+		if Spellups["GL"]["SpellsDisabled"] == "yes" then
 			local percentage = maxmana * 0.7
 			if currentmana >= percentage then
 				if Spellups["GL"]["failed"] >= 5 then
