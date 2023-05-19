@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.57"
+   version="1.58"
    >
 
 </plugin>
@@ -570,6 +570,7 @@ function hgmGroupMessage(msg)
      local player = gmcp("comm.channel.player")
      local command
      local args
+     local argsraw
      local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick, Here"
      
      if message == nil then
@@ -581,6 +582,7 @@ function hgmGroupMessage(msg)
           if command == nil then return end
           command = string.lower(command)
           args = string.lower(args)
+          argsraw = args
      end
      
      if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" or command == "here" then
@@ -674,8 +676,8 @@ function hgmGroupMessage(msg)
                SendSpecial("group leader "..args)
           end
      elseif command == "rename" and canI(command, player) then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..args)
-          SendSpecial("group rename "..args)
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..argsraw)
+          SendSpecial("group rename "..argsraw)
      elseif command == "flag" and canI(command, player) then
           if one == "public" or one == "private" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
