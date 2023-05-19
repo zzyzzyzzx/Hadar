@@ -1,0 +1,5 @@
+Hadar's Group Manager
+
+V1.58
+May 18 2023
+-fixed a bug with string.lower() on rename
