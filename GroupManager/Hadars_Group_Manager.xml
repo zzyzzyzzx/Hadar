@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.58"
+   version="1.59"
    >
 
 </plugin>
@@ -578,11 +578,10 @@ function hgmGroupMessage(msg)
      end
      
      if message ~= nil then
-          command, args = message:match("(%w+)%s*(.*)")
+          command, argsraw = message:match("(%w+)%s*(.*)")
           if command == nil then return end
           command = string.lower(command)
-          args = string.lower(args)
-          argsraw = args
+          args = string.lower(argsraw)
      end
      
      if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" or command == "here" then
