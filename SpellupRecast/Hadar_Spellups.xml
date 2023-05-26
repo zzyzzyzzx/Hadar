@@ -1042,7 +1042,7 @@ function cast_spells()
 						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
 						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
 						hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")
-					else
+					elseif Spellups["NA"][552] == 0 then -- player is affected by gaias focus
 						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
 						hadarprint("Gaias focus reported ON, not casting this time","debug") --why reported on '0' when it was off?
 						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
