@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.96"
+   version="0.97"
    >
 
 </plugin>
@@ -1037,17 +1037,17 @@ function cast_spells()
 			if contains(Spellups["EX"]["noAuto"],i) == false then
 
 				if i == 518 then
-                              if Spellups["NA"][552] == 1 then --if not affected by gaias focus
+					if Spellups["NA"][552] == 1 then --if not affected by gaias focus
 						cast_this(552,tonumber(Spellups["AS"]["list"][552]["type"]))
 						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
 						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-                              	hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")                                     
-                              else
+						hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")
+					elseif Spellups["NA"][552] == 0 then -- player is affected by gaias focus
 						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
 						hadarprint("Gaias focus reported ON, not casting this time","debug") --why reported on '0' when it was off?
 						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-                              end
-					return
+					end
+				return
 
 				elseif i == 552 then
 					Spellups["QS"][i] = nil --remove from queue, cannot cast alone
