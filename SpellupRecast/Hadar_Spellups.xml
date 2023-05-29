@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.97"
+   version="0.98"
    >
 
 </plugin>
@@ -857,9 +857,17 @@ function affon(name, line, wc)
 	Spellups["AF"]["list"][sn] = tm
 	Spellups["NA"][sn] = 0 --not affected false
 	hadarprint("Affected by:"..Spellups["AS"]["list"][sn]["name"].." Time:"..tm,"debug")
+	if sn == 518 then
+		if Spellups["NA"][552] == nil then
+			hadarprint("Affected by gaias revenge, never casted focus, setting focus to not affected","debug")
+			Spellups["NA"][552] = 1
+		end
+	end
 	if Spellups["QS"] == nil then
+		hadarprint("function affon, spellups[qs]==nil","debug")
 		return
 	else
+		hadarprint("setting nil to "..sn,"debug")
 		Spellups["QS"][sn] = nil
 	end
 	
@@ -1004,15 +1012,19 @@ function sfail(name,line,wc)
 end
 
 function cast_spells()
+	hadarprint("We are attempting to cast_spells","debug")
 	if Spellups["GL"]["disabled"] == "yes" then
+		hadarprint("cast_spells disabled == yes","debug")
 		return
 	end
 	if currentmana == nil or currentmana == -1 then
 		--left blank to test something
 	elseif Spellups["EX"]["percentageStop"] >= currentmana then
+		hadarprint("We are in percentage stop area","debug")
 		return
 	end
 	if Spellups["QS"] == nil then
+		hadarprint("QS == nil","debug")
 		return
 	end
 	
@@ -1027,7 +1039,7 @@ function cast_spells()
 		elseif currentState == 3 then
 			if tonumber(Spellups["GL"]["mudsidespellup"]) == 1 then
 				if table.count(Spellups["QS"]) >= tonumber(Spellups["CG"]["spellstorecast"]) then
-					print("doing a mudside spellup")
+					hadarprint("doing a mudside spellup")
 					SendNoEcho("spellup")
 					Spellups["QS"] = nil
 					Spellups["QS"] = {}
@@ -1037,6 +1049,7 @@ function cast_spells()
 			if contains(Spellups["EX"]["noAuto"],i) == false then
 
 				if i == 518 then
+					hadarprint("we are in i == 518","debug")
 					if Spellups["NA"][552] == 1 then --if not affected by gaias focus
 						cast_this(552,tonumber(Spellups["AS"]["list"][552]["type"]))
 						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
@@ -1126,8 +1139,10 @@ end
 function HSPDisable(arg)
 	if string.lower(arg) == "silent" then
 		if Spellups["GL"]["disabled"] == "yes" then
+			hadarprint("Spells disabled turning to no","debug")
 			Spellups["GL"]["disabled"] = "no"
 		elseif Spellups["GL"]["disabled"] == "no" then
+			hadarprint("Spells disabled turning to yes","debug")
 			Spellups["GL"]["disabled"] = "yes"
 		end
 	elseif string.lower(arg) == "check" then
@@ -1138,14 +1153,18 @@ function HSPDisable(arg)
 		end
 	elseif string.lower(arg) == "silentoff" then
 		Spellups["GL"]["disabled"] = "yes"
+		hadarprint("Spells disabled turning to yes","debug")
 	elseif string.lower(arg) == "silenton" then
 		Spellups["GL"]["disabled"] = "no"
+		hadarprint("Spells disabled turning to no","debug")
 	elseif string.lower(arg) == "crowley" then
 		hadarprint("@B[@RMelvin@B]@C Well I mean there is no point in doing that ...@w")
 	elseif string.lower(arg) == "disablespellson" then
 		Spellups["GL"]["SpellsDisabled"] = "yes"
+		hadarprint("Spellsdisabled turning to yes","debug")
 	elseif string.lower(arg) == "disablespellsoff" then
 		Spellups["GL"]["SpellsDisabled"] = "no"
+		hadarprint("Spellsdisabled turning to no","debug")
 	else
 		if Spellups["GL"]["disabled"] == "yes" then
 			Spellups["GL"]["disabled"] = "no"
