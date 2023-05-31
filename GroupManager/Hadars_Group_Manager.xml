@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.59"
+   version="1.60"
    >
 
 </plugin>
@@ -537,8 +537,11 @@ function canI(command, player)
      -- HGMVariable["GT"][command]
      -- no is all, yes is trusted, leader is leader
 
-     -- is command set to leader
-     if HGMVariable["GT"][command] == "leader" then
+     -- leader can do everything so let them always be true
+     if HGMVariable["GL"]["Leader"] == player then
+          return true
+          --is command set to leader
+     elseif HGMVariable["GT"][command] == "leader" then
           -- is the player leader, leaders can do all.
           if HGMVariable["GL"]["Leader"] == player then
                return true
