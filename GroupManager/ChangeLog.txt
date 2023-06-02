@@ -1,5 +1,9 @@
 Hadar's Group Manager
 
+V1.61
+June 2 2023
+-Fixed the blank lines from each tell, only added them to the messages with the "passphrase" to join the group
+
 V1.60
 May 31 2023
 -function cani had no leader bypass, so if a command was trusted and leader sent it, it would fail, fixed!
