@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.60"
+   version="1.61"
    >
 
 </plugin>
@@ -407,7 +407,6 @@ function OnPluginBroadcast (msg, id, name, text)
                     local playerName = strip_colours(gmcp("comm.channel.player"))
                     --local _, message = string.match(msg, "^(.+) tells you \'(.*)'$")
                     local message = string.split(msg, ' tells you ', false, 1)
-                    hgmrefresh()
                     hgmTellMessage(playerName,message[2])
                end
 		end
@@ -425,6 +424,10 @@ function hgmTellMessage(p,m)
      
      if args == "" or args == " " then
           args = nil
+     end
+
+     if command == HGMVariable["GL"]["Phrase"] then
+          hgmrefresh()
      end
      
      if command == HGMVariable["GL"]["Phrase"] and HGMVariable["GL"]["Leader"] == "" then
