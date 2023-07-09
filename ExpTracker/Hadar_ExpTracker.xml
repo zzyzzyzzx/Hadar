@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.87"
+   version="1.88"
    >
 
 </plugin>
@@ -644,8 +644,11 @@ function makeOutputNormal()
      end
 end
 
-function makeOutput()
+function makeOutput(chan)
      local message
+     if chan == "" or chan == nil then
+          chan = expTracker["GL"]["Channel"]
+     end
      
      if expTracker["GL"]["normal"] == "no" and expTracker["GL"]["hour"] == "no" and expTracker["GL"]["double"] == "no" then return end
 
@@ -675,10 +678,10 @@ function makeOutput()
      if message ~= nil then
           
           if expTracker["GL"]["mainWindow"] == "yes" then
-               if expTracker["GL"]["Channel"] == "echo" or expTracker["GL"]["Channel"] == "print" then
+               if chan == "echo" or chan == "print" then
                     hadarprint(message)
                else
-                    SendSpecial(expTracker["GL"]["Channel"] .. " " ..message)
+                    SendSpecial(chan .. " " ..message)
                end
           end
           
@@ -895,6 +898,13 @@ function expSession(str)
           hadarprint("You need to give an argument","error")
           return
      end
+
+     local first, chan = str:match("(%w+)%s*(.*)")
+     
+     if chan == " " or chan == "" then
+          chan = nil
+     end
+     str = string.lower(first)
      
      if str == "start" then
           if expTracker["SN"].Active ~= "yes" then
@@ -951,7 +961,7 @@ function expSession(str)
                expTimeDiff(os.time(),expTracker["SN"].startTime,"SN")
                expTracker["GL"].Type = "SN"
 
-               makeOutput()
+               makeOutput(chan)
           else
                hadarprint("You DO NOT have a session running use @Ghxp session start@c to begin","script")
           end
@@ -1243,6 +1253,7 @@ hadarprint("@x086|                           @REG@W.@G hxp report comm expTracke
 hadarprint("@x086|                           @REG@W.@G hxp report main off                   @x086 |")
 hadarprint("@x086| @x214hxp session <command>   @x110- @x214Start, Stop, Status .. tracks exp/kill over@x086|")
 hadarprint("@x086|                           @x214a time between start and stop@x086              |")
+hadarprint("@x086|                           @x208can also use session status <channel>      @x086|")
 hadarprint("@x086| @x208hxp set <thing>         @x110- @x208Sets the message output for reports @x086       |")
 hadarprint("@x086|                         @x110  @G(@x208kill@W,@x208double@W,@x208hour@W,@x208logo@W,@x208session@W,@x208dblreport@G)  @x086|")
 hadarprint("@x086|                         @x110  @G(@x208hrreport@W,@x208alltime@G)                         @x086|")

@@ -1,0 +1,5 @@
+Hadar's Exp Tracker Changelog
+
+V1.88
+July 9th 2023
+- Added hxp session status <channel> to report your session status to another channel
