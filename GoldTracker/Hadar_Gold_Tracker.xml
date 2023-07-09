@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2017-01-20 09:04:48"
    requires="4.00"
-   version="2.86"
+   version="2.87"
    >
 
 </plugin>
@@ -425,8 +425,12 @@ function goldFullReset()
      injectVars()
      hadarprint("Have fully reset all variables","script")
 end
-function makeOutput()
+function makeOutput(chan)
      local message
+
+     if chan == "" or chan == nil then
+          chan = GoldTrack["GL"]["Channel"]
+     end
 
      if GoldTrack["GL"]["Type"] == "HR" then
           local goldLost = tonumber(GoldTrack["HR"].Taxed) + tonumber(GoldTrack["HR"].lostGive) + tonumber(GoldTrack["HR"].Buy)
@@ -476,10 +480,10 @@ function makeOutput()
      if message ~= nil then
           
           if GoldTrack["GL"]["mainWindow"] == "yes" then
-               if GoldTrack["GL"]["Channel"] == "echo" or GoldTrack["GL"]["Channel"] == "print" then
+               if chan == "echo" or chan == "print" then
                     hadarprint(message)
                else
-                    SendSpecial(GoldTrack["GL"]["Channel"] .. " " ..message)
+                    SendSpecial(chan .. " " ..message)
                end
           end
           
@@ -502,8 +506,14 @@ function goldSession(str)
           hadarprint("You need to give an argument","error")
           return
      end
+
+     local first, chan = str:match("(%w+)%s*(.*)")
      
-     str = string.lower(str)
+     if chan == " " or chan == "" then
+          chan = nil
+     end
+     
+     str = string.lower(first)
      
      if str == "start" then
           if GoldTrack["SN"]["Active"] == "no" then
@@ -538,7 +548,7 @@ function goldSession(str)
                goldTimeDiff(os.time(),GoldTrack["SN"]["startTime"],"SN")
                GoldTrack["GL"]["Type"] = "SN"
                
-               makeOutput()
+               makeOutput(chan)
                
           else
                hadarprint("You DO NOT have a session running use @Ghgt session start@c to begin","script")
@@ -805,6 +815,7 @@ hadarprint("@x086| @x214hgt set <thing>         @x110- @x214edit the message for
 hadarprint("@x086|                           @x214Session, logo, hour, alltime               @x086|")
 hadarprint("@x086| @x208hgt session <command>   @x110-@x208 Start, Stop, Status .. tracks gold over    @x086|")
 hadarprint("@x086|                           @x208a time between start and stop              @x086|")
+hadarprint("@x086|                           @x208can also use session status <channel>      @x086|")
 hadarprint("@x086| @x214hgt config <thing>      @x110- @x214Choose some configs to change such as:     @x086|")
 hadarprint("@x086|                           @x214commlog(displays info into the commlog)    @x086|")
 hadarprint("@x086|                           @x214mainwindow(displays info into the main)    @x086|")

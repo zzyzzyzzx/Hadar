@@ -1,0 +1,5 @@
+Hadar's Gold Tracker Changelog
+
+V2.87
+July 9th 2023
+- Added hgt session status <channel> to report your session status to another channel
