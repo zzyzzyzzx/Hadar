@@ -856,7 +856,7 @@ end
 
 function Pup_level(n,l,wc)
 	levelTimeDiff(os.time(),HLRVariable["PP"]["startTime"],"PP")
-     HLRVariable["pp"]["pupsinceremort"] = wc[1]
+     HLRVariable["PP"]["pupsinceremort"] = wc[1]
 	DoAfterSpecial(0.5, 'Execute("hlr report pup")', sendto.script)
 end
 
