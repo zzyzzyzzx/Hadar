@@ -44,7 +44,7 @@ TODO:
 	<trigger
 		group="PupTriggers"
 		enabled="n"
-		match="^Congratulations, *. You have increased your powerups to (\d+)."
+		match="^Congratulations, *\. You have increased your powerups to (\d+)\."
 		regexp="y"
 		omit_from_output="n"
 		sequence="100"
