@@ -44,7 +44,7 @@ TODO:
 	<trigger
 		group="PupTriggers"
 		enabled="n"
-		match="^Congratulations, *\. You have increased your powerups to (\d+)\."
+		match="^Congratulations, (?<name>.+)\. You have increased your powerups to (?<rpup>\d+)\."
 		regexp="y"
 		omit_from_output="n"
 		sequence="100"
@@ -855,8 +855,8 @@ end
 
 
 function Pup_level(n,l,wc)
+     HLRVariable["PP"]["pupsinceremort"] = wc.rpup
 	levelTimeDiff(os.time(),HLRVariable["PP"]["startTime"],"PP")
-     HLRVariable["PP"]["pupsinceremort"] = wc[1]
 	DoAfterSpecial(0.5, 'Execute("hlr report pup")', sendto.script)
 end
 
@@ -1122,7 +1122,7 @@ function hlr_pup_report()
      avg = avg,
      stat = bonusstat,
      logo = HLRVariable["GL"]["Logo"],
-     rpup = HLRVariable["pp"]["pupsinceremort"]
+     rpup = HLRVariable["PP"]["pupsinceremort"]
      })
      
      if Data ~= nil then
