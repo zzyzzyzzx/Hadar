@@ -1,0 +1,6 @@
+Hadar's Level Report Changelog
+
+V3.1
+July 18th 2023
+- Added Changelog
+- Fixed pup message, also added rpup to the pup output to display pup number

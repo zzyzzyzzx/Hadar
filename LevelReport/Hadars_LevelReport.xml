@@ -19,7 +19,7 @@ TODO:
    save_state="y"
    date_written="2018-08-14 10:18:40"
    requires="4.00"
-   version="3.09"
+   version="3.10"
    >
 
 </plugin>
@@ -44,7 +44,7 @@ TODO:
 	<trigger
 		group="PupTriggers"
 		enabled="n"
-		match="^Congratulations, hero. You have increased your powers!"
+		match="^Congratulations, (?<name>.+)\. You have increased your powerups to (?<rpup>\d+)\."
 		regexp="y"
 		omit_from_output="n"
 		sequence="100"
@@ -590,13 +590,14 @@ function injectVars()
      v["GL"]["TNL"] = tonumber(gmcp("char.base.perlevel"))
      v["GL"]["Logo"] = "@G[@CL@cevel @CR@ceport]@c "
 -----------Initilize Pup Variables------------------------
-     v["PP"]["message"] = "@GP@gup@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@G+@R${bonus}=${all}@w"
+     v["PP"]["message"] = "@GP@gup@w(@G${rpup}@w)@W: @GT@gook@w[@GH:@W${hour}@GM:@W${min}@GS:@W${sec}@w] @GT@grains@W: @R${tr}@G+@R${bonus}=${all}@w"
      v["PP"]["startTime"] = 0
      v["PP"]["Exp"] = 0
      v["PP"]["ExpB"] = 0
      v["PP"]["Mob"] = 0
      v["PP"]["train"] = 0
      v["PP"]["bonustrain"] = 0
+     v["PP"]["pupsinceremort"] = 0
 -----------Initilize Level variables----------------------
      v["LU"]["message"] = "@GL@gevel@R(@W${level}@R) @GT@gook:@w[@GH:@W${hour} @GM:@W${min} @GS:@W${sec}@w] @GH@gP@R(@w${hp}@R)@GM@gn@R(@w${mn}@R)@GM@gv@R(@w${mv}@R)@GP@gr@R(@w${pr}@R)@GT@gr@R(@w${tr}@R) @w+@Gs@gtats@W:@R${stat},@GI@gnstinct @Gt@grains@w:@R ${inst}"
      v["LU"]["startTime"] = 0
@@ -743,7 +744,7 @@ function hlr_set(str)
 		end
      elseif str == "pup" then
           HadarBackup = HLRVariable["PP"]["message"]
-		HLRVariable["PP"]["message"] = utils.inputbox ("\n${logo} - shows the plugin logo\n${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob\n${stat} - shows bonus stats", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
+		HLRVariable["PP"]["message"] = utils.inputbox ("\n${logo} - shows the plugin logo\n${hour} - hours\n${min} - mins\n${sec} - seconds\n${tr} - trains\n${bonus} - bonus trains\n${all} - all trains combined\n${mobs} - how many mobs it took to pup\n${avg} - average exp per mob\n${stat} - shows bonus stats\n${rpup} - shows pup number this remort", "Look of pup report", HLRVariable["PP"]["message"], "Courier", 9)
 		
 		if HLRVariable["PP"]["message"] ~= nil then
 			hadarprint("PowerUP message will look like@W: @w"..HLRVariable["PP"]["message"],"script")
@@ -853,7 +854,8 @@ end
 
 
 
-function Pup_level()
+function Pup_level(n,l,wc)
+     HLRVariable["PP"]["pupsinceremort"] = wc.rpup
 	levelTimeDiff(os.time(),HLRVariable["PP"]["startTime"],"PP")
 	DoAfterSpecial(0.5, 'Execute("hlr report pup")', sendto.script)
 end
@@ -1120,6 +1122,7 @@ function hlr_pup_report()
      avg = avg,
      stat = bonusstat,
      logo = HLRVariable["GL"]["Logo"],
+     rpup = HLRVariable["PP"]["pupsinceremort"]
      })
      
      if Data ~= nil then
