@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.98"
+   version="0.99"
    >
 
 </plugin>
@@ -213,7 +213,15 @@
  sequence="100"
 >
 </trigger>
-
+<trigger
+enabled="y"
+match="^Your primary class is now \w+\.$"
+regexp="y"
+send_to="12"
+script="hspJustClasschanged"
+sequence="100"
+>
+</trigger>
 </triggers>
 
 <aliases>
@@ -768,6 +776,8 @@ function HSPmain(name, line, wc)
 		HSPreload()
 	elseif first == "autoaura" then
 		autoaura(rest)
+	elseif first == "aura" then
+		hspWearAura()
 	elseif first == "channel" then
 		hspSetChannel(rest)
 	elseif first == "set" then
@@ -1209,6 +1219,22 @@ function hspsetingame(str)
 	end
 end
 
+function hspWearAura()
+	if Spellups["GL"]["auranumber"] == 0 then
+		hadarprint("You will need to set an aura number use command @Ghsp autoaura aura <number>@w","error")
+		hadarprint("also if you have not set the bag you can do so with @Ghsp autoaura bag <number>@w","error")
+	else
+		if Spellups["GL"]["aurabag"] ~= 0 then
+			hadarprint("aurabag not 0","debug")
+			Send("get "..Spellups["GL"]["auranumber"].." "..Spellups["GL"]["aurabag"])
+			Send("wear "..Spellups["GL"]["auranumber"])
+		else
+			hadarprint("aura bag not set leaving in inventory","debug")
+			Send("wear "..Spellups["GL"]["auranumber"])
+		end
+	end
+end
+
 function autoaura(str)
 	local first, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
 	
@@ -1451,7 +1477,7 @@ function recon(n,l,wc)
 	local tm = tonumber(wc.timer)
 	
 	Spellups["RT"]["affectedrecovery"][sn] = tm
-	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
+	--hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
 end
 
 function recoff(n,l,wc)
@@ -2069,6 +2095,13 @@ function hspJustRemorted()
 	hadarprint("Automatically turned back on!","script")
 end
 
+function hspJustClasschanged()
+	hadarprint("Enjoy your new class!","script")
+	hadarprint("Let us make sure everything is all set!","script")
+	slistCommandSent = false
+	SendSlistCommand()
+end
+
 function HadarHelp(str)
 	local arg, rest
 	
@@ -2118,6 +2151,7 @@ function HadarHelp(str)
 		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
 		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	else
+		--[[
 		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w")
 		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w")
 		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w")
@@ -2153,6 +2187,41 @@ function HadarHelp(str)
 		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w")
 		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w")
 		hadarprint("@x086+-------------------------------------------------------------------------+@w")
+		]]
+		hadarprint("@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@w")
+
+		hadarprint("@x014hsp help @W: @x014Resets the text color to the default and displays this helpfile")
+		hadarprint("@x057hsp noauto <number> @W:@x057 Shows spells on noauto list")
+		hadarprint("@x006     (Spells on this list will not be recast. Include a number to toggle spells on the list.)")
+		hadarprint("@x014hsp noauto clear @W:@x014 Clears your noauto list")
+		hadarprint("@x057hsp disable <check> @W:@x057 Toggles script on or off. Check gives status.")
+		hadarprint("@x014hsp reload @W:@x014 Reload skills and spells (after tier)")
+		hadarprint("@x057hsp autoaura <command> @W:@x057 Has multiple commands:")
+		hadarprint("  @x006- @COn @W: @x006Enables wearing aura in combat")
+		hadarprint("  @x006- @COff @W: @x006Disables wearing aura in combat")
+		hadarprint("  @x006- @CAura @W<@Citemid@W> @W: @x006Sets the ID of your aura")
+		hadarprint("  @x006- @CBag @W<@Citemid@W> @W: @x006Sets the ID of the bag with aura")
+		hadarprint("@x014hsp set <thing> @W:@x014 Sets the message output for reports")
+		hadarprint("  @x006- @x006Logo, 30, 10")
+		hadarprint("@x057hsp channel <channel> @W:@x057 No arguments display the channel")
+		hadarprint("  @x006(EG. hsp channel spouse)")
+		hadarprint("@x014hsp report <screen> <log>@W:@x014 Screen: main or comm, log: comm log")
+		hadarprint("  @x006(EG. hsp report comm SpellTracker)")
+		hadarprint("  @x006(EG. hsp report main off)")
+		hadarprint("@x057hsp seespells @W:@x057 Toggle seeing recasts")
+		hadarprint("@x014hsp totem <spell> @W:@x014 pRanger spell is either guidance or force")
+		hadarprint("@x057hsp elementalfocus <ele>@W:@x057 Change the element for elemental focus")
+		hadarprint("@x014hsp elementalward <ele> @W:@x014 Change the element for elemental ward")
+		hadarprint("@x057hsp gaiasfocus <element>@W:@x057 Change the element for Gaia's focus")
+		hadarprint("@x014hsp percent <number> @W:@x014 Sets mana percentage to stop auto casting")
+		hadarprint("@x057hsp cskill [set name] @W:@x057 Shows your current cskill")
+		hadarprint("@x014hsp setingame <param> @W:@x014 On: turns on in-game casting, off: script cast")
+		hadarprint("@x057hsp setingame set <num>@W:@x057 Sets how many spells fall before game command")
+		hadarprint("@x014hsp death @W:@x014 Will auto disable the script if turned on")
+		hadarprint("@G[@CE@cxtra @CH@celp @CF@ciles@W:@G]@w")
+		hadarprint("@x031hsp help combat@w")
+		hadarprint("@x031hsp help timer@w")
+		hadarprint("@x031hsp help wraith@w")
 	end
 end
 
