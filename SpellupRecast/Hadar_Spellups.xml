@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="0.99"
+   version="1.01"
    >
 
 </plugin>
@@ -438,11 +438,22 @@ function OnPluginBroadcast(msg, id, name, text)
 			end
 		end
 		if Spellups["GL"]["SpellsDisabled"] == "yes" then
+			hadarprint("SpellsDisabled == yes","debug")
+			if Spellups["GL"]["DisabledReason"] == "died" then
+				currentmana = 0
+				Spellups["GL"]["DisabledReason"] = "died2"
+			end
 			local percentage = maxmana * 0.7
 			if currentmana >= percentage then
+				if Spellups["GL"]["DisabledReason"] == "died2" then
+					hadarprint("trying to recast")
+					HSPDisable("disablespellsoff") --turn on spell autocasting
+					cast_spells()
+				end
+
 				if Spellups["GL"]["failed"] >= 5 then
 					Spellups["GL"]["failed"] = 0
-					HSPDisable("disablespellsoff")
+					HSPDisable("disablespellsoff") -- turn on spell autocasting
 				end
 			end
 		end
@@ -641,6 +652,7 @@ function injectVars()
 	v["GL"]["mudsidespellup"] = 1
 	v["GL"]["died"] = 0
 	v["GL"]["SpellsDisabled"] = "no"
+	v["GL"]["DisabledReason"] = "not"
 	
 
 	v["EX"]["clanskill"] = "none"
@@ -880,6 +892,10 @@ function affon(name, line, wc)
 		hadarprint("setting nil to "..sn,"debug")
 		Spellups["QS"][sn] = nil
 	end
+
+	if Spellups["GL"]["failed"] > 0 then
+		Spellups["GL"]["failed"] = 0
+	end
 	
 end
 
@@ -1091,15 +1107,14 @@ function cast_spells()
 end
 
 function cast_this(sn,ctype)
-	Spellups["QS"][sn] = nil
-	hadarprint("casting:"..sn,"debug")
-	local castline = nil
-	
 	if Spellups["GL"]["SpellsDisabled"] == "yes" then
 		if ctype == 1 then
 			return
 		end
 	end
+	Spellups["QS"][sn] = nil
+	hadarprint("casting:"..sn,"debug")
+	local castline = nil
 
 	if sn == 552 then
 		if Spellups["CG"]["gaiasfocus"] == 0 then
@@ -1146,18 +1161,12 @@ function table.count(tbl)
 	return tblcount
 end
 
-function HSPDisable(arg)
-	if string.lower(arg) == "silent" then
+function HSPDisable(arg, reason)
+	hadarprint("HSPdisable fired reason == "..Spellups["GL"]["DisabledReason"],"debug")
+
+	if string.lower(arg) == "check" then
 		if Spellups["GL"]["disabled"] == "yes" then
-			hadarprint("Spells disabled turning to no","debug")
-			Spellups["GL"]["disabled"] = "no"
-		elseif Spellups["GL"]["disabled"] == "no" then
-			hadarprint("Spells disabled turning to yes","debug")
-			Spellups["GL"]["disabled"] = "yes"
-		end
-	elseif string.lower(arg) == "check" then
-		if Spellups["GL"]["disabled"] == "yes" then
-			hadarprint("Spellup Autocast is currently @RDISABLED@w","script")
+			hadarprint("Spellup Autocast is currently @RDISABLED@c for@w:@R "..Spellups["GL"]["DisabledReason"],"script")
 		elseif Spellups["GL"]["disabled"] == "no" then
 			hadarprint("Spellup Autocast is currently @GENABLED@w","script")
 		end
@@ -1166,11 +1175,13 @@ function HSPDisable(arg)
 		hadarprint("Spells disabled turning to yes","debug")
 	elseif string.lower(arg) == "silenton" then
 		Spellups["GL"]["disabled"] = "no"
+		Spellups["GL"]["DisabledReason"]="enabled"
 		hadarprint("Spells disabled turning to no","debug")
 	elseif string.lower(arg) == "crowley" then
 		hadarprint("@B[@RMelvin@B]@C Well I mean there is no point in doing that ...@w")
 	elseif string.lower(arg) == "disablespellson" then
 		Spellups["GL"]["SpellsDisabled"] = "yes"
+		Spellups["GL"]["DisabledReason"]="enabled"
 		hadarprint("Spellsdisabled turning to yes","debug")
 	elseif string.lower(arg) == "disablespellsoff" then
 		Spellups["GL"]["SpellsDisabled"] = "no"
@@ -1178,6 +1189,7 @@ function HSPDisable(arg)
 	else
 		if Spellups["GL"]["disabled"] == "yes" then
 			Spellups["GL"]["disabled"] = "no"
+			Spellups["GL"]["DisabledReason"] = "Manual"
 			hadarprint("Autocast set to @GON@w","script") -- changed from Spellup because hadarprint already uses [SPELLUP]
 		elseif Spellups["GL"]["disabled"] == "no" then
 			Spellups["GL"]["disabled"] = "yes"
@@ -1477,7 +1489,7 @@ function recon(n,l,wc)
 	local tm = tonumber(wc.timer)
 	
 	Spellups["RT"]["affectedrecovery"][sn] = tm
-	--hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
+	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
 end
 
 function recoff(n,l,wc)
@@ -1726,7 +1738,9 @@ end
 function hspdied()
 	if tonumber(Spellups["GL"]["died"]) == 1 then
 		if Spellups["GL"]["disabled"] == "no" then
-			HSPDisable("silent")
+			HSPDisable("disablespellson")
+			Spellups["GL"]["DisabledReason"]="died"
+			currentState = 11
 			hadarprint("Do to an untimely demise, HSP has been disabled","script")
 		end
 	end
@@ -2083,6 +2097,7 @@ end
 
 function hspRemortDisable()
 	hadarprint("Remort Detected, Disabling","script")
+	Spellups["GL"]["DisabledReason"]="remort"
 	HSPDisable("silentoff")
 end
 
@@ -2151,7 +2166,7 @@ function HadarHelp(str)
 		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
 		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	else
-		--[[
+		
 		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w")
 		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w")
 		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w")
@@ -2187,7 +2202,7 @@ function HadarHelp(str)
 		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w")
 		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w")
 		hadarprint("@x086+-------------------------------------------------------------------------+@w")
-		]]
+		--[[
 		hadarprint("@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@w")
 
 		hadarprint("@x014hsp help @W: @x014Resets the text color to the default and displays this helpfile")
@@ -2222,6 +2237,7 @@ function HadarHelp(str)
 		hadarprint("@x031hsp help combat@w")
 		hadarprint("@x031hsp help timer@w")
 		hadarprint("@x031hsp help wraith@w")
+		]]
 	end
 end
 
