@@ -9,15 +9,15 @@
    author="Hadar"
    id="def114f15afbaa25a849fc4b"
    language="Lua"
-   purpose="Change kill to something else"
+   purpose="Change kill to an attack skill or spell"
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.2"
+   version="1.3"
    >
 <description trim="y">
 <![CDATA[
-Can see all my help files with had help or just this one with killer help
+Can see all my help files with had help or just this one with setkill help
 ]]>
 </description>
 
@@ -37,7 +37,7 @@ Can see all my help files with had help or just this one with killer help
    regexp="y"
    send_to="12"
    script="SlistUpdate"
-   group="slistUpdate"
+   group="HKillListCapture"
    sequence="100"
    omit_from_output="y"
   >
@@ -47,24 +47,26 @@ Can see all my help files with had help or just this one with killer help
 	enabled="n"
 	match="^[0-9]+,[^,]+,[0-9]+$"
 	regexp="y"
-	group="slistUpdate"
+	group="HKillListCapture"
 	omit_from_output="y"
 	sequence="100"
 	>
 	</trigger>
   <trigger
    enabled="n"
+   name="HKListStart"
    match="^\{spellheaders hadarkill\}$"
    regexp="y"
    send_to="12"
    sequence="100"
-   group="slistUpdate"
+   group="HKillListCapture"
    omit_from_output="y"
   >
   </trigger>
   <trigger
    enabled="n"
-   group="slistUpdate"
+   name="HKListEnd"
+   group="HKillListCapture"
    match="^\{\/spellheaders\}$"
    regexp="y"
    send_to="12"
@@ -74,18 +76,18 @@ Can see all my help files with had help or just this one with killer help
   </trigger>
   <trigger
    enabled="n"
-   group="slistUpdate"
+   group="HKillListCapture"
    match="^\{\/recoveries\}$"
    regexp="y"
    send_to="12"
-   script="SlistDone"
+   script="HKill_StopList"
    sequence="100"
    omit_from_output="y"
   >
   </trigger>
   <trigger
    enabled="n"
-   group="slistUpdate"
+   group="HKillListCapture"
    match="^\{recoveries hadarkill\}$"
    regexp="y"
    send_to="12"
@@ -98,7 +100,7 @@ Can see all my help files with had help or just this one with killer help
 <!--  Plugin help  -->
 
 <aliases>
-  <alias match="^(?:had|killer) help$"
+  <alias match="^had help$"
 	enabled="y"
 	sequence="99"
 	send_to="12"
@@ -132,9 +134,32 @@ Can see all my help files with had help or just this one with killer help
 <script>
 <![CDATA[
 require "serialize"
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+changelog = "https://raw.githubusercontent.com/zzyzzyzzx/Hadar/master/Kill/ChangeLog.txt"
+local HKslistCommandSent = false
+
+function hadarprint(str,level)
+
+	if level == "error" then
+          AnsiNote(ColoursToANSI("@R[@MHK @rERROR@R]@W:@w"..str.."@w"))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CH@cadar's @CK@cill@G]@c "..str.."@w"))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
 
 function ismember(set, key)
     return key[set] ~= nil
+end
+
+function table.find(val, tbl) 
+	tbl = tbl or {}
+	if (tbl[val] ~= nil) then
+		return tbl[val]
+	end
+	return nil
 end
 
 function SetKill(name, line, wildcards)
@@ -144,10 +169,19 @@ local v1 = Trim(string.lower(wildcards[1]))
 		allspells={}
 		EnableTriggerGroup("slistUpdate",true)
 		SendSpecial("slist hadarkill")
+	elseif table.find(v1, HadarKill["AS"]) ~= nil then
+		HadarKill["GL"]["Attack"] = v1
+		hadarprint("Attack Set to@W:@r"..v1.."@w","script")
+	elseif v1 == "none" or v1 == "disable" then
+		HadarKill["GL"]["Attack"] = "none"
+		hadarprint("Attack skill/spell disabled","script")
+	elseif v1 == "help" then
+		HadarHelp()
 	else
-	killspell = utils.inputbox ("Input name of skill/spell", "Attack", killspell, "Courier", 9)
+	hadarprint("Unknown command, use setkill update, setkill skill/spell or setkill none","error")
 	end -- ends update
 end --end setkill
+
 function OnPluginInstall ()
    	if GetVariable ("enabled") == "false" then
 		ColourNote ("yellow", "", "Warning: Plugin " .. GetPluginName ().. " is currently disabled.")
@@ -155,33 +189,70 @@ function OnPluginInstall ()
 		return
 	end -- they didn't enable us last time
   
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or setkill help to just see this one","script")
+
 	OnPluginEnable ()
 end --no more plugin install
+
+
 function OnPluginEnable ()
 	
-	allskills = {}
-	allspells = {}
-	killspell = nil
+	HadarKill = {}
+	HadarKill["GL"] = {}
+	HadarKill["AS"] = {}
+	HadarKill["SK"] = {} --skills
+	HadarKill["SP"] = {} --spells
 	
-	EnableTriggerGroup("slistUpdate",true)
-	EnableTrigger("upattack",true)
-	SendSpecial("slist hadarkill")
-	
-	
-	if GetVariable ("pastfirstinstall") == "true" then
-		assert (loadstring (GetVariable ("allskills") or "")) ()
-		assert (loadstring (GetVariable ("allspells") or "")) ()
-		killspell = GetVariable ("killspell")
+	if GetVariable ("Killpastfirstinstall") == "true" then
+		assert (loadstring (GetVariable ("HadarKill") or "")) ()
+		injectVars()
+	else
+		hadarprint("Looks like this is your first install, Lets get you setup! hks for help","script")
+		injectVars()
+		HKillSlistSend()
 	end
 end
+
 function OnPluginSaveState ()
-	SetVariable ("allskills", serialize.save ("allskills"))
-	SetVariable ("allspells", serialize.save ("allspells"))
-	SetVariable ("killspell", killspell)
-	SetVariable ("pastfirstinstall", "true")
+	SetVariable ("HadarKill", "HadarKill = " .. serialize.save_simple (HadarKill))
+	SetVariable ("Killpastfirstinstall", "true")
 end -- nomore savestate
+
+function injectVars()
+	local v = {}
+	v["GL"] = {} --global
+	v["AS"] = {} --all spells
+	v["SK"] = {} --skills
+	v["SP"] = {} --spells
+	
+	v["GL"]["Logo"] = "@G[@CK@cills@G]@c "
+	v["GL"]["Attack"] = "none"
+	
+
+	for a,b in pairs(v) do
+		 for c,d in pairs(b) do
+			  checkExist(a,c,d)
+		 end
+	end
+
+end
+
+function checkExist(tbl, idx, val) 
+
+	if not HadarKill[tbl] then
+		HadarKill[tbl] = {}
+	end
+
+	if not HadarKill[tbl][idx] then
+		HadarKill[tbl][idx] = val
+		SetVariable("HadarKill", serialize.save("HadarKill")) 
+	end
+	
+end
+
 function Trogdor(name, line, wildcards)
 local v = Trim(wildcards[1])
+local killtarget
 	
 	if v~=nil then
 		killtarget=v
@@ -189,48 +260,64 @@ local v = Trim(wildcards[1])
 		killtarget=" "
 	end
 	
-	if ismember(killspell,allspells) then
-		Send("cast '"..killspell.."' "..killtarget)
-	elseif ismember(killspell,allskills) then
-		Send(killspell.." "..killtarget)
+	if ismember(HadarKill["GL"]["Attack"],HadarKill["SP"]) then
+		Send("cast '"..HadarKill["GL"]["Attack"].."' "..killtarget)
+	elseif ismember(HadarKill["GL"]["Attack"],HadarKill["SK"]) then
+		Send(HadarKill["GL"]["Attack"].." "..killtarget)
 	else
 		Send("kill "..killtarget)
 	end
 end
+
 function SlistUpdate(name, line, wildcards)
-	local sn = tonumber(wildcards[1])
-	local nm = wildcards[2]
-	local tg = tonumber(wildcards[3])
-	local du = tonumber(wildcards[4])
-	local pc = tonumber(wildcards[5])
-	local rc = tonumber(wildcards[6])
-	local ty = tonumber(wildcards[7])
+	local sn = tonumber(wildcards[1]) --skill number
+	local nm = wildcards[2]           --skill name
+	local tg = tonumber(wildcards[3]) --target
+	local du = tonumber(wildcards[4]) --duration
+	local pc = tonumber(wildcards[5]) --percent praced
+	local rc = tonumber(wildcards[6]) --recovery
+	local ty = tonumber(wildcards[7]) --type
 	
 		if tg==1 or tg==0 then
 			if ty==2 then
-				allskills[nm] = true
+				HadarKill["AS"][nm] = sn
+				HadarKill["SK"][nm] = sn
 			end
 			if ty==1 then
-				allspells[nm] = true
+				HadarKill["AS"][nm] = sn
+				HadarKill["SP"][nm] = sn
 			end
 		end
 		
 		SaveState()
 end--end update
-function SlistDone()
-	EnableTriggerGroup("slistUpdate",false)
-	print("skills and spells updated")
+
+function HKillSlistSend()
+	if (HKslistCommandSent == false) then
+		HKslistCommandSent = true
+		EnableTriggerGroup("HKillListCapture", true)
+		EnableTrigger("HKRecoveriesStart", true)
+		hadarprint("***Getting Skills/Spells","script")
+		SendNoEcho("slist hadarkill")
+	end
+end
+
+function HKill_StopList()
+	EnableTriggerGroup("HKillListCapture",false)
+	hadarprint(HadarKill["GL"]["Logo"].."skills and spells updated@w")
+	SaveState()
 end--no more slist parsing (hopefully)
+
 function HadarHelp()
-	ColourNote("#159FE5","","+---------------------------------------","Green","","[","Cyan","","K","Teal","","ill","Green","","]","#159FE5","","---------------------------------------+")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," Setkill <update>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," If blank will update the spell used on 'kill'"),"#159FE5","","|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," "),"#159FE5",""," ","#F1D566","",string.format("%-64s"," Updated used to update all skills/spells"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","#E55B15","",string.format("%-19s"," kill <name>"),"#159FE5","","-","#F1D566","",string.format("%-64s"," Will use the kill spell/skill (with optional name)"),"#159FE5","","|")
-	ColourNote("#159FE5","","|"..string.format("%84s"," ").."|")
-	ColourNote("#159FE5","","|","white","",string.format("%84s"," if any issues arise, please contact Hadar via a personal note!"),"#159FE5","","|")
-	ColourNote("#159FE5","","+"..string.rep("-",84).."+")
+	hadarprint("@x086+------------------------@G[@CH@cadar @CK@cill @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086-------------------------+@w")
+	hadarprint("@x086|                                                                   |@w")
+	hadarprint("@x086| @x214setkill help           @x110-@x214 Shows this helpfile                      |@w")
+	hadarprint("@x086| @x208setkill update         @x110-@x208 will update the skills/spells list       |@w")
+	hadarprint("@x086| @x214setkill <skill/spells> @x110-@x214 will set the skill or spell to use       |@w")
+	hadarprint("@x086|                                                                   |@w")
+	hadarprint("@x086| @x208kill <name>            @x110-@x208 Will use the attack skill/spell on target|@w")
+	hadarprint("@x086|                                                                   |@w")
+	hadarprint("@x086+-------------------------------------------------------------------+@w")
 end
 ]]>
 </script> 
