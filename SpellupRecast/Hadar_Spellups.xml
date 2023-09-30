@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.01"
+   version="1.02"
    >
 
 </plugin>
@@ -443,7 +443,7 @@ function OnPluginBroadcast(msg, id, name, text)
 				currentmana = 0
 				Spellups["GL"]["DisabledReason"] = "died2"
 			end
-			local percentage = maxmana * 0.7
+			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
 			if currentmana >= percentage then
 				if Spellups["GL"]["DisabledReason"] == "died2" then
 					hadarprint("trying to recast")
@@ -653,6 +653,7 @@ function injectVars()
 	v["GL"]["died"] = 0
 	v["GL"]["SpellsDisabled"] = "no"
 	v["GL"]["DisabledReason"] = "not"
+	v["GL"]["percEnable"] = 70
 	
 
 	v["EX"]["clanskill"] = "none"
@@ -1764,11 +1765,23 @@ function hspdiedtoggle(str)
 	elseif arg == "off" then
 		Spellups["GL"]["died"] = 0
 		hadarprint("Spells will be autocast when you die","script")
+	elseif arg == "perc" or arg == "percent" then
+		rest = tonumber(rest) or string.lower(rest)
+	
+		if type(rest) == "number" then
+			if maxmana == nil or maxmana == -1 then
+				hadarprint("mana variable not set","error")
+				return
+			end
+			Spellups["GL"]["percEnable"] = rest
+			local mana = (maxmana*Spellups["GL"]["percEnable"]/100)
+			hadarprint("Set autocast resume after death to @G"..Spellups["GL"]["percEnable"].."@c% which is "..mana.." mana","script")
+		end
 	else
 		if tonumber(Spellups["GL"]["died"]) == 1 then
 			hadarprint("Spells will be autocast when you die","script")
 		else
-			hadarprint("Spells will NOT autocast when you die","script")
+			hadarprint("Spells will @RNOT@c autocast when you die@w","script")
 		end
 	end
 end
@@ -2167,41 +2180,42 @@ function HadarHelp(str)
 		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
 	else
 		
-		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w")
-		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w")
-		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w")
-		hadarprint("@x086|                            @x208Spells on this list will not be recast       @x086|@w")
-		hadarprint("@x086|                            @x208Include number to toggle spells on the list  @x086|@w")
-		hadarprint("@x086| @x214hsp noauto clear         @x110- @x214Clears your noauto list                      @x086|@w")
-		hadarprint("@x086| @x208hsp disable <check>      @x110- @x208Toggles script on or off, check gives status @x086|@w")
-		hadarprint("@x086| @x214hsp reload               @x110- @x214Reload skills and spells (after tier)        @x086|@w")
-		hadarprint("@x086| @x208hsp autoaura <command>   @x110- @x208Has multiple commands, they are:             @x086|@w")
-		hadarprint("@x086|                           @x208 On  @x110-@x214 enables wearing aura in combat         @x086|@w")
-		hadarprint("@x086|                           @x208 Off @x110-@x214 diables wearing aura in combat         @x086|@w")
-		hadarprint("@x086|                           @x208 aura <itemid> @x110-@x214 set the id of your aura      @x086|@w")
-		hadarprint("@x086|                           @x208 bag <itemid> @x110-@x214 set the id of bag with aura   @x086|@w")
-		hadarprint("@x086| @x214hsp set <thing>          @x110- @x214Sets the message output for reports          @x086|@w")
-		hadarprint("@x086|                          @x110- @glogo@x110,@G 30@x110,@G 10                                 @x086|@w")
-		hadarprint("@x086| @x208hsp channel <channel>    @x110- @x208no arguments displays the channel            @x086|@w")
-		hadarprint("@x086|                            @REG@W.@G hsp channel spouse                       @x086|@w")
-		hadarprint("@x086| @x214hsp report <screen> <log>@x110- @x214screen main or comm, log = comm log          @x086|@w")
-		hadarprint("@x086|                            @REG@W.@G hsp report comm SpellTracker             @x086|@w")
-		hadarprint("@x086|                            @REG@W.@G hsp report main off                      @x086|@w")
-		hadarprint("@x086| @x208hsp seespells            @x110- @x208Toggle seeing recasts                        @x086|@w")
-		hadarprint("@x086| @x214hsp totem <spell>        @x110- @x214pRanger spell is either guidance or force    @x086|@w")
-		hadarprint("@x086| @x208hsp elementalfocus <ele> @x110- @x208Change the element for elemental focus       @x086|@w")
-		hadarprint("@x086| @x214hsp elementalward <ele>  @x110- @x214Change the element for elemental ward        @x086|@w")
-		hadarprint("@x086| @x208hsp gaiasfocus <element> @x110- @x208Change the element for Gaias focus           @x086|@w")
-		hadarprint("@x086| @x214hsp percent <number>     @x110- @x214Sets mana percentage to stop auto casting    @x086|@w")
-		hadarprint("@x086| @x208hsp cskill [set name]    @x110- @x208Shows your current cskill                    @x086|@w")
-		hadarprint("@x086| @x214hsp setingame <param>    @x110- @Gon@w:@x214turns on in game casting, @Goff@w:@x214script cast @x086|@w")
-		hadarprint("@x086| @x208hsp setingame set <num>  @x110- @x208Sets how many spells fall before game command@x086|")
-		hadarprint("@x086| @x214hsp death                @x110- @x214Will auto disable the script if turned on    @x086|")
-		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w")
-		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w")
-		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w")
-		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w")
-		hadarprint("@x086+-------------------------------------------------------------------------+@w")
+		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w","helpfile")
+		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w","helpfile")
+		hadarprint("@x086|                            @x208Spells on this list will not be recast       @x086|@w","helpfile")
+		hadarprint("@x086|                            @x208Include number to toggle spells on the list  @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp noauto clear         @x110- @x214Clears your noauto list                      @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp disable <check>      @x110- @x208Toggles script on or off, check gives status @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp reload               @x110- @x214Reload skills and spells (after tier)        @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp autoaura <command>   @x110- @x208Has multiple commands, they are:             @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208 On  @x110-@x214 enables wearing aura in combat         @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208 Off @x110-@x214 diables wearing aura in combat         @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208 aura <itemid> @x110-@x214 set the id of your aura      @x086|@w","helpfile")
+		hadarprint("@x086|                           @x208 bag <itemid> @x110-@x214 set the id of bag with aura   @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp set <thing>          @x110- @x214Sets the message output for reports          @x086|@w","helpfile")
+		hadarprint("@x086|                          @x110- @glogo@x110,@G 30@x110,@G 10                                 @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp channel <channel>    @x110- @x208no arguments displays the channel            @x086|@w","helpfile")
+		hadarprint("@x086|                            @REG@W.@G hsp channel spouse                       @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp report <screen> <log>@x110- @x214screen main or comm, log = comm log          @x086|@w","helpfile")
+		hadarprint("@x086|                            @REG@W.@G hsp report comm SpellTracker             @x086|@w","helpfile")
+		hadarprint("@x086|                            @REG@W.@G hsp report main off                      @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp seespells            @x110- @x208Toggle seeing recasts                        @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp totem <spell>        @x110- @x214pRanger spell is either guidance or force    @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp elementalfocus <ele> @x110- @x208Change the element for elemental focus       @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp elementalward <ele>  @x110- @x214Change the element for elemental ward        @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp gaiasfocus <element> @x110- @x208Change the element for Gaias focus           @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp percent <number>     @x110- @x214Sets mana percentage to stop auto casting    @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp cskill [set name]    @x110- @x208Shows your current cskill                    @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp setingame <param>    @x110- @Gon@w:@x214turns on in game casting, @Goff@w:@x214script cast @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp setingame set <num>  @x110- @x208Sets how many spells fall before game command@x086|","helpfile")
+		hadarprint("@x086| @x214hsp death (perc <#>)     @x110- @x214Will auto disable the script if turned on    @x086|","helpfile")
+		hadarprint("@x086|                          @x110- @x214perc # mana % to autocast after death        @x086|","helpfile")
+		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w","helpfile")
+		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w","helpfile")
+		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w","helpfile")
+		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w","helpfile")
+		hadarprint("@x086+-------------------------------------------------------------------------+@w","helpfile")
 		--[[
 		hadarprint("@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@w")
 
