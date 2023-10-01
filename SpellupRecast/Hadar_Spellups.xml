@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.02"
+   version="1.03"
    >
 
 </plugin>
@@ -446,7 +446,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
 			if currentmana >= percentage then
 				if Spellups["GL"]["DisabledReason"] == "died2" then
-					hadarprint("trying to recast")
+					hadarprint("trying to recast","debug")
 					HSPDisable("disablespellsoff") --turn on spell autocasting
 					cast_spells()
 				end
