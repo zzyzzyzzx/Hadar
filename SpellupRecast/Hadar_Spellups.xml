@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.03"
+   version="1.05"
    >
 
 </plugin>
@@ -1066,7 +1066,15 @@ function cast_spells()
 		elseif currentState == 3 then
 			if tonumber(Spellups["GL"]["mudsidespellup"]) == 1 then
 				if table.count(Spellups["QS"]) >= tonumber(Spellups["CG"]["spellstorecast"]) then
-					hadarprint("doing a mudside spellup")
+					hadarprint("doing a mudside spellup","debug")
+					if table.find(Spellups["EX"]["clanskill"],Spellups["QS"]) ~= nil then
+						hadarprint("Contains Cskill","debug")
+						cast_this(Spellups["EX"]["clanskill"],tonumber(Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["type"]))
+					end
+					if table.find(Spellups["EX"]["clanskillV1"],Spellups["QS"]) ~= nil then
+						hadarprint("Contains V1 Cskill","debug")
+						cast_this(Spellups["EX"]["clanskillV1"],tonumber(Spellups["AS"]["list"][Spellups["EX"]["clanskillV1"]]["type"]))
+					end
 					SendNoEcho("spellup")
 					Spellups["QS"] = nil
 					Spellups["QS"] = {}
@@ -1190,10 +1198,13 @@ function HSPDisable(arg, reason)
 	else
 		if Spellups["GL"]["disabled"] == "yes" then
 			Spellups["GL"]["disabled"] = "no"
+			Spellups["GL"]["SpellsDisabled"] = "no"
 			Spellups["GL"]["DisabledReason"] = "Manual"
 			hadarprint("Autocast set to @GON@w","script") -- changed from Spellup because hadarprint already uses [SPELLUP]
 		elseif Spellups["GL"]["disabled"] == "no" then
 			Spellups["GL"]["disabled"] = "yes"
+			Spellups["GL"]["SpellsDisabled"] = "yes"
+			Spellups["GL"]["DisabledReason"] = "Manual"
 			hadarprint("Spellup Autocast set to @ROFF@w","script")
 		end
 	end
