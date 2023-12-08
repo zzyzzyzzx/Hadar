@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.06"
+   version="1.07"
    >
 
 </plugin>
@@ -224,8 +224,8 @@ sequence="100"
 </trigger>
 <trigger
 enabled="y"
-match="^You place an (?<totemtype>[A-Za-z]{1,5}) totem in the room\.$"
-omit_from_output="y"
+match="^You place an? (?<totemtype>[A-Za-z]{1,5}) totem in the room\.$"
+omit_from_output="n"
 regexp="y"
 script="totemalive"
 sequence="100"
@@ -235,7 +235,7 @@ sequence="100"
 <trigger
 enabled="y"
 match="^\<\> Your totem has expired\.$"
-omit_from_output="y"
+omit_from_output="n"
 regexp="y"
 script="totemdead"
 sequence="100"
@@ -1546,16 +1546,8 @@ function recoff(n,l,wc)
 
 	Spellups["RT"]["affectedrecovery"][sn] = nil
 
-	if sn == 16 then
-		if Spellups["CG"]["totemcast"] == "force" then
-                  Spellups["QS"][512] = Spellups["AS"]["list"][512]["name"]
-			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][512]["name"],"debug")
-		elseif Spellups["CG"]["totemcast"] == "guidance" then
-			Spellups["QS"][511] = Spellups["AS"]["list"][511]["name"]
-			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][511]["name"],"debug")
-		else
-			hadarprint("Autocasting for totem guidance or totem force not set @Ghsp totem <spell>@w")
-		end
+	if sn == 65 then
+		totemrecovery()
 	else
 		if table.find(skillnum,Spellups["AS"]["attack"]) == nil then
 			hadarprint("recasting:"..skillname,"debug")
