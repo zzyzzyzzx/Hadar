@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.07"
+   version="1.08"
    >
 
 </plugin>
@@ -872,13 +872,7 @@ function setdebug()
 end
 
 function testshow(arg)
-    for i,v in pairs(Spellups["AS"]["list"]) do
-		for j,k in pairs(v) do
-			if j == "target" and tonumber(k) == 0 then
-				print(Spellups["AS"]["list"][i]["name"])
-			end
-		end
-	end
+    tprint(Spellups["EX"]["Timer"])
 end
 
 function invmon(nm,ln,wc)
@@ -905,12 +899,6 @@ function affon(name, line, wc)
 	Spellups["AF"]["list"][sn] = tm
 	Spellups["NA"][sn] = 0 --not affected false
 	hadarprint("Affected by:"..Spellups["AS"]["list"][sn]["name"].." Time:"..tm,"debug")
-	if sn == 518 then
-		if Spellups["NA"][552] == nil then
-			hadarprint("Affected by gaias revenge, never casted focus, setting focus to not affected","debug")
-			Spellups["NA"][552] = 1
-		end
-	end
 	if Spellups["QS"] == nil then
 		hadarprint("function affon, spellups[qs]==nil","debug")
 		return
@@ -1107,27 +1095,7 @@ function cast_spells()
 				end
 			end
 			if contains(Spellups["EX"]["noAuto"],i) == false then
-
-				if i == 518 then
-					hadarprint("we are in i == 518","debug")
-					if Spellups["NA"][552] == 1 then --if not affected by gaias focus
-						cast_this(552,tonumber(Spellups["AS"]["list"][552]["type"]))
-						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
-						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-						hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")
-					elseif Spellups["NA"][552] == 0 then -- player is affected by gaias focus
-						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
-						hadarprint("Gaias focus reported ON, not casting this time","debug") --why reported on '0' when it was off?
-						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-					end
-				return
-
-				elseif i == 552 then
-					Spellups["QS"][i] = nil --remove from queue, cannot cast alone
-                              hadarprint(Spellups["AS"]["list"][i]["name"].." is removed from queue","debug")
-                              return 
-
-				elseif Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
+				if Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
 					cast_this(i,ctype)
 				else
 					Spellups["QS"][i] = nil --if spell not practiced remove from queue
@@ -1150,13 +1118,7 @@ function cast_this(sn,ctype)
 	hadarprint("casting:"..sn,"debug")
 	local castline = nil
 
-	if sn == 552 then
-		if Spellups["CG"]["gaiasfocus"] == 0 then
-			castline = nil --if random or none, do not cast
-		else
-			castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["gaiasfocus"]
-		end
-	elseif sn == 526 then
+	if sn == 526 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementfocus"]
 	elseif sn == 530 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementward"]
@@ -1521,12 +1483,75 @@ function recoveryup(sn,timer)
 	end
 end
 
+function recoveryupTotem(sn,timer)
+
+	hadarprint("SN:"..sn..", TIMER:"..timer,"debug")
+	
+	local sn = tonumber(sn)
+	local tm = tonumber(timer)
+	local uptime1 = tm - 30
+	local uptime2 = tm - 10
+	local uptime3 = tm - 150
+	local uptime4 = tm - 130
+	
+	local firstwarn = "warn_30_"..sn
+	local secondwarn = "warn_10_"..sn
+	local thirdwarn = "totem_30_"..sn
+	local fourthwarn = "totem_10_"..sn
+	
+	local remaining1 = uptime1 % 86400
+	local hours1 = math.floor(remaining1/3600)
+	remaining1 = remaining1 % 3600
+	local minutes1 = math.floor(remaining1/60)
+	remaining1 = remaining1 % 60
+	local seconds1 = remaining1
+
+	local remaining2 = uptime2 % 86400
+	local hours2 = math.floor(remaining2/3600)
+	remaining2 = remaining2 % 3600
+	local minutes2 = math.floor(remaining2/60)
+	remaining2 = remaining2 % 60
+	local seconds2 = remaining2
+
+	local remaining3 = uptime3 % 86400
+	local hours3 = math.floor(remaining3/3600)
+	remaining3 = remaining3 % 3600
+	local minutes3 = math.floor(remaining3/60)
+	remaining3 = remaining3 % 60
+	local seconds3 = remaining3
+
+	local remaining4 = uptime4 % 86400
+	local hours4 = math.floor(remaining4/3600)
+	remaining4 = remaining4 % 3600
+	local minutes4 = math.floor(remaining4/60)
+	remaining4 = remaining4 % 60
+	local seconds4 = remaining4
+	
+	if Spellups["EX"]["thirtytimer"][sn] == "yes" then
+		hadarprint("Added 30 timer for: "..firstwarn,"debug")
+		check(AddTimer (thirdwarn, hours1, minutes1, seconds1, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+		check(AddTimer (firstwarn, hours3, minutes3, seconds3, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+
+	if Spellups["EX"]["tentimer"][sn] == "yes" then
+		hadarprint("Added 10 timer for: "..secondwarn,"debug")
+		check(AddTimer (fourthwarn, hours2, minutes2, seconds2, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+		check(AddTimer (secondwarn, hours4, minutes4, seconds4, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+
+end
+
 function recon(n,l,wc)
 	local sn = tonumber(wc.sn)
 	local tm = tonumber(wc.timer)
 	
 	Spellups["RT"]["affectedrecovery"][sn] = tm
 	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
+
+	if sn==65 then
+		recoveryupTotem(624,tm)
+	end
+
 end
 
 function recoff(n,l,wc)
