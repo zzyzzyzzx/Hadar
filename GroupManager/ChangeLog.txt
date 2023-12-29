@@ -1,5 +1,10 @@
 Hadar's Group Manager
 
+v1.62
+Decemeber 29 2023
+-added a feature for auto-reinviting someone who has remorted from group
+-made it so rename does not need the double @@ signs to rename the group a color
+
 V1.61
 June 2 2023
 -Fixed the blank lines from each tell, only added them to the messages with the "passphrase" to join the group
