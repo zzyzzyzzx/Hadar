@@ -1,5 +1,9 @@
 Hadar's Group Manager
 
+v1.63
+January 4 2024
+-fixed gt rename <stuff> bug
+
 v1.62
 Decemeber 29 2023
 -added a feature for auto-reinviting someone who has remorted from group
