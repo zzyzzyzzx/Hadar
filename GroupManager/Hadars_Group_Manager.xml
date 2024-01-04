@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.62"
+   version="1.63"
    >
 
 </plugin>
@@ -728,13 +728,9 @@ function hgmGroupMessage(msg,msg_raw)
                SendSpecial("group leader "..args)
           end
      elseif command == "rename" and canI(command, player) then
-          local colormsg = utils.split(msg_raw," ")
-          table.remove(colormsg,1)
-          table.remove(colormsg,1)
-          table.remove(colormsg,1)
-          colormsg = table.concat(colormsg," ")
+          local colormsg = msg_raw:match("^%@.+%(.+Group.+%) .+: 'rename (.+)'")
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..colormsg)
-          SendSpecial("group rename "..colormsg)
+          SendSpecial("group rename "..colormsg.."@w")
      elseif command == "flag" and canI(command, player) then
           if one == "public" or one == "private" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
@@ -1482,7 +1478,7 @@ hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands betw
 hadarprint("@x086|                  @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@W, @GHere@x086    |","helpfile")
 hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|","helpfile")
 hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|","helpfile")
-hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|","helpfile")
+hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands available in the group               @x086|","helpfile")
 hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|","helpfile")
 hadarprint("@x086| @x214hgm import     @x110- @x208imports auto list from pwar's invter                @x086|","helpfile")
 hadarprint("@x086| @x208hgm here <cmd> @x110-@x208 shows a list of who is here to gt                   @x086|","helpfile")
