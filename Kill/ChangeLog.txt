@@ -1,0 +1,9 @@
+Hadar's SetKill Changelog
+
+V1.3
+May 17th 2023
+- Added Changelog
+- changed most of the code
+- setkill help is new helpfile
+- fixed old bugs with new code
+- Added Changelog

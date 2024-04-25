@@ -21,3 +21,4 @@ home/hadar/hadar/config.php
 etc/nginx/sites-available/hadar
 error.log
 access.log
+.github/FUNDING.yml

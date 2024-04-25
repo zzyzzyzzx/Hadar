@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.09"
+   version="1.10"
    >
 
 </plugin>
@@ -841,6 +841,7 @@ function injectVars()
 	v["OE"]["messageDown"] = "${logo} Eye has fallen from ${area}"
 	v["OE"]["messageDismissed"] = "${logo} Eye has been dismised from ${area}"
 	v["OE"]["zone"] = 0
+	v["OE"]["Prophecy"] = 0
 
 
      for a,b in pairs(v) do
@@ -993,6 +994,8 @@ function HSPmain(name, line, wc)
 		hspsetwraith(rest)
 	elseif first == "gaiasfocus" then
 		hspsetgaiasfocus(rest)
+	elseif first == "prophecy" then
+		hspsetprophecy(rest)
 	elseif first == "help" then
 		HadarHelp(rest)
 	elseif first == "percent" then
@@ -1275,6 +1278,8 @@ function cast_this(sn,ctype)
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementfocus"]
 	elseif sn == 530 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementward"]
+	elseif sn == 477 then
+		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["OE"]["Prophecy"]
 	elseif ctype == 1 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."'"
 	elseif sn == 226 and ctype == 2 then
@@ -2850,6 +2855,18 @@ function hspEyeStuff(str)
 	end
 end
 
+function hspsetprophecy(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "intuition" or arg == "cognition" or arg == "evasion" then
+		Spellups["OE"]["Prophecy"] = arg
+		hadarprint("Prophecy's @rForesight@c set to: @G"..Spellups["OE"]["Prophecy"],"script")
+	else
+		hadarprint("You need to enter which foresight you want to cast @CIntuition@c, @CCognition@c, @CEvasion@c @C... @GEG hsp Prophecy Intuition@w","script")
+	end
+end
+
 function HadarHelp(str)
 	local arg, rest
 	
@@ -2956,6 +2973,7 @@ function HadarHelp(str)
 		hadarprint("@x086| @x208hsp setingame <param>    @x110- @Gon@w:@x208turns on in game casting, @Goff@w:@x208script cast @x086|@w","helpfile")
 		hadarprint("@x086| @x214hsp setingame set <num>  @x110- @x214Sets how many spells fall before game command@x086|","helpfile")
 		hadarprint("@x086| @x208hsp death (perc <#>)     @x110- @x208Will auto disable the script if turned on    @x086|","helpfile")
+		hadarprint("@x086| @x214hsp prophecy <foresight> @x110- @x214Change the foresight for prophecy            @x086|@w","helpfile")
 		hadarprint("@x086|                          @x110- @x208perc # mana % to autocast after death        @x086|","helpfile")
 		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w","helpfile")
 		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w","helpfile")

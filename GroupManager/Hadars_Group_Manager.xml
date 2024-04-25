@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.63"
+   version="1.64"
    >
 
 </plugin>
@@ -297,6 +297,7 @@ function injectVars()
      v["GL"]["HereChan"] = "gt"
      v["GL"]["LoggedReport"] = "gt"
      v["GL"]["AutoRemort"] = "yes"
+     v["GL"]["AutoRemortInvite"] = "List"
      
      
      v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
@@ -1025,7 +1026,7 @@ function hgmAutoInvite(msg)
           end
           HGMVariable["GL"]["LoggedReport"] = two
           hadarprint("Auto Logged in channel set to @G"..HGMVariable["GL"]["LoggedReport"],"script")
-        elseif one == "remort" and two == nil then
+     elseif one == "remort" and two == nil then
             if HGMVariable["GL"]["AutoRemort"] == "yes" then
                 HGMVariable["GL"]["AutoRemort"] = "no"
                 hadarprint("Auto Remort inviting:@RDISBALED@w","script")
@@ -1037,12 +1038,25 @@ function hgmAutoInvite(msg)
                 SaveState()
                 return
            end
-        elseif one == "remort" and two == "on" then
+     elseif one == "remort" and two == "type" then
+          if HGMVariable["GL"]["AutoRemortInvite"] == "List" then
+               HGMVariable["GL"]["AutoRemortInvite"] = "All"
+               hadarprint("Auto Remort Invite Setting set to:@GALL@w","script")
+               SaveState()
+               return
+          end
+          if HGMVariable["GL"]["AutoRemortInvite"] == "All" then
+               HGMVariable["GL"]["AutoRemortInvite"] = "List"
+               hadarprint("Auto Remort Invite Setting set to:@GAuto Invite List@w","script")
+               SaveState()
+               return
+          end
+     elseif one == "remort" and two == "on" then
             HGMVariable["GL"]["AutoRemort"] = "yes"
           hadarprint("Auto Remort inviting:@GENABLED@w","script")
           SaveState()
           return
-        elseif one == "remort" and two == "off" then
+     elseif one == "remort" and two == "off" then
             HGMVariable["GL"]["AutoRemort"] = "no"
           hadarprint("Auto Remort inviting:@RDISBALED@w","script")
           SaveState()
@@ -1222,7 +1236,13 @@ end
 function hgmAutoInviteRemort(n,l,wc)
     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
         if HGMVariable["GL"]["AutoRemort"] == "yes" then
-            SendSpecial("group invite "..wc[1])
+          if HGMVariable["GL"]["AutoRemortInvite"] == "List" then
+               if ismember(wc[1],"AI") then
+                    SendSpecial("group invite "..wc[1])
+               end
+          elseif HGMVariable["GL"]["AutoRemortInvite"] == "All" then
+               SendSpecial("group invite "..wc[1])
+          end
         end
     end
 end
@@ -1473,6 +1493,8 @@ hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friend
 hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|","helpfile")
 hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinvite              @x086|","helpfile")
 hadarprint("@x086|                  @Gremort@W:@x214 toggles when someone remorts to autoinvite  @x086|","helpfile")
+hadarprint("@x086|                      @Ctype@W:@x214 toggles autoinvite list(default) and all  @x086|","helpfile")
+hadarprint("@x086|                          @CEG@W:@x214 hgm autoinvite remort type              @x086|","helpfile")
 hadarprint("@x086|                  @Gchannel@W:@x214 sets channel to report on (none for off)   @x086|","helpfile")
 hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|","helpfile")
 hadarprint("@x086|                  @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@W, @GHere@x086    |","helpfile")
