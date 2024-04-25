@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.05"
+   version="1.10"
    >
 
 </plugin>
@@ -222,6 +222,73 @@ script="hspJustClasschanged"
 sequence="100"
 >
 </trigger>
+<trigger
+enabled="y"
+match="^You place an? (?<totemtype>[A-Za-z]{1,5}) totem in the room\.$"
+omit_from_output="n"
+regexp="y"
+script="totemalive"
+sequence="100"
+>
+</trigger>
+
+<trigger
+enabled="y"
+match="^\<\> (?<player>[A-Za-z]{3,12}) is attacking your totem\!$"
+omit_from_output="n"
+regexp="y"
+script="totemattack"
+sequence="100"
+>
+</trigger>
+
+<trigger
+enabled="y"
+match="^\<\> Your totem has been killed by (?<player>[A-Za-z]{3,12})\.$"
+omit_from_output="n"
+regexp="y"
+script="totemkilled"
+sequence="100"
+>
+</trigger>
+
+<trigger
+enabled="y"
+match="^\<\> Your totem has expired\.$"
+omit_from_output="n"
+regexp="y"
+script="totemdead"
+sequence="100"
+>
+</trigger>
+
+<trigger
+enabled="y"
+match="^\<Eye\> (.*)\.$"
+omit_from_output="n"
+regexp="y"
+script="eyeTrigger"
+sequence="100"
+>
+</trigger>
+<trigger
+enabled="y"
+match="^Your eye of vigilance has closed for the last time\.$"
+omit_from_output="n"
+regexp="y"
+script="eyeGoByeBye"
+sequence="100"
+>
+</trigger>
+<trigger
+enabled="y"
+match="^You remove your eye of vigilance from (.*)\.$"
+omit_from_output="n"
+regexp="y"
+script="eyeGoByeByeDismissed"
+sequence="100"
+>
+</trigger>
 </triggers>
 
 <aliases>
@@ -328,15 +395,15 @@ function hadarprint(str,level)
 
 	if level == "debug" then
 		if Spellups["GL"]["Debug"] == "yes" then
-			AnsiNote(ColoursToANSI("@G[@YHSP DEBUG@G]@W:@w"..str))
+			AnsiNote(ColoursToANSI("@G[@YHSP DEBUG@G]@W:@w"..str.."@w"))
 		end
 	elseif level == "error" then
-          AnsiNote(ColoursToANSI("@R[@Mhsp @rERROR@R]@W:@w"..str))
+          AnsiNote(ColoursToANSI("@R[@Mhsp @rERROR@R]@W:@w"..str.."@w"))
      elseif level == "script" then
 		if type(str) == "table" then
 			tprint(str)
 		else
-			AnsiNote(ColoursToANSI("@G[@CS@cpellup@G]@c "..str))
+			AnsiNote(ColoursToANSI("@G[@CS@cpellup@G]@c "..str.."@w"))
 		end
 	elseif level == "helpfile" then
 		if utfset then
@@ -492,6 +559,11 @@ function OnPluginEnable ()
 	Spellups["RT"] = {} --recoverys
 	Spellups["MS"] = {} --messages
 	Spellups["CG"] = {} --configs (mainly for special cases)
+	Spellups["TG"] = {} --Totem Global (all totem configs)
+	Spellups["TO"] = {} --Totem Owl, Owl related stuff
+	Spellups["TB"] = {} --same but Bear^
+	Spellups["TE"] = {} --same but Ent^^
+	Spellups["OE"] = {} --Oracle Exceptions
 	
 	if GetVariable ("pastfirstinstall") == "true" then
 		assert (loadstring (GetVariable ("Spellups") or "")) ()
@@ -626,6 +698,11 @@ function injectVars()
 	v["RT"] = {} --recovery
 	v["MS"] = {} --messages
 	v["CG"] = {} --configs (mainly for special cases)
+	v["TG"] = {} --Totem Global (all totem configs)
+	v["TO"] = {} --Totem Owl, Owl related stuff
+	v["TB"] = {} --same but Bear^
+	v["TE"] = {} --same but Ent^^
+	v["OE"] = {} --Oracle Execptions
 
 	v["AS"]["namelist"] = {}
      
@@ -654,6 +731,8 @@ function injectVars()
 	v["GL"]["SpellsDisabled"] = "no"
 	v["GL"]["DisabledReason"] = "not"
 	v["GL"]["percEnable"] = 70
+	v["GL"]["Installed"] = os.time()
+	v["GL"]["Date"] = os.date("*t")
 	
 
 	v["EX"]["clanskill"] = "none"
@@ -675,11 +754,94 @@ function injectVars()
 	v["MS"]["ten"] = "${logo} ${spell} is going to fall in 10 seconds"
 	v["MS"]["channel"] = "echo"
 
+	v["CG"]["spellstorecast"] = 10
 	v["CG"]["elementward"] = 0
 	v["CG"]["elementfocus"] = 0
-	v["CG"]["totemcast"] = 0
 	v["CG"]["gaiasfocus"] = 0
-	v["CG"]["spellstorecast"] = 10
+
+
+--Totem Global
+	v["TG"]["totemcast"] = 0
+	v["TG"]["totemcastauto"] = "no"
+	v["TG"]["totemcomm"] = "no"
+	v["TG"]["totemalivemsg"] = "${logo} @G${type}@c totem has been erected"
+	v["TG"]["totemdeadmsg"] = "${logo} @C${type}@c totem has fallen"
+	v["TG"]["totemrecovermsg"] = "${logo}@c You may now erect a new totem!"
+	v["TG"]["totemWarningThirty"] = "${logo} ${spell} will recover in 30 seconds"
+	v["TG"]["totemWarningTen"] = "${logo} @G${spell}@c will recover in 10 seconds"
+	v["TG"]["totemAttacked"] = "${logo} @G${type} has been attacked by @R${player}"
+	v["TG"]["totemPKed"] = "${logo} @G${type} has been Killed by @R${player}"
+	v["TG"]["TotemAttackedNum"] = 0
+	v["TG"]["TotemPKedNum"] = 0
+	v["TG"]["totemtype"] = "no"
+
+--Totem Owl
+	v["TO"]["StartTime"] = 0
+	v["TO"]["year"] = 0
+	v["TO"]["month"] = 0
+	v["TO"]["day"] = 0
+	v["TO"]["hour"] = 0
+	v["TO"]["min"] = 0
+	v["TO"]["sec"] = 0
+	v["TO"]["TotalYears"] = 0
+	v["TO"]["TotalMonths"] = 0
+	v["TO"]["TotalDays"] = 0
+	v["TO"]["TotalHours"] = 0
+	v["TO"]["TotalMinutes"] = 0
+	v["TO"]["TotalSeconds"] = 0
+	v["TO"]["TotalCast"] = 0
+	v["TO"]["Killed"] = 0
+	v["TO"]["TotemUp"] = "${logo} @G${type}@c totem has been erected"
+	v["TO"]["TotemDown"] = "${logo} @C${type}@c totem has fallen"
+
+--Totem Bear	
+	v["TB"]["StartTime"] = 0
+	v["TB"]["year"] = 0
+	v["TB"]["month"] = 0
+	v["TB"]["day"] = 0
+	v["TB"]["hour"] = 0
+	v["TB"]["min"] = 0
+	v["TB"]["sec"] = 0
+	v["TB"]["TotalYears"] = 0
+	v["TB"]["TotalMonths"] = 0
+	v["TB"]["TotalDays"] = 0
+	v["TB"]["TotalHours"] = 0
+	v["TB"]["TotalMinutes"] = 0
+	v["TB"]["TotalSeconds"] = 0
+	v["TB"]["TotalCast"] = 0
+	v["TB"]["Killed"] = 0
+	v["TB"]["TotemUp"] = "${logo} @G${type}@c totem has been erected"
+	v["TB"]["TotemDown"] = "${logo} @C${type}@c totem has fallen"
+
+--Totem Ent
+	v["TE"]["StartTime"] = 0
+	v["TE"]["year"] = 0
+	v["TE"]["month"] = 0
+	v["TE"]["day"] = 0
+	v["TE"]["hour"] = 0
+	v["TE"]["min"] = 0
+	v["TE"]["sec"] = 0
+	v["TE"]["TotalYears"] = 0
+	v["TE"]["TotalMonths"] = 0
+	v["TE"]["TotalDays"] = 0
+	v["TE"]["TotalHours"] = 0
+	v["TE"]["TotalMinutes"] = 0
+	v["TE"]["TotalSeconds"] = 0
+	v["TE"]["TotalCast"] = 0
+	v["TE"]["Killed"] = 0
+	v["TE"]["TotemUp"] = "${logo} @G${type}@c totem has been erected"
+	v["TE"]["TotemDown"] = "${logo} @C${type}@c totem has fallen"
+
+--Oracle Stuff
+	v["OE"]["oracleComm"] = "yes"
+	v["OE"]["message"] = "${logo} ${msg}"
+	v["OE"]["logo"] = "@W-@C{@GE@gye@C}@W-@c"
+	v["OE"]["messageUp"] = "${logo} Eye is now up in ${area}"
+	v["OE"]["messageReCast"] = "${logo} Eye is now ready to recast"
+	v["OE"]["messageDown"] = "${logo} Eye has fallen from ${area}"
+	v["OE"]["messageDismissed"] = "${logo} Eye has been dismised from ${area}"
+	v["OE"]["zone"] = 0
+	v["OE"]["Prophecy"] = 0
 
 
      for a,b in pairs(v) do
@@ -687,6 +849,21 @@ function injectVars()
                checkExist(a,c,d)
           end
      end
+end
+
+function HSPTimeDiff(t2,t1,script)
+	local d1,d2,carry,diff = os.date('*t',t1),os.date('*t',t2),"no",{}
+	local colMax = {60,60,24,os.date('*t',os.time{year=d1.year,month=d1.month+1,day=0}).day,12}
+	d2.hour = d2.hour - (d2.isdst and 1 or 0) + (d1.isdst and 1 or 0) -- handle dst
+	for i,v in ipairs({'sec','min','hour','day','month','year'}) do
+		diff[v] = d2[v] - d1[v] + (carry and -1 or 0)
+		carry = diff[v] < 0
+		if carry then diff[v] = diff[v] + colMax[i] end
+	end
+	for i,v in pairs(diff) do
+		Spellups[script][i] = v
+	end
+	return diff
 end
 
 function SendSlistCommand()
@@ -777,7 +954,7 @@ function HSPmain(name, line, wc)
      
      first = string.lower(first)
      
-	if first == "varshow" then
+	if first == "testshow" then
 		testshow(rest)
 	elseif first == "debug" then
 		setdebug()
@@ -817,6 +994,8 @@ function HSPmain(name, line, wc)
 		hspsetwraith(rest)
 	elseif first == "gaiasfocus" then
 		hspsetgaiasfocus(rest)
+	elseif first == "prophecy" then
+		hspsetprophecy(rest)
 	elseif first == "help" then
 		HadarHelp(rest)
 	elseif first == "percent" then
@@ -827,6 +1006,8 @@ function HSPmain(name, line, wc)
 		hspsetingame(rest)
 	elseif first == "death" then
 		hspdiedtoggle(rest)
+	elseif first == "eye" then
+		hspEyeStuff(rest)
 	else
 		HadarHelp("nadda")
 	end
@@ -847,13 +1028,7 @@ function setdebug()
 end
 
 function testshow(arg)
-    for i,v in pairs(Spellups["AS"]["list"]) do
-		for j,k in pairs(v) do
-			if j == "target" and tonumber(k) == 0 then
-				print(Spellups["AS"]["list"][i]["name"])
-			end
-		end
-	end
+	print(gmcp("room.info.zone"))
 end
 
 function invmon(nm,ln,wc)
@@ -880,12 +1055,6 @@ function affon(name, line, wc)
 	Spellups["AF"]["list"][sn] = tm
 	Spellups["NA"][sn] = 0 --not affected false
 	hadarprint("Affected by:"..Spellups["AS"]["list"][sn]["name"].." Time:"..tm,"debug")
-	if sn == 518 then
-		if Spellups["NA"][552] == nil then
-			hadarprint("Affected by gaias revenge, never casted focus, setting focus to not affected","debug")
-			Spellups["NA"][552] = 1
-		end
-	end
 	if Spellups["QS"] == nil then
 		hadarprint("function affon, spellups[qs]==nil","debug")
 		return
@@ -1082,27 +1251,7 @@ function cast_spells()
 				end
 			end
 			if contains(Spellups["EX"]["noAuto"],i) == false then
-
-				if i == 518 then
-					hadarprint("we are in i == 518","debug")
-					if Spellups["NA"][552] == 1 then --if not affected by gaias focus
-						cast_this(552,tonumber(Spellups["AS"]["list"][552]["type"]))
-						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
-						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-						hadarprint("Sending "..Spellups["AS"]["list"][552]["name"].." to cast","debug")
-					elseif Spellups["NA"][552] == 0 then -- player is affected by gaias focus
-						cast_this(518,tonumber(Spellups["AS"]["list"][518]["type"]))
-						hadarprint("Gaias focus reported ON, not casting this time","debug") --why reported on '0' when it was off?
-						hadarprint("Report NA: "..Spellups["NA"][552],"debug")
-					end
-				return
-
-				elseif i == 552 then
-					Spellups["QS"][i] = nil --remove from queue, cannot cast alone
-                              hadarprint(Spellups["AS"]["list"][i]["name"].." is removed from queue","debug")
-                              return 
-
-				elseif Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
+				if Spellups["AS"]["list"][i]["prac"] > 1 or i == Spellups["EX"]["clanskill"] or i == Spellups["EX"]["clanskillV1"] then 
 					cast_this(i,ctype)
 				else
 					Spellups["QS"][i] = nil --if spell not practiced remove from queue
@@ -1125,16 +1274,12 @@ function cast_this(sn,ctype)
 	hadarprint("casting:"..sn,"debug")
 	local castline = nil
 
-	if sn == 552 then
-		if Spellups["CG"]["gaiasfocus"] == 0 then
-			castline = nil --if random or none, do not cast
-		else
-			castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["gaiasfocus"]
-		end
-	elseif sn == 526 then
+	if sn == 526 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementfocus"]
 	elseif sn == 530 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["CG"]["elementward"]
+	elseif sn == 477 then
+		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."' "..Spellups["OE"]["Prophecy"]
 	elseif ctype == 1 then
 		castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."'"
 	elseif sn == 226 and ctype == 2 then
@@ -1496,12 +1641,77 @@ function recoveryup(sn,timer)
 	end
 end
 
+function recoveryupTotem(sn,timer)
+
+	hadarprint("SN:"..sn..", TIMER:"..timer,"debug")
+	
+	local sn = tonumber(sn)
+	local tm = tonumber(timer)
+	local uptime1 = tm - 30
+	local uptime2 = tm - 10
+	local uptime3 = tm - 150
+	local uptime4 = tm - 130
+	
+	local firstwarn = "warn_30_"..sn
+	local secondwarn = "warn_10_"..sn
+	local thirdwarn = "totem_30_"..sn
+	local fourthwarn = "totem_10_"..sn
+	
+	local remaining1 = uptime1 % 86400
+	local hours1 = math.floor(remaining1/3600)
+	remaining1 = remaining1 % 3600
+	local minutes1 = math.floor(remaining1/60)
+	remaining1 = remaining1 % 60
+	local seconds1 = remaining1
+
+	local remaining2 = uptime2 % 86400
+	local hours2 = math.floor(remaining2/3600)
+	remaining2 = remaining2 % 3600
+	local minutes2 = math.floor(remaining2/60)
+	remaining2 = remaining2 % 60
+	local seconds2 = remaining2
+
+	local remaining3 = uptime3 % 86400
+	local hours3 = math.floor(remaining3/3600)
+	remaining3 = remaining3 % 3600
+	local minutes3 = math.floor(remaining3/60)
+	remaining3 = remaining3 % 60
+	local seconds3 = remaining3
+
+	local remaining4 = uptime4 % 86400
+	local hours4 = math.floor(remaining4/3600)
+	remaining4 = remaining4 % 3600
+	local minutes4 = math.floor(remaining4/60)
+	remaining4 = remaining4 % 60
+	local seconds4 = remaining4
+	
+	if Spellups["EX"]["thirtytimer"][sn] == "yes" then
+		hadarprint("Added 30 timer for: "..firstwarn,"debug")
+		check(AddTimer (thirdwarn, hours1, minutes1, seconds1, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+		check(AddTimer (firstwarn, hours3, minutes3, seconds3, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+
+	if Spellups["EX"]["tentimer"][sn] == "yes" then
+		hadarprint("Added 10 timer for: "..secondwarn,"debug")
+		check(AddTimer (fourthwarn, hours2, minutes2, seconds2, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+		check(AddTimer (secondwarn, hours4, minutes4, seconds4, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "rcwarning"))
+	end
+
+end
+
 function recon(n,l,wc)
 	local sn = tonumber(wc.sn)
 	local tm = tonumber(wc.timer)
 	
 	Spellups["RT"]["affectedrecovery"][sn] = tm
-	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].." For:"..tm,"debug")
+	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].."("..sn..")".." For:"..tm,"debug")
+
+	if sn==65 then
+		recoveryupTotem(624,tm)
+	elseif sn == 66 then
+		eyeRecovery()
+	end
+
 end
 
 function recoff(n,l,wc)
@@ -1521,16 +1731,8 @@ function recoff(n,l,wc)
 
 	Spellups["RT"]["affectedrecovery"][sn] = nil
 
-	if sn == 16 then
-		if Spellups["CG"]["totemcast"] == "force" then
-                  Spellups["QS"][512] = Spellups["AS"]["list"][512]["name"]
-			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][512]["name"],"debug")
-		elseif Spellups["CG"]["totemcast"] == "guidance" then
-			Spellups["QS"][511] = Spellups["AS"]["list"][511]["name"]
-			hadarprint("Adding to queue (recoff): "..Spellups["AS"]["list"][511]["name"],"debug")
-		else
-			hadarprint("Autocasting for totem guidance or totem force not set @Ghsp totem <spell>@w")
-		end
+	if sn == 65 then
+		totemrecovery()
 	else
 		if table.find(skillnum,Spellups["AS"]["attack"]) == nil then
 			hadarprint("recasting:"..skillname,"debug")
@@ -1549,8 +1751,12 @@ function rcwarning(arg)
 	local message
 
 	hadarprint("1:"..t[1].." 2:"..t[2].." 3:"..t[3].." nm:"..nm,"debug")
-	
-	if t[2] == "30" then
+
+	if t[1] == "totem" and t[2] == "30" then
+		message = interp(Spellups["TG"]["totemWarningThirty"], {logo = Spellups["MS"]["logo"], spell=nm})
+	elseif t[1] == "totem" and t[2] == "10" then
+		message = interp(Spellups["TG"]["totemWarningTen"], {logo = Spellups["MS"]["logo"], spell=nm})
+	elseif t[2] == "30" then
 		message = interp(Spellups["MS"]["thirty"], {logo = Spellups["MS"]["logo"], spell = nm})
 	elseif t[2] == "10" then
 		message = interp(Spellups["MS"]["ten"], {logo = Spellups["MS"]["logo"], spell = nm})
@@ -1689,19 +1895,369 @@ function hspToggleSeeSpells()
 	end
 end
 
+function totemattack(n,l,w)
+	local pname = w.player
+
+	local message = interp(Spellups["TG"]["totemAttacked"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"], player = pname})
+	Spellups["TG"]["TotemAttackedNum"] = Spellups["TG"]["TotemAttackedNum"]+1
+
+	if Spellups["GL"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["TG"]["totemcomm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+
+function totemkilled(n,l,w)
+	local pname = w.player
+
+	local message = interp(Spellups["TG"]["totemPKed"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"], player = pname})
+	Spellups["TG"]["TotemPKedNum"] = Spellups["TG"]["TotemPKedNum"]+1
+
+	DeleteTimer("warn_30_624")
+	DeleteTimer("warn_10_624")
+
+	if Spellups["TG"]["totemtype"] == "owl" then
+		Spellups["TO"]["Killed"] = Spellups["TO"]["Killed"]+1
+		HSPTimeDiff(os.time(),Spellups["TO"]["StartTime"],"TO")
+	elseif Spellups["TG"]["totemtype"] == "ent" then
+		Spellups["TE"]["Killed"] = Spellups["TE"]["Killed"]+1
+		HSPTimeDiff(os.time(),Spellups["TE"]["StartTime"],"TE")
+	elseif Spellups["TG"]["totemtype"] == "bear" then
+		Spellups["TB"]["Killed"] = Spellups["TB"]["Killed"]+1
+		HSPTimeDiff(os.time(),Spellups["TB"]["StartTime"],"TB")
+	end
+
+	if Spellups["GL"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["TG"]["totemcomm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+
+   Spellups["TG"]["totemtype"] = "none"
+end
+
+function totemalive(n,l,w)
+	Spellups["TG"]["totemtype"] = w[1]
+
+	local totem = string.lower(Spellups["TG"]["totemtype"])
+	local message
+
+	if totem == "owl" then
+		message = interp(Spellups["TO"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		Spellups["TO"]["TotalCast"] = Spellups["TO"]["TotalCast"]+1
+		Spellups["TO"]["StartTime"] = os.time()
+	elseif totem == "bear" then
+		message = interp(Spellups["TB"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		Spellups["TB"]["TotalCast"] = Spellups["TB"]["TotalCast"]+1
+		Spellups["TB"]["StartTime"] = os.time()
+	elseif totem == "ent" then
+		message = interp(Spellups["TE"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		Spellups["TE"]["TotalCast"] = Spellups["TE"]["TotalCast"]+1
+		Spellups["TE"]["StartTime"] = os.time()
+	else
+		message = interp(Spellups["TG"]["totemalivemsg"], {logo = Spellups["MS"]["logo"], type = "Unknown"})
+	end
+
+	if Spellups["GL"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["TG"]["totemcomm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+function totemdead()
+	local totem = string.lower(Spellups["TG"]["totemtype"])
+	local message
+
+	if totem == "owl" then
+		message = interp(Spellups["TO"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		HSPTimeDiff(os.time(),Spellups["TO"]["StartTime"],"TO")
+	elseif totem == "bear" then
+		message = interp(Spellups["TB"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		HSPTimeDiff(os.time(),Spellups["TB"]["StartTime"],"TB")
+	elseif totem == "ent" then
+		message = interp(Spellups["TE"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+		HSPTimeDiff(os.time(),Spellups["TE"]["StartTime"],"TE")
+	else
+		message = interp(Spellups["TG"]["totemdeadmsg"], {logo = Spellups["MS"]["logo"], type = "Unknown"})
+	end
+
+	if Spellups["GL"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["TG"]["totemcomm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+
+   Spellups["TG"]["totemtype"] = "None"
+end
+
+function totemrecovery()
+	local message = interp(Spellups["TG"]["totemrecovermsg"], {logo = Spellups["MS"]["logo"], type = Spellups["TG"]["totemtype"]})
+
+	if Spellups["GL"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["TG"]["totemcomm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+
+   if Spellups["TG"]["totemcastauto"] == "yes" then
+		if Spellups["GL"]["seespells"] == "yes" then
+			Send("cast 'gaias totem' "..Spellups["TG"]["totemcast"])
+		else
+			SendNoEcho("cast 'gaias totem' "..Spellups["TG"]["totemcast"])
+		end 
+   end
+
+end
+
 function hspsettotem(str)
 	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
 	arg = string.lower(arg)
 
-	if arg == "force" then
-		Spellups["CG"]["totemcast"] = "force"
-		hadarprint("When able you will cast @Gtotem force@w","script")
-	elseif arg == "guidance" then
-		Spellups["CG"]["totemcast"] = "guidance"
-		hadarprint("When able you will cast @Gtotem guidance@w","script")
+	if rest == nil or rest == "" or rest == " " then
 	else
-		hadarprint("You are currently using @Gtotem "..Spellups["CG"]["totemcast"],"script")
-		hadarprint("Enter which totem you want to cast: @R[@Ghsp totem force@R]@c or @R[@Ghsp totem guidance@R]@w","script")
+		rest = string.lower(rest)
+	end
+
+	if arg == "bear" then
+		Spellups["TG"]["totemcast"] = "bear"
+		hadarprint("When able you will Attempt to cast @GBear@c totem@w","script")
+	elseif arg == "owl" then
+		Spellups["TG"]["totemcast"] = "owl"
+		hadarprint("When able you will Attempt to cast @GOwl@c totem@w","script")
+	elseif arg == "ent" then
+		Spellups["TG"]["totemcast"] = "ent"
+		hadarprint("When able you will cast @GEnt@c totem@w","script")
+	elseif arg == "autocast" then
+		if Spellups["TG"]["totemcastauto"] == "yes" then
+			Spellups["TG"]["totemcastauto"] = "no"
+			hadarprint("You will no longer attempt to cast a totem when ready","script")
+		else
+			Spellups["TG"]["totemcastauto"] = "yes"
+			hadarprint("You will no now attempt to cast a totem when ready, remember to set the totem!","script")
+		end
+	elseif arg == "commlog" then
+		if Spellups["TG"]["totemcomm"] == "yes" then
+			Spellups["TG"]["totemcomm"] = "no"
+			hadarprint("You will @RNO LONGER@c send totem messages to commlog","script")
+		else
+			Spellups["TG"]["totemcomm"] = "yes"
+			hadarprint("You will @GNOW@c send totem messages to commlog","script")
+		end
+
+
+	elseif arg == "set" then
+		local HadarBackup
+		if rest == "alive" then
+			HadarBackup = Spellups["TG"]["totemalivemsg"]
+			Spellups["TG"]["totemalivemsg"] = utils.inputbox ("how would you like the totem active to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TG"]["totemalivemsg"], "Courier", 9)
+   
+			if Spellups["TG"]["totemalivemsg"] ~= nil then
+				hadarprint("the totem alive message will look like@W: @w"..Spellups["TG"]["totemalivemsg"],"script")
+			else
+				Spellups["TG"]["totemalivemsg"] = HadarBackup
+			end
+		elseif rest == "dead" then
+			HadarBackup = Spellups["TG"]["totemdeadmsg"]
+			Spellups["TG"]["totemdeadmsg"] = utils.inputbox ("how would you like the totem de-active to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TG"]["totemdeadmsg"], "Courier", 9)
+   
+			if Spellups["TG"]["totemdeadmsg"] ~= nil then
+				hadarprint("the totem alive message will look like@W: @w"..Spellups["TG"]["totemdeadmsg"],"script")
+			else
+				Spellups["TG"]["totemdeadmsg"] = HadarBackup
+			end
+		elseif rest == "recover" then
+			HadarBackup = Spellups["TG"]["totemrecovermsg"]
+			Spellups["TG"]["totemrecovermsg"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TG"]["totemrecovermsg"], "Courier", 9)
+   
+			if Spellups["TG"]["totemrecovermsg"] ~= nil then
+				hadarprint("the totem alive message will look like@W: @w"..Spellups["TG"]["totemrecovermsg"],"script")
+			else
+				Spellups["TG"]["totemrecovermsg"] = HadarBackup
+			end
+		elseif rest == "owlup" then
+			HadarBackup = Spellups["TO"]["TotemUp"]
+			Spellups["TO"]["TotemUp"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TO"]["TotemUp"], "Courier", 9)
+   
+			if Spellups["TO"]["TotemUp"] ~= nil then
+				hadarprint("the Owl Cast message will look like@W: @w"..Spellups["TO"]["TotemUp"],"script")
+			else
+				Spellups["TO"]["TotemUp"] = HadarBackup
+			end
+		elseif rest == "owldown" then
+			HadarBackup = Spellups["TO"]["TotemDown"]
+			Spellups["TO"]["TotemDown"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TO"]["TotemDown"], "Courier", 9)
+   
+			if Spellups["TO"]["TotemDown"] ~= nil then
+				hadarprint("the Owl Fallen message will look like@W: @w"..Spellups["TO"]["TotemDown"],"script")
+			else
+				Spellups["TO"]["TotemDown"] = HadarBackup
+			end
+		elseif rest == "entup" then
+			HadarBackup = Spellups["TE"]["TotemUp"]
+			Spellups["TE"]["TotemUp"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TE"]["TotemUp"], "Courier", 9)
+   
+			if Spellups["TE"]["TotemUp"] ~= nil then
+				hadarprint("the Ent Cast message will look like@W: @w"..Spellups["TE"]["TotemUp"],"script")
+			else
+				Spellups["TE"]["TotemUp"] = HadarBackup
+			end
+		elseif rest == "entdown" then
+			HadarBackup = Spellups["TE"]["TotemDown"]
+			Spellups["TE"]["TotemDown"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TE"]["TotemDown"], "Courier", 9)
+   
+			if Spellups["TE"]["TotemDown"] ~= nil then
+				hadarprint("the Ent Fallen message will look like@W: @w"..Spellups["TE"]["TotemDown"],"script")
+			else
+				Spellups["TE"]["TotemDown"] = HadarBackup
+			end
+		elseif rest == "bearup" then
+			HadarBackup = Spellups["TB"]["TotemUp"]
+			Spellups["TB"]["TotemUp"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TB"]["TotemUp"], "Courier", 9)
+   
+			if Spellups["TB"]["TotemUp"] ~= nil then
+				hadarprint("the Bear Cast message will look like@W: @w"..Spellups["TB"]["TotemUp"],"script")
+			else
+				Spellups["TB"]["TotemUp"] = HadarBackup
+			end
+		elseif rest == "beardown" then
+			HadarBackup = Spellups["TB"]["TotemDown"]
+			Spellups["TB"]["TotemDown"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TB"]["TotemDown"], "Courier", 9)
+   
+			if Spellups["TB"]["TotemDown"] ~= nil then
+				hadarprint("the Bear fallen message will look like@W: @w"..Spellups["TB"]["TotemDown"],"script")
+			else
+				Spellups["TB"]["TotemDown"] = HadarBackup
+			end
+		elseif rest == "attacked" then
+			HadarBackup = Spellups["TG"]["totemAttacked"]
+			Spellups["TG"]["totemAttacked"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TG"]["totemAttacked"], "Courier", 9)
+   
+			if Spellups["TG"]["totemAttacked"] ~= nil then
+				hadarprint("the totem attacked message will look like@W: @w"..Spellups["TG"]["totemAttacked"],"script")
+			else
+				Spellups["TG"]["totemAttacked"] = HadarBackup
+			end
+		elseif rest == "killed" then
+			HadarBackup = Spellups["TG"]["totemPKed"]
+			Spellups["TG"]["totemPKed"] = utils.inputbox ("how would you like the totem recovered to look?\n${logo} - shows the spellup logo\n${type} - shows type of totem cast", "look of totem", Spellups["TG"]["totemPKed"], "Courier", 9)
+   
+			if Spellups["TG"]["totemPKed"] ~= nil then
+				hadarprint("the totem killed message will look like@W: @w"..Spellups["TG"]["totemPKed"],"script")
+			else
+				Spellups["TG"]["totemPKed"] = HadarBackup
+			end
+		else
+			hadarprint("@cYou need to input one of the following@w: @Galive@w, @Gdead@w, @Grecover @C.@c.@C. @YEG:@R hsp set alive@w","error")
+		end
+	else
+		local configAutocastString
+		local configAutoCastType
+		local configCommLog
+		if Spellups["TG"]["totemcastauto"] == "yes" then 
+			configAutocastString = "         @Gtrue@w          " 
+		else 
+			configAutocastString = "         @Rfalse@W         " 
+		end
+		if Spellups["TG"]["totemcast"] == "owl" then
+			configAutoCastType = "          @x227owl@W          "
+		elseif Spellups["TG"]["totemcast"] == "ent" then
+			configAutoCastType = "          @X130ent@W          "
+		elseif Spellups["TG"]["totemcast"] == "bear" then
+			configAutoCastType = "         @x240bear@W          "
+		else
+			configAutoCastType = "         @RNone@W          "
+		end
+		if Spellups["TG"]["totemcomm"] == "yes" then
+			configCommLog = "         @Gtrue@W          "
+		else
+			configCommLog = "         @Rfalse@W         "
+		end
+		
+
+		local totemalive = interp(Spellups["TG"]["totemalivemsg"], {logo = Spellups["MS"]["logo"], type = "<Bear/Owl/Ent>"})
+		local totemdead = interp(Spellups["TG"]["totemdeadmsg"], {logo = Spellups["MS"]["logo"], type = "<Bear/Owl/Ent>"})
+		local totemrecover = interp(Spellups["TG"]["totemrecovermsg"], {logo = Spellups["MS"]["logo"], type = "<Bear/Owl/Ent>"})
+		local totemattacked = interp(Spellups["TG"]["totemAttacked"], {logo = Spellups["MS"]["logo"], type = "<Bear/Owl/Ent>", player = "<Player name>"})
+		local totemkilled = interp(Spellups["TG"]["totemPKed"], {logo = Spellups["MS"]["logo"], type = "<Bear/Owl/Ent>", player = "<Player name>"})
+
+		totemaliveowl = interp(Spellups["TO"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = "Owl"})
+		totemalivebear = interp(Spellups["TB"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = "Bear"})
+		totemaliveent = interp(Spellups["TE"]["TotemUp"], {logo = Spellups["MS"]["logo"], type = "Ent"})
+
+		totemdeadowl = interp(Spellups["TO"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = "Owl"})
+		totemdeadbear = interp(Spellups["TB"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = "Bear"})
+		totemdeadent = interp(Spellups["TE"]["TotemDown"], {logo = Spellups["MS"]["logo"], type = "Ent"})
+
+		hadarprint("@W+@x086--------------------@G[@CT@cotems@G]@x086-------------------@W+@w","helpfile")
+		hadarprint("@W|         @CO@cption        @W|        @CC@config         @W|@w","helpfile")
+		hadarprint("@W+@x086-----------------------------------------------@W+@w","helpfile")
+		hadarprint("@W|        @CA@cuto@CC@cast       @W|"..configAutocastString.."|@w","helpfile")
+		hadarprint("@W|     @CA@cuto@CC@cast @CT@cype     @W|"..configAutoCastType.."|@w","helpfile")
+		hadarprint("@W|       @CC@comm @CL@cog        @W|"..configCommLog.."|@w","helpfile")
+		hadarprint("@W+@x086-----------------------------------------------@W+@w","helpfile")
+		hadarprint("")
+		hadarprint("@CT@cotem @CM@cessages@W:@w","helpfile")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CA@clive@W:@w","helpfile")
+		hadarprint(totemalive.."@w")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CD@cead@W:@w","helpfile")
+		hadarprint(totemdead.."@w")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CR@cecover@W:@w","helpfile")
+		hadarprint(totemrecover.."@w")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CA@cttacked@W:@w","helpfile")
+		hadarprint(totemrecover.."@w")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CK@cilled@W:@w","helpfile")
+		hadarprint(totemrecover.."@w")
+		hadarprint("@W-----------------------------------------------@w","helpfile")
+		hadarprint("@CT@cotem @CO@cwl@W:@w")
+		hadarprint("@CU@cp@W:@w"..totemaliveowl)
+		hadarprint("@CD@cown@W:@w"..totemdeadowl)
+		hadarprint("")
+		hadarprint("@CT@cotem @CB@cear@W:@w")
+		hadarprint("@CU@cp@W:@w"..totemalivebear)
+		hadarprint("@CD@cown@W:@w"..totemdeadbear)
+		hadarprint("")
+		hadarprint("@CT@cotem @CE@cnt@W:@w")
+		hadarprint("@CU@cp@W:@w"..totemaliveent)
+		hadarprint("@CD@cown@W:@w"..totemdeadent)
+
 	end
 end
 
@@ -2141,6 +2697,176 @@ function hspJustClasschanged()
 	SendSlistCommand()
 end
 
+function eyeTrigger(n,l,w)
+	local message = interp(Spellups["OE"]["message"], {logo = Spellups["OE"]["logo"], msg = w[1]})
+
+	if Spellups["OE"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["OE"]["oracleComm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+function eyeGoByeBye()
+	local message = interp(Spellups["OE"]["messageDown"], {logo = Spellups["OE"]["logo"], area = Spellups["OE"]["zone"]})
+
+	if Spellups["MS"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["OE"]["oracleComm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+function eyeGoByeByeDismissed()
+	local message = interp(Spellups["OE"]["messageDismissed"], {logo = Spellups["OE"]["logo"], area = Spellups["OE"]["zone"]})
+
+	if Spellups["MS"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["OE"]["oracleComm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+function eyeRecovery()
+	Spellups["OE"]["zone"] = gmcp("room.info.zone")
+	local message = interp(Spellups["OE"]["messageReCast"], {logo = Spellups["OE"]["logo"], area = Spellups["OE"]["zone"]})
+
+	if Spellups["MS"]["mainWindow"] == "yes" then
+		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
+			 hadarprint(message)
+		else
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+		end
+   end
+
+	if Spellups["OE"]["oracleComm"] == "yes" then
+		CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",message, Spellups["GL"]["commLogTab"], "yes")
+   end
+end
+
+function hspEyeStuff(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if rest == nil or rest == "" or rest == " " then
+	else
+		rest = string.lower(rest)
+	end
+
+	if arg == "commlog" then
+		if Spellups["OE"]["oracleComm"] == "yes" then
+			Spellups["OE"]["oracleComm"] = "no"
+			hadarprint("You will @RNO LONGER@c send oracle messages to commlog","script")
+		else
+			Spellups["OE"]["oracleComm"] = "yes"
+			hadarprint("You will @GNOW@c send oracle messages to commlog","script")
+		end
+	elseif arg == "set" then
+		local HadarBackup
+		if rest == "logo" then
+			HadarBackup = Spellups["OE"]["logo"]
+			Spellups["OE"]["logo"] = utils.inputbox ("how would you like the Oracle Logo to look?", "look of logo", Spellups["OE"]["logo"], "Courier", 9)
+   
+			if Spellups["OE"]["logo"] ~= nil then
+				hadarprint("the Oracle Logo message will look like@W: @w"..Spellups["OE"]["logo"],"script")
+			else
+				Spellups["OE"]["logo"] = HadarBackup
+			end
+		elseif rest == "up" then
+			HadarBackup = Spellups["OE"]["messageReCast"]
+			Spellups["OE"]["messageReCast"] = utils.inputbox ("how would you like the Oracle eye message up to look?", "look of logo", Spellups["OE"]["messageReCast"], "Courier", 9)
+   
+			if Spellups["OE"]["messageReCast"] ~= nil then
+				hadarprint("the Oracle eye of vigilance up message will look like@W: @w"..Spellups["OE"]["messageReCast"],"script")
+			else
+				Spellups["OE"]["messageReCast"] = HadarBackup
+			end
+		elseif rest == "down" then
+			HadarBackup = Spellups["OE"]["messageDown"]
+			Spellups["OE"]["messageDown"] = utils.inputbox ("how would you like the Oracle eye message down to look?", "look of logo", Spellups["OE"]["messageDown"], "Courier", 9)
+   
+			if Spellups["OE"]["messageDown"] ~= nil then
+				hadarprint("the Oracle eye of vigilance down message will look like@W: @w"..Spellups["OE"]["messageDown"],"script")
+			else
+				Spellups["OE"]["messageDown"] = HadarBackup
+			end
+		elseif rest == "dismissed" then
+			HadarBackup = Spellups["OE"]["messageDismissed"]
+			Spellups["OE"]["messageDismissed"] = utils.inputbox ("how would you like the Oracle eye message dismissed to look?", "look of logo", Spellups["OE"]["messageDismissed"], "Courier", 9)
+   
+			if Spellups["OE"]["messageDismissed"] ~= nil then
+				hadarprint("the Oracle eye of vigilance dismissed message will look like@W: @w"..Spellups["OE"]["messageDismissed"],"script")
+			else
+				Spellups["OE"]["messageDismissed"] = HadarBackup
+			end
+		elseif rest == "message" then
+			HadarBackup = Spellups["OE"]["message"]
+			Spellups["OE"]["message"] = utils.inputbox ("how would you like the Oracle eye message to look?", "look of logo", Spellups["OE"]["message"], "Courier", 9)
+   
+			if Spellups["OE"]["message"] ~= nil then
+				hadarprint("the Oracle eye of vigilance message will look like@W: @w"..Spellups["OE"]["message"],"script")
+			else
+				Spellups["OE"]["message"] = HadarBackup
+			end
+		else
+			hadarprint("You need to set something EG@W:@w hsp eye set logo @g-- will change the logo@w","error")
+		end
+	else
+		local eyemessage = interp(Spellups["OE"]["message"], {logo = Spellups["OE"]["logo"], msg = "<whatever message it shows>(repop or movement)"})
+		local eyeup = interp(Spellups["OE"]["messageUp"], {logo = Spellups["OE"]["logo"], area = "<area name>"})
+		local eyedown = interp(Spellups["OE"]["messageDown"], {logo = Spellups["OE"]["logo"], area = "<area name>"})
+		local eyedismissed = interp(Spellups["OE"]["messageDismissed"], {logo = Spellups["OE"]["logo"], area = "<area name>"})
+
+		hadarprint("@CE@cye @CM@cessages@W:","helpfile")
+		hadarprint("@W-----------------------------------------------","helpfile")
+		hadarprint("@CE@cye @CL@cogo@W:","helpfile")
+		hadarprint(Spellups["OE"]["logo"].."")
+		hadarprint("@W-----------------------------------------------","helpfile")
+		hadarprint("@CE@cye @CM@cessage@W:","helpfile")
+		hadarprint(eyemessage.."")
+		hadarprint("@W-----------------------------------------------","helpfile")
+		hadarprint("@CE@cye @CU@cp@W:","helpfile")
+		hadarprint(eyeup.."")
+		hadarprint("@W-----------------------------------------------","helpfile")
+		hadarprint("@CE@cye @CD@cown@W:","helpfile")
+		hadarprint(eyedown.."")
+		hadarprint("@W-----------------------------------------------","helpfile")
+		hadarprint("@CT@cotem @CD@cismissed@W:","helpfile")
+		hadarprint(eyedismissed.."")
+		hadarprint("@W-----------------------------------------------","helpfile")
+	end
+end
+
+function hspsetprophecy(str)
+	local arg, rest = str:match("([0-9.a-zA-Z]*)%s*(.*)")
+	arg = string.lower(arg)
+
+	if arg == "intuition" or arg == "cognition" or arg == "evasion" then
+		Spellups["OE"]["Prophecy"] = arg
+		hadarprint("Prophecy's @rForesight@c set to: @G"..Spellups["OE"]["Prophecy"],"script")
+	else
+		hadarprint("You need to enter which foresight you want to cast @CIntuition@c, @CCognition@c, @CEvasion@c @C... @GEG hsp Prophecy Intuition@w","script")
+	end
+end
+
 function HadarHelp(str)
 	local arg, rest
 	
@@ -2189,8 +2915,35 @@ function HadarHelp(str)
 		hadarprint("@x086|                              @x208list to cast before wraith form         @x086|","helpfile2")
 		hadarprint("@x086|                           SN = Skill Number                          @x086|","helpfile2")
 		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
+	elseif arg == "totem" then
+		hadarprint("@x086+--------------------------@G[@CT@cotem @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp totem           @x110-@x214 Shows you all your current settings            @x086|@w","helpfile2")
+		hadarprint("@x086|                                                                      @x086|@w","helpfile2")
+		hadarprint("@x086| @x208hsp totem <type>    @x110-@x208 will set the auto re-cast type (if used)       @x086|@w","helpfile2")
+		hadarprint("@x086| @x214hsp totem autocast  @x110-@x214 will toggle autocasting on or off              @x086|@w","helpfile2")
+		hadarprint("@x086| @x208hsp totem commlog   @x110-@x208 will toggle sending totem messags to commlog   @x086|@w","helpfile2")
+		hadarprint("@x086|                         @x110(@x208note does not affect normal message@x110)@w        @x086|@w","helpfile2")
+		hadarprint("@x086| @x214hsp totem set <item>@x110-@x214 will set the auto re-cast type (if used)       @x086|@w","helpfile2")
+		hadarprint("@x086|               @x107alive @x110-@x107 will change message when totem is up           @x086|@w","helpfile2")
+		hadarprint("@x086|               @x120dead  @x110-@x120 will change message when totem falls           @x086|@w","helpfile2")
+		hadarprint("@x086|            @x107recovery @x110-@x107 will change message when totem is ready to cast@x086|@w","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+@w","helpfile2")
+	elseif arg == "eye" then
+		hadarprint("@x086+----------------------------@G[@CE@cye @CH@celp @CF@ciles@G]@x086--------------------------+@w","helpfile2")
+		hadarprint("@x086| @x214hsp eye             @x110- @x214Shows you all your current settings            @x086|","helpfile2")
+		hadarprint("@x086|                                                                      @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp totem <type>    @x110- @x208will set the auto re-cast type (if used)       @x086|","helpfile2")
+		hadarprint("@x086| @x214hsp totem autocast  @x110- @x214will toggle autocasting on or off              @x086|","helpfile2")
+		hadarprint("@x086| @x208hsp eye commlog     @x110- @x208will toggle sending eye messags to commlog     @x086|","helpfile2")
+		hadarprint("@x086|                         @x110(@x208note does not affect normal message@x110)        @x086|","helpfile2")
+		hadarprint("@x086| @x214hsp eye set <item>  @x110- @x214will set the different messages                @x086|","helpfile2")
+		hadarprint("@x086|               @x107logo  @x110- @x107will change message when totem is up           @x086|","helpfile2")
+		hadarprint("@x086|            @x120message  @x110- @x120Normal message when eye triggers               @x086|","helpfile2")
+		hadarprint("@x086|                  @x107up @x110- @x107Message when you can recast eye of vigilance   @x086|","helpfile2")
+		hadarprint("@x086|                @x120down @x110- @x120Message when eye of vigilance falls normally   @x086|","helpfile2")
+		hadarprint("@x086|           @x107dismissed @x110- @x107Message when you dismiss eye of vigilance      @x086|","helpfile2")
+		hadarprint("@x086+----------------------------------------------------------------------+","helpfile2")
 	else
-		
 		hadarprint("@x086+--------------------------@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@x086---------------------------+@w","helpfile")
 		hadarprint("@x086| @x214hsp help                 @x110- @x214Displays this helpfile                       @x086|@w","helpfile")
 		hadarprint("@x086| @x208hsp noauto <number>      @x110- @x208Shows spells on noauto list                  @x086|@w","helpfile")
@@ -2212,57 +2965,23 @@ function HadarHelp(str)
 		hadarprint("@x086|                            @REG@W.@G hsp report comm SpellTracker             @x086|@w","helpfile")
 		hadarprint("@x086|                            @REG@W.@G hsp report main off                      @x086|@w","helpfile")
 		hadarprint("@x086| @x208hsp seespells            @x110- @x208Toggle seeing recasts                        @x086|@w","helpfile")
-		hadarprint("@x086| @x214hsp totem <spell>        @x110- @x214pRanger spell is either guidance or force    @x086|@w","helpfile")
-		hadarprint("@x086| @x208hsp elementalfocus <ele> @x110- @x208Change the element for elemental focus       @x086|@w","helpfile")
-		hadarprint("@x086| @x214hsp elementalward <ele>  @x110- @x214Change the element for elemental ward        @x086|@w","helpfile")
-		hadarprint("@x086| @x208hsp gaiasfocus <element> @x110- @x208Change the element for Gaias focus           @x086|@w","helpfile")
-		hadarprint("@x086| @x214hsp percent <number>     @x110- @x214Sets mana percentage to stop auto casting    @x086|@w","helpfile")
-		hadarprint("@x086| @x208hsp cskill [set name]    @x110- @x208Shows your current cskill                    @x086|@w","helpfile")
-		hadarprint("@x086| @x214hsp setingame <param>    @x110- @Gon@w:@x214turns on in game casting, @Goff@w:@x214script cast @x086|@w","helpfile")
-		hadarprint("@x086| @x208hsp setingame set <num>  @x110- @x208Sets how many spells fall before game command@x086|","helpfile")
-		hadarprint("@x086| @x214hsp death (perc <#>)     @x110- @x214Will auto disable the script if turned on    @x086|","helpfile")
-		hadarprint("@x086|                          @x110- @x214perc # mana % to autocast after death        @x086|","helpfile")
+		hadarprint("@x086| @x214hsp elementalfocus <ele> @x110- @x214Change the element for elemental focus       @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp elementalward <ele>  @x110- @x208Change the element for elemental ward        @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp gaiasfocus <element> @x110- @x214Change the element for Gaias focus           @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp percent <number>     @x110- @x208Sets mana percentage to stop auto casting    @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp cskill [set name]    @x110- @x214Shows your current cskill                    @x086|@w","helpfile")
+		hadarprint("@x086| @x208hsp setingame <param>    @x110- @Gon@w:@x208turns on in game casting, @Goff@w:@x208script cast @x086|@w","helpfile")
+		hadarprint("@x086| @x214hsp setingame set <num>  @x110- @x214Sets how many spells fall before game command@x086|","helpfile")
+		hadarprint("@x086| @x208hsp death (perc <#>)     @x110- @x208Will auto disable the script if turned on    @x086|","helpfile")
+		hadarprint("@x086| @x214hsp prophecy <foresight> @x110- @x214Change the foresight for prophecy            @x086|@w","helpfile")
+		hadarprint("@x086|                          @x110- @x208perc # mana % to autocast after death        @x086|","helpfile")
 		hadarprint("@x086+--------------------------@g[@CE@cxtra @CH@celp @CF@ciles@W:@g]@x086----------------------------+@w","helpfile")
 		hadarprint("@x086|                              @x214hsp help combat                            @x086|@w","helpfile")
 		hadarprint("@x086|                              @x208hsp help timer                             @x086|@w","helpfile")
 		hadarprint("@x086|                              @x214hsp help wraith                            @x086|@w","helpfile")
+		hadarprint("@x086|                              @x208hsp help totem                             @x086|@w","helpfile")
+		hadarprint("@x086|                              @x214hsp help eye                               @x086|@w","helpfile")
 		hadarprint("@x086+-------------------------------------------------------------------------+@w","helpfile")
-		--[[
-		hadarprint("@G[@CA@cuto @CS@cpells @WV:"..GetPluginInfo (GetPluginID (), 19).."@G]@w")
-
-		hadarprint("@x014hsp help @W: @x014Resets the text color to the default and displays this helpfile")
-		hadarprint("@x057hsp noauto <number> @W:@x057 Shows spells on noauto list")
-		hadarprint("@x006     (Spells on this list will not be recast. Include a number to toggle spells on the list.)")
-		hadarprint("@x014hsp noauto clear @W:@x014 Clears your noauto list")
-		hadarprint("@x057hsp disable <check> @W:@x057 Toggles script on or off. Check gives status.")
-		hadarprint("@x014hsp reload @W:@x014 Reload skills and spells (after tier)")
-		hadarprint("@x057hsp autoaura <command> @W:@x057 Has multiple commands:")
-		hadarprint("  @x006- @COn @W: @x006Enables wearing aura in combat")
-		hadarprint("  @x006- @COff @W: @x006Disables wearing aura in combat")
-		hadarprint("  @x006- @CAura @W<@Citemid@W> @W: @x006Sets the ID of your aura")
-		hadarprint("  @x006- @CBag @W<@Citemid@W> @W: @x006Sets the ID of the bag with aura")
-		hadarprint("@x014hsp set <thing> @W:@x014 Sets the message output for reports")
-		hadarprint("  @x006- @x006Logo, 30, 10")
-		hadarprint("@x057hsp channel <channel> @W:@x057 No arguments display the channel")
-		hadarprint("  @x006(EG. hsp channel spouse)")
-		hadarprint("@x014hsp report <screen> <log>@W:@x014 Screen: main or comm, log: comm log")
-		hadarprint("  @x006(EG. hsp report comm SpellTracker)")
-		hadarprint("  @x006(EG. hsp report main off)")
-		hadarprint("@x057hsp seespells @W:@x057 Toggle seeing recasts")
-		hadarprint("@x014hsp totem <spell> @W:@x014 pRanger spell is either guidance or force")
-		hadarprint("@x057hsp elementalfocus <ele>@W:@x057 Change the element for elemental focus")
-		hadarprint("@x014hsp elementalward <ele> @W:@x014 Change the element for elemental ward")
-		hadarprint("@x057hsp gaiasfocus <element>@W:@x057 Change the element for Gaia's focus")
-		hadarprint("@x014hsp percent <number> @W:@x014 Sets mana percentage to stop auto casting")
-		hadarprint("@x057hsp cskill [set name] @W:@x057 Shows your current cskill")
-		hadarprint("@x014hsp setingame <param> @W:@x014 On: turns on in-game casting, off: script cast")
-		hadarprint("@x057hsp setingame set <num>@W:@x057 Sets how many spells fall before game command")
-		hadarprint("@x014hsp death @W:@x014 Will auto disable the script if turned on")
-		hadarprint("@G[@CE@cxtra @CH@celp @CF@ciles@W:@G]@w")
-		hadarprint("@x031hsp help combat@w")
-		hadarprint("@x031hsp help timer@w")
-		hadarprint("@x031hsp help wraith@w")
-		]]
 	end
 end
 

@@ -167,7 +167,7 @@ local v1 = Trim(string.lower(wildcards[1]))
 	if v1=="update" then
 		allskills={}
 		allspells={}
-		EnableTriggerGroup("slistUpdate",true)
+		EnableTriggerGroup("HKillListCapture",true)
 		SendSpecial("slist hadarkill")
 	elseif table.find(v1, HadarKill["AS"]) ~= nil then
 		HadarKill["GL"]["Attack"] = v1

@@ -1,5 +1,15 @@
 Hadar's Group Manager
 
+V1.63
+April 25 2024
+-made it so remort invites can be limited to the autoinvite list
+
+v1.62
+Decemeber 29 2023
+-added a feature for auto-reinviting someone who has remorted from group
+-made it so rename does not need the double @@ signs to rename the group a color
+-also added messages to gt invite <player> (message)
+
 V1.61
 June 2 2023
 -Fixed the blank lines from each tell, only added them to the messages with the "passphrase" to join the group

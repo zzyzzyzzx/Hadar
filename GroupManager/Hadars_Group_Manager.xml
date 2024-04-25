@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.61"
+   version="1.64"
    >
 
 </plugin>
@@ -111,6 +111,15 @@
      sequence="99"
      >
      </trigger>
+     <trigger
+     enabled="y"
+     match="^\(Group\) (.+) has left the group \- remort\.$"
+     regexp="y"
+     script="hgmAutoInviteRemort"
+     keep_evaluating="n"
+     sequence="99"
+     >
+     </trigger>
 
 </triggers>
 
@@ -140,6 +149,7 @@
 
 <script>
 <![CDATA[
+ 
 require "serialize"
 require "gmcphelper"
 require "tprint"
@@ -285,6 +295,9 @@ function injectVars()
      v["GL"]["LevelHigh"] = 201
      v["GL"]["LevelLow"] = 200
      v["GL"]["HereChan"] = "gt"
+     v["GL"]["LoggedReport"] = "gt"
+     v["GL"]["AutoRemort"] = "yes"
+     v["GL"]["AutoRemortInvite"] = "List"
      
      
      v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
@@ -396,11 +409,12 @@ function OnPluginBroadcast (msg, id, name, text)
                fullgroup = gmcp("group")
           elseif (text == "comm.channel") then
                local channel = gmcp("comm.channel.chan")
+               local msg_raw = gmcp("comm.channel.msg")
 			local msg = strip_colours(gmcp("comm.channel.msg"))
 
                if channel == "gtell" then
                     if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
-                         hgmGroupMessage(msg)
+                         hgmGroupMessage(msg,msg_raw)
                     end
                end
                if channel == "tell" then
@@ -417,10 +431,8 @@ function hgmTellMessage(p,m)
      if p == nil then return end
      if m == nil then return end
      
-     local command, args = m:match("(%w+)%s*(.*)") or nil
-     if command == nil then return end
      p = string.lower(p)
-     command = string.lower(command)
+     command = string.gsub(m,"'","")
      
      if args == "" or args == " " then
           args = nil
@@ -437,7 +449,20 @@ function hgmTellMessage(p,m)
           return
      end
      
-     if command == HGMVariable["GL"]["Phrase"] and args == nil then
+     if command == HGMVariable["GL"]["Phrase"] and args ~= nil then
+          local a, b = args:match("(%w+)%s*(.*)") or nil
+          a = trim(string.lower(a))
+          if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
+               if ismember(a,"BL") then
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked "..a.." to join the party, @Dblacklisted @Rno invite sent@w")
+               else
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked "..a.." to join the party, @Ginvite sent@w")
+                    SendSpecial("group invite "..a)
+               end
+          else
+               SendSpecial("tell "..p.." "..HGMVariable["GL"]["Logo"].."The current leader is@W: @G"..HGMVariable["GL"]["Leader"].."@w")
+          end
+     elseif command == HGMVariable["GL"]["Phrase"] and args == nil then
           if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
                if ismember(p,"BL") then
                     SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked to join the party, @Dblacklisted @Rno invite sent@w")
@@ -568,7 +593,7 @@ function canI(command, player)
 
 end
 
-function hgmGroupMessage(msg)
+function hgmGroupMessage(msg,msg_raw)
 
      if msg == nil then return end
      
@@ -629,8 +654,20 @@ function hgmGroupMessage(msg)
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."here - sends a message with who is here "..hgmcheckSettings("here"))
           return
      end
-     
-     local one, two = args:match("(%w+)%s*(.*)") or nil
+
+     local extraArgs = {}
+
+     for i in string.gmatch(args, "%S+") do
+        table.insert(extraArgs, i)
+        end
+
+    local one = extraArgs[1]
+    local two
+    if #extraArgs > 1 then
+        two = table.concat(extraArgs," ",2)
+    else
+        two = nil
+    end
      
      if two == "" or two == " " then two = nil end
      if hgmiscommand(command) and one == nil then 
@@ -654,25 +691,36 @@ function hgmGroupMessage(msg)
                hadarprint("I do not know how we ended up here","error")
           end
           if HGMVariable["GT"]["invite"] == "yes" and ismember(player,"TR") then
-               local msg = player.." Sending out invite to "..one
-               SendSpecial("group invite "..args)
+               local msg
+               if two == nil then
+                    msg = player.." Sending out invite to "..one
+               else
+                    msg = player.." Sending out invite to "..one.." for: "..two
+               end
+               SendSpecial("group invite "..one)
                DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
+                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"] .. " @W(@C"..two.."@W)@w")
                end
           else
-               local msg = player.." Sending out invite to "..one
-               SendSpecial("group invite "..args)
+               local msg
+               if two == nil then
+                    msg = player.." Sending out invite to "..one
+               else
+                    msg = player.." Sending out invite to "..one.." for: "..two
+               end
+               SendSpecial("group invite "..one)
                DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
                if two == nil then
                     SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
                else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
+                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"] .. " @W(@C"..two.."@W)@w")
                end
           end
      elseif command == "leader" and canI(command, player) then
+          if #args > 12 then return end
           if args == "me" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
                SendSpecial("group leader "..player)
@@ -681,8 +729,9 @@ function hgmGroupMessage(msg)
                SendSpecial("group leader "..args)
           end
      elseif command == "rename" and canI(command, player) then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..argsraw)
-          SendSpecial("group rename "..argsraw)
+          local colormsg = msg_raw:match("^%@.+%(.+Group.+%) .+: 'rename (.+)'")
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..colormsg)
+          SendSpecial("group rename "..colormsg.."@w")
      elseif command == "flag" and canI(command, player) then
           if one == "public" or one == "private" then
                SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
@@ -692,6 +741,7 @@ function hgmGroupMessage(msg)
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Wants to cancel invite sent to "..args)
           SendSpecial("group cancel "..args)
      elseif command == "kick" and canI(command, player) then
+          if #args > 12 then return end
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
           SendSpecial("group kick "..args)
      elseif command == "here" and args == "" and canI(command, player) then
@@ -969,6 +1019,48 @@ function hgmAutoInvite(msg)
           hadarprint("Auto Friend inviting:@RDISBALED@w","script")
           SaveState()
           return
+     elseif one == "channel" then
+          if two == nil then
+               hadarprint("Current channel reporting logins to is@W: @R"..HGMVariable["GL"]["LoggedReport"],"script")
+               return
+          end
+          HGMVariable["GL"]["LoggedReport"] = two
+          hadarprint("Auto Logged in channel set to @G"..HGMVariable["GL"]["LoggedReport"],"script")
+     elseif one == "remort" and two == nil then
+            if HGMVariable["GL"]["AutoRemort"] == "yes" then
+                HGMVariable["GL"]["AutoRemort"] = "no"
+                hadarprint("Auto Remort inviting:@RDISBALED@w","script")
+                SaveState()
+                return
+           else
+                HGMVariable["GL"]["AutoRemort"] = "yes"
+                hadarprint("Auto Remort inviting:@GENABLED@w","script")
+                SaveState()
+                return
+           end
+     elseif one == "remort" and two == "type" then
+          if HGMVariable["GL"]["AutoRemortInvite"] == "List" then
+               HGMVariable["GL"]["AutoRemortInvite"] = "All"
+               hadarprint("Auto Remort Invite Setting set to:@GALL@w","script")
+               SaveState()
+               return
+          end
+          if HGMVariable["GL"]["AutoRemortInvite"] == "All" then
+               HGMVariable["GL"]["AutoRemortInvite"] = "List"
+               hadarprint("Auto Remort Invite Setting set to:@GAuto Invite List@w","script")
+               SaveState()
+               return
+          end
+     elseif one == "remort" and two == "on" then
+            HGMVariable["GL"]["AutoRemort"] = "yes"
+          hadarprint("Auto Remort inviting:@GENABLED@w","script")
+          SaveState()
+          return
+     elseif one == "remort" and two == "off" then
+            HGMVariable["GL"]["AutoRemort"] = "no"
+          hadarprint("Auto Remort inviting:@RDISBALED@w","script")
+          SaveState()
+          return
      end
      
      if one == "add" and two ~= nil then
@@ -1118,7 +1210,13 @@ end
 function HGMautoinvitetrigger(n,l,wc)
      if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
           if ismember(wc[HGMVariable["GL"]["ClanTriggerNum"]],"AI") and HGMVariable["GL"]["Clan"] == "yes" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
+               if HGMVariable["GL"]["LoggedReport"] ~= "none" then
+                    if HGMVariable["GL"]["LoggedReport"] == "echo" or HGMVariable["GL"]["LoggedReport"] == "print" then
+                        hadarprint(HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
+                    else
+                        SendSpecial(HGMVariable["GL"]["LoggedReport"].." "..HGMVariable["GL"]["Logo"]..wc[HGMVariable["GL"]["ClanTriggerNum"]].." logged in adding to group")
+                    end
+                end
                SendSpecial("group invite "..wc[HGMVariable["GL"]["ClanTriggerNum"]])
           end
      end
@@ -1127,10 +1225,26 @@ end
 function hgmfriendjoined(n,l,wc)
      if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
           if ismember(wc[1],"AI") and HGMVariable["GL"]["Friend"] == "yes" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..wc[1].." logged in adding to group")
+               if HGMVariable["GL"]["LoggedReport"] ~= "none" then
+               SendSpecial(HGMVariable["GL"]["LoggedReport"].." "..HGMVariable["GL"]["Logo"]..wc[1].." logged in adding to group")
+               end
                SendSpecial("group invite "..wc[1])
           end
      end
+end
+
+function hgmAutoInviteRemort(n,l,wc)
+    if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
+        if HGMVariable["GL"]["AutoRemort"] == "yes" then
+          if HGMVariable["GL"]["AutoRemortInvite"] == "List" then
+               if ismember(wc[1],"AI") then
+                    SendSpecial("group invite "..wc[1])
+               end
+          elseif HGMVariable["GL"]["AutoRemortInvite"] == "All" then
+               SendSpecial("group invite "..wc[1])
+          end
+        end
+    end
 end
 
 function hgmConfig(args)
@@ -1378,11 +1492,15 @@ hadarprint("@x086|                        @x214to the autoinvite list           
 hadarprint("@x086|                  @Gfriend@W: @x214same as clan but for friends                @x086|","helpfile")
 hadarprint("@x086|                  @Gadd@W: @x214adds to the autoinvite list                    @x086|","helpfile")
 hadarprint("@x086|                  @Gremove@W: @x214removes person from autoinvite              @x086|","helpfile")
+hadarprint("@x086|                  @Gremort@W:@x214 toggles when someone remorts to autoinvite  @x086|","helpfile")
+hadarprint("@x086|                      @Ctype@W:@x214 toggles autoinvite list(default) and all  @x086|","helpfile")
+hadarprint("@x086|                          @CEG@W:@x214 hgm autoinvite remort type              @x086|","helpfile")
+hadarprint("@x086|                  @Gchannel@W:@x214 sets channel to report on (none for off)   @x086|","helpfile")
 hadarprint("@x086| @x208hgm config     @x110- @x208lets you change commands between trusted and all    @x086|","helpfile")
 hadarprint("@x086|                  @GLeader@W, @GInvite@W, @GRename@W, @GFlag@W, @GCancel@W,@G Kick@W, @GHere@x086    |","helpfile")
 hadarprint("@x086|                  @x208EG@W: @Rhgm config leader @x208... will toggle leader        @x086|","helpfile")
 hadarprint("@x086|                  @GALL@W: @x208will show all current configs                  @x086|","helpfile")
-hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands avilable in the group                @x086|","helpfile")
+hadarprint("@x086| @x214gt ihelp       @x110- @x214shows commands available in the group               @x086|","helpfile")
 hadarprint("@x086| @x208hgm set logo   @x110- @x208Change the setup of the logo                        @x086|","helpfile")
 hadarprint("@x086| @x214hgm import     @x110- @x208imports auto list from pwar's invter                @x086|","helpfile")
 hadarprint("@x086| @x208hgm here <cmd> @x110-@x208 shows a list of who is here to gt                   @x086|","helpfile")
