@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.00"
+   version="2.01"
    >
 
 </plugin>
@@ -298,17 +298,17 @@ function HPMCheck()
                ColourTell("Cyan", "", "[" .. num .. "] ", "SkyBlue", "", script_short .. " ")
                if IsPluginInstalled(HPMVar["cache"][num]["PluginId"]) then
                     if tonumber(HPMVar["cache"][num]["LocalVersion"]) < tonumber(HPMVar["cache"][num]["GHVersion"]) then
-                         Hyperlink("plugin update "..num, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                         Hyperlink("hpm update "..num, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
                     else
-                         Hyperlink("plugin reload "..num, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
+                         Hyperlink("hpm reload "..num, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
                     end
-                    Hyperlink("plugin remove "..num, "[Remove Plugin]", "Reload plugin", "Red", "black", 0, 1)
+                    Hyperlink("hpm remove "..num, "[Remove Plugin]", "Remove plugin", "Red", "black", 0, 1)
                
                     if tonumber(HPMVar["cache"][num]["LocalVersion"]) >= tonumber(HPMVar["cache"][num]["GHVersion"]) then
                          hadarprint(" @x011**@GPLUGIN UP TO DATE@x011**")
                     end
                else
-                    Hyperlink("plugin install "..num, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                    Hyperlink("hpm install "..num, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
                     print("")
                end
 
