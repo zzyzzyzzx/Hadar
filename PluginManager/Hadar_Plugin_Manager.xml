@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.01"
+   version="2.02"
    >
 
 </plugin>
@@ -57,6 +57,7 @@
 require "serialize"
 require "tprint"
 require "aard_requirements" --Use this to check for VI
+require "wait"
 local json = require("json")
 dofile(GetInfo(60) .. "aardwolf_colors.lua")
 
@@ -74,7 +75,7 @@ add auto update checks on login (?maybe timer based)
 function hadarprint(str,level)
 
 	if level == "debug" then
-		if HPMVar.debug == "yes" then
+		if HPMVar["Debug"] == "yes" then
                if HPMVar["VI"] then
                     AnsiNote(ColoursToANSI("@YHPM DEBUG@W: @w"..str.."@w"))
                else
@@ -150,6 +151,8 @@ function OnPluginInstall ()
 		check (EnablePlugin(GetPluginID (), false))
 		return
 	end -- they didn't enable us last time
+
+     pluginfirstrun = "yes"
   
 	OnPluginEnable ()
 end
@@ -158,7 +161,6 @@ function OnPluginEnable ()
 
      HPMVar = {}
      HPMVar["cache"] = {}
-     HPMVar["Debug"] = "no"
 
      if aard_req_novisuals_mode == true then
           HPMVar["VI"] = true
@@ -168,6 +170,8 @@ function OnPluginEnable ()
 
      if GetVariable ("HPMPastFirstInstall") == "true" then
 		assert (loadstring (GetVariable ("HPMVar") or "")) ()
+     else
+          HPMVar["Debug"] = "no"
 	end
 	
      if HPMVar["VI"] then
@@ -237,6 +241,7 @@ function pmMain(n,l,wc)
      end
      
      if first == "check" then
+          HPMVar["Initialized"]="no"
           HPMCheck()
      elseif first == "selfupdate" then
           HPMSelfUpdate()
@@ -254,6 +259,14 @@ function pmMain(n,l,wc)
           HadarHelp()
      elseif first == "show" then
           tprint(HPMVar["cache"])
+     elseif first == "debug" then
+          if HPMVar["Debug"] == "no" then
+               HPMVar["Debug"] = "yes"
+               hadarprint("Debugging turned on","debug")
+          else
+               hadarprint("Debugging turning off","debug")
+               HPMVar["Debug"] = "no"
+          end
      --elseif first == "beta" then
      --     hpmBeta()
      end
@@ -261,58 +274,79 @@ function pmMain(n,l,wc)
 end
 
 function HPMCheck()
-
-     makeRawUrl()
-     buildCache()
-
      local script_short
 
-     if HPMVar["VI"] then --do VI check of plugins
-          hadarprint("List of maintained plugins:")
-          hadarprint("")
-          hadarprint("To install plugin use: hpm install <number>")
-          hadarprint("To update plugin use: hpm update <number>")
-          hadarprint("To remove plugin use: hpm remove <number>")
-          hadarprint("")
+     if HPMVar["Initialized"]=="yes" then
 
-          for num,data in ipairs(HPMVar["cache"]) do --starting loop for VI players
-               script_short = string.upper(string.gsub(data["ShortName"],"_"," ")) --remove the underscore from the short names
+          if HPMVar["VI"] then --do VI check of plugins
+               hadarprint("List of maintained plugins:")
+               hadarprint("")
+               hadarprint("To install plugin use: hpm install <number>")
+               hadarprint("To update plugin use: hpm update <number>")
+               hadarprint("To remove plugin use: hpm remove <number>")
+               hadarprint("")
+
+               for num,data in ipairs(HPMVar["cache"]) do --starting loop for VI players
+                    script_short = string.upper(string.gsub(data["ShortName"],"_"," ")) --remove the underscore from the short names
                
-               if IsPluginInstalled(HPMVar["cache"][num]["PluginId"]) then --check if plugin is installed
-                    if tonumber(HPMVar["cache"][num]["LocalVersion"]) < tonumber(HPMVar["cache"][num]["GHVersion"]) then --if plugin is installed, show commands available
-                         hadarprint(num..": "..script_short.." - Commands available: Update or Remove") --needs an update
+                    if IsPluginInstalled(HPMVar["cache"][num]["PluginId"]) then --check if plugin is installed
+                         if tonumber(HPMVar["cache"][num]["LocalVersion"]) < tonumber(HPMVar["cache"][num]["GHVersion"]) then --if plugin is installed, show commands available
+                              hadarprint(num..": "..script_short.." - Commands available: Update or Remove") --needs an update
+                         else
+                              hadarprint(num..": "..script_short.." - Commands available: Reload or Remove") --no need to update, just reload
+                         end
                     else
-                         hadarprint(num..": "..script_short.." - Commands available: Reload or Remove") --no need to update, just reload
+                         hadarprint(num..": "..script_short.." - Commands available: Install") --plugin not installed, show install
                     end
-               else
-                    hadarprint(num..": "..script_short.." - Commands available: Install") --plugin not installed, show install
-               end
-          end
-
-     else --start non-VI
-
-          hadarprint("@x086+----------@g[@x051L@cist of @x051m@caintained @x051p@clugins@g]@x086----------+@w")
-          for num,data in ipairs(HPMVar["cache"]) do --starting loop for non-VI players
-               script_short = string.upper(string.gsub(data["ShortName"],"_"," "))
-
-               ColourTell("Cyan", "", "[" .. num .. "] ", "SkyBlue", "", script_short .. " ")
-               if IsPluginInstalled(HPMVar["cache"][num]["PluginId"]) then
-                    if tonumber(HPMVar["cache"][num]["LocalVersion"]) < tonumber(HPMVar["cache"][num]["GHVersion"]) then
-                         Hyperlink("hpm update "..num, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
-                    else
-                         Hyperlink("hpm reload "..num, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
-                    end
-                    Hyperlink("hpm remove "..num, "[Remove Plugin]", "Remove plugin", "Red", "black", 0, 1)
-               
-                    if tonumber(HPMVar["cache"][num]["LocalVersion"]) >= tonumber(HPMVar["cache"][num]["GHVersion"]) then
-                         hadarprint(" @x011**@GPLUGIN UP TO DATE@x011**")
-                    end
-               else
-                    Hyperlink("hpm install "..num, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
-                    print("")
                end
 
+          else --start non-VI
+
+               hadarprint("@x086+----------@g[@x051L@cist of @x051m@caintained @x051p@clugins@g]@x086----------+@w")
+               for num,data in ipairs(HPMVar["cache"]) do --starting loop for non-VI players
+                    script_short = string.upper(string.gsub(data["ShortName"],"_"," "))
+                    ColourTell("Cyan", "", "[" .. num .. "] ", "SkyBlue", "", script_short .. " ")
+
+                    if IsPluginInstalled(HPMVar["cache"][num]["PluginId"]) then
+                         if tonumber(HPMVar["cache"][num]["GHVersion"]) == nil then
+                              hadarprint("Something Went Wrong Github Version number not cached, please run command again","error")
+                              if HPMVar["Debug"] == "yes" then
+                                   hadarprint("If in Debug, you will see a table, copy and paste to hadar via personal note or mb.aardwolfboot.com: with this message GHVersion == nil "..num,"debug")
+                                   tprint(HPMVar["cache"])
+                              end
+                              return
+                         elseif tonumber(HPMVar["cache"][num]["LocalVersion"]) == nil then
+                              hadarprint("Something Went Wrong Local Version number not cached, please run command again","error")
+                              if HPMVar["Debug"] == "yes" then
+                                   hadarprint("If in Debug, you will see a table, copy and paste to hadar via personal note or mb.aardwolfboot.com: with this message local == nil "..num,"debug")
+                                   tprint(HPMVar["cache"])
+                              end
+                              return
+                         end
+
+                         if tonumber(HPMVar["cache"][num]["LocalVersion"]) < tonumber(HPMVar["cache"][num]["GHVersion"]) then
+                              Hyperlink("hpm update "..num, "[Update Plugin]", "Download and Update Plugin", "DarkOrange", "black", 0, 1)
+                         else
+                              Hyperlink("hpm reload "..num, "[reload Plugin]", "Reload plugin", "Teal", "black", 0, 1)
+                         end
+                         Hyperlink("hpm remove "..num, "[Remove Plugin]", "Remove plugin", "Red", "black", 0, 1)
+               
+                         if tonumber(HPMVar["cache"][num]["LocalVersion"]) >= tonumber(HPMVar["cache"][num]["GHVersion"]) then
+                              hadarprint(" @x011**@GPLUGIN UP TO DATE@x011**")
+                         else --keep this else in, to force a pagebreak between 2 plugins that need to be updated or else they will be on same line
+                              hadarprint("")
+                         end
+                    else
+                         Hyperlink("hpm install "..num, "[Install Plugin]", "Install Plugin", "DarkOrange", "black", 0, 1)
+                         print("")
+                    end
+
+               end
+               hadarprint("@x086+------------------------------------------------+@w")
           end
+     else
+          makeRawUrl()
+          buildCache()
      end
 end
 
@@ -336,6 +370,15 @@ function HPMUpdate(PID)
      local script_pid = HPMVar["cache"][script_id]["PluginId"]
      local script_short = string.upper(string.gsub(HPMVar["cache"][script_id]["ShortName"],"_"," "))
      local script_rawurl
+
+     if tonumber(HPMVar["cache"][script_id]["LocalVersion"]) == nil or tonumber(HPMVar["cache"][script_id]["GHVersion"]) == nil then
+          hadarprint("Something went wrong while caching, please run HPM check again","error")
+          if HPMVar["Debug"] == "yes" then
+               hadarprint("If in Debug, you will see a table, copy and paste to hadar via personal note or mb.aardwolfboot.com: with this message hpm update == nil"..script_id,"debug")
+               tprint(HPMVar["cache"])
+          end
+          return
+     end
 
      if tonumber(HPMVar["cache"][script_id]["LocalVersion"]) >= tonumber(HPMVar["cache"][script_id]["GHVersion"]) then
           hadarprint("Plugin: "..script_short.." Already up to date, if need to reload use HPM reload "..num,"error")
@@ -499,6 +542,7 @@ end
 function buildCache()
      cache_Len = tablelength(rawPluginUrl)
      cache_res = 0
+     HPMVar["Initialized"]="no"
      
      async_ok, async = pcall (require, "async")
      if async_ok then
@@ -532,7 +576,8 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
      end
      
    
-     if cache_res >= cache_Len then      
+     if cache_res >= cache_Len then   
+          hadarprint("Fired Cache_Res("..cache_res..") >= cache_Len("..cache_Len..")","debug")   
           HPMVar["cache"][cache_res]["ShortName"] = WName
           HPMVar["cache"][cache_res]["RawName"] = rawname
           HPMVar["cache"][cache_res]["GHVersion"] = ghVersion
@@ -540,7 +585,14 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           HPMVar["cache"][cache_res]["LocalVersion"] = lVersion
           HPMVar["cache"][cache_res]["LongName"] = lname
           HPMVar["cache"][cache_res]["url"] = request_url
+          HPMVar["Initialized"]="yes"
+          if pluginfirstrun == "yes" then
+               pluginfirstrun = "no"
+          else
+               HPMCheck()
+          end
      else
+          hadarprint("Fired Cache_Res("..cache_res..") < cache_Len("..cache_Len..")","debug")   
           HPMVar["cache"][cache_res]["ShortName"] = WName
           HPMVar["cache"][cache_res]["RawName"] = rawname
           HPMVar["cache"][cache_res]["GHVersion"] = ghVersion
