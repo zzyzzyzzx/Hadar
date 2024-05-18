@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.10"
+   version="1.11"
    >
 
 </plugin>
@@ -589,7 +589,7 @@ function OnPluginEnable ()
 	if currentState == 3 then
 		SendSlistCommand()
 	end
-	
+
 	if Spellups["GL"]["clan"] ~= "none" then 
 		if Spellups["GL"]["clan"] ~= "" then
 			Spellups["EX"]["clanskill"] = tonumber(table.find(Spellups["GL"]["clan"],Spellups["AS"]["cSkills"])) or "none"
@@ -597,7 +597,34 @@ function OnPluginEnable ()
 				hadarprint("Your Clan skill is not noted, please contact hadar","error")
 				return
 			else
-				hadarprint("Clan skill Set to: @G"..Spellups["AS"]["list"][Spellups["EX"]["clanskill"]]["name"].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
+				local cskill = Spellups["EX"]["clanskill"]
+				local CSkillName = {
+					[468] = "Transcend",
+					[483] = "Intervention",
+					[489] = "Gift",
+					[492] = "Exaltation",
+					[463] = "Battlefaith",
+					[466] = "Daes",
+					[470] = "Stupor",
+					[505] = "Choreography",
+					[488] = "Anoint",
+					[498] = "Xochimiqui",
+					[479] = "Oath",
+					[471] = "Fate",
+					[480] = "Vendetta",
+					[475] = "Mandrake",
+					[490] = "Pride",
+					[485] = "Gloom",
+					[481] = "Houyou",
+					[486] = "Rage",
+					[497] = "Redemption",
+					[510] = "Conspire",
+					[509] = "Espresso",
+					[499] = "Qi",
+					[496] = "Aggrandize",
+					[606] = "Napalm"
+					}
+				hadarprint("Clan skill Set to: @G"..CSkillName[cskill].." @C[@G"..Spellups["EX"]["clanskill"].."@C]@w","script")
 			end
 		end
 	end
@@ -662,7 +689,7 @@ function buildInitial()
     ["amazon"] = 490,
     ["pyre"] = 485,
     ["masaki"] = 481,
-    ["rhabdo"] = 524,
+    ["rhabdo"] = 486,
     ["perdition"] = 497,
     ["loqui"] = 510,
     ["gaardian"] = 509,
@@ -1101,6 +1128,26 @@ function affoff(name,line,wc)
 		hadarprint("affected by recovery:"..Spellups["AS"]["list"][sn]["name"].." not recasting","debug")
 		return
 	end
+
+	local subclass = gmcp("char.base.subclass")
+	local playerTier = tonumber(gmcp("char.base.tier")) or -1
+	local playerLevel = tonumber(gmcp("char.base.tier")) or -1
+	local totalLevel = tonumber(playerLevel+playerTier)
+
+	if subclass == "Priest" then --make a subclass exception for falling sanc
+		if totalLevel >= 121 then --check to make sure they can cast party sanc
+			if sn == 71 then --lets check for sanc
+				hadarprint("Sanc off and level >= 121, and a priest! we are recasting party sanc!","debug")
+				castline = "cast 'party sanctuary'"
+				if Spellups["GL"]["seespells"] == "yes" then
+					Send(castline)
+				else
+					SendNoEcho(castline)
+				end
+				return
+			end
+		end
+	end
 	
 	if Spellups["AS"]["list"][sn]["target"] == 2 or Spellups["AS"]["list"][sn]["target"] == 3 or sn == Spellups["EX"]["clanskill"] or sn == Spellups["EX"]["clanskillV1"] or sn == 569 then
 		if currentState == 8 then
@@ -1195,6 +1242,15 @@ function sfail(name,line,wc)
 	
 	if fl == 1 or fl == 6 then
 		hadarprint("FL 1 or 6!","debug")
+		if sn == 414 then -- check if party sanctuary failed we are going to just do the recast here
+			local castline = "cast '"..Spellups["AS"]["list"][sn]["name"].."'"
+			if Spellups["GL"]["seespells"] == "yes" then
+				Send(castline)
+			else
+				SendNoEcho(castline)
+			end 
+			return
+		end
 		if sn == 121 then
 			Spellups["QS"][sn] = Spellups["AS"]["list"][sn]["name"]
 		end
