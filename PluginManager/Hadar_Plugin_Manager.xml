@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.03"
+   version="2.04"
    >
 
 </plugin>
@@ -441,7 +441,7 @@ function HPMInstall(PID)
           
           if status == 200 then
                print("Plugin installing","debug")
-               local lscript = io.open(script_name,"w")
+               local lscript = io.open(script_install,"w")
                lscript:write(page)
                lscript:close()
           else --end status 200
@@ -575,7 +575,7 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           hadarprint("set plugin id:"..pid,"debug")
           lVersion = GetPluginInfo(pid,19) or 0
           hadarprint("set local version:"..lVersion,"debug")
-          lname = GetPluginInfo(pid,6) or GetPluginInfo (GetPluginID (), 20)..rawname..".xml"
+          lname = GetPluginInfo(pid,6) or GetInfo(60)..rawname..".xml"
           hadarprint("set long name:"..lname,"debug")
           HPMVar["cache"][cache_res] = {}
      else
