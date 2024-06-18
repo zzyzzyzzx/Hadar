@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.02"
+   version="2.03"
    >
 
 </plugin>
@@ -440,7 +440,7 @@ function HPMInstall(PID)
           retval, page, status, headers, full_status = script_rawurl:join()
           
           if status == 200 then
-               print("Plugin fake installed")
+               print("Plugin installing","debug")
                local lscript = io.open(script_name,"w")
                lscript:write(page)
                lscript:close()
@@ -561,14 +561,22 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
      local WName,rawname,ghVersion,pid,lVersion,lname
      
      cache_res = cache_res + 1
+
+     hadarprint("Status:"..status,"debug")
      
      if status == 200 then
           WName = getName(page,false)
+          hadarprint("set wname:"..WName,"debug")
           rawname = string.match(page, '%s+name="([a-zA-Z0-9_]+)"')
+          hadarprint("set rawname:"..rawname,"debug")
           ghVersion = string.match(page, '%s%s+version="(%d+%.?%d+)"')
+          hadarprint("set github version:"..ghVersion,"debug")
           pid = string.match(page, '%s+id="(%w+)"')
-          lVersion = GetPluginInfo(pid,19)
-          lname = GetPluginInfo(pid,6)
+          hadarprint("set plugin id:"..pid,"debug")
+          lVersion = GetPluginInfo(pid,19) or 0
+          hadarprint("set local version:"..lVersion,"debug")
+          lname = GetPluginInfo(pid,6) or GetPluginInfo (GetPluginID (), 20)..rawname..".xml"
+          hadarprint("set long name:"..lname,"debug")
           HPMVar["cache"][cache_res] = {}
      else
           hadarprint("Cant connect to github","error")
