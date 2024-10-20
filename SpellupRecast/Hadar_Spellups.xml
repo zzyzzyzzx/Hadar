@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.11"
+   version="1.12"
    >
 
 </plugin>
@@ -421,9 +421,9 @@ function hadarprint(str,level)
 					end)
 			end
 			text = string.gsub(text, ("(%x%x)"), ascii_2_utf82)
-			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+			AnsiNote(ColoursToANSI(utils.fromhex(text).."@w"))
 		else
-			AnsiNote(ColoursToANSI(str))
+			AnsiNote(ColoursToANSI(str.."@w"))
 		end
 	elseif level == "helpfile2" then
 		if utfset then
@@ -441,14 +441,14 @@ function hadarprint(str,level)
 					end)
 			end
 			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
-			AnsiNote(ColoursToANSI(utils.fromhex(text)))
+			AnsiNote(ColoursToANSI(utils.fromhex(text).."@w"))
 		else
-			AnsiNote(ColoursToANSI(str))
+			AnsiNote(ColoursToANSI(str.."@w"))
 		end
 	elseif level == "noclan" then
-		AnsiNote(ColoursToANSI("@G[@x214hsp @YNO CLAN@G]@W:@w"..str))
+		AnsiNote(ColoursToANSI("@G[@x214hsp @YNO CLAN@G]@W:@w"..str.."@w"))
 	else
-		AnsiNote(ColoursToANSI(str))
+		AnsiNote(ColoursToANSI(str.."@w"))
 	end
 	
 end
@@ -511,6 +511,7 @@ function OnPluginBroadcast(msg, id, name, text)
 				Spellups["GL"]["DisabledReason"] = "died2"
 			end
 			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
+			currentmana = tonumber(gmcpval("vitals.mana"))
 			if currentmana >= percentage then
 				if Spellups["GL"]["DisabledReason"] == "died2" then
 					hadarprint("trying to recast","debug")
@@ -1218,6 +1219,13 @@ function sfail(name,line,wc)
 		return
 	end
 
+	if table.find(sn,Spellups["AS"]["spellup"]) == nil then
+		hadarprint("That is not a spellup spell/skill, not registering","debug")
+		return
+	else
+		hadarprint("Found spellup skill/spell that failed"..sn,"debug")
+	end
+
 	if fl == 4 then
 		Spellups["GL"]["failed"] = Spellups["GL"]["failed"] + 1
 		if tonumber(Spellups["GL"]["failed"]) > 5 then
@@ -1827,7 +1835,7 @@ function rcwarning(arg)
 			 if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 				  hadarprint(message)
 			 else
-				  SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+				  SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 			 end
 		end
 		
@@ -1961,7 +1969,7 @@ function totemattack(n,l,w)
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -1995,7 +2003,7 @@ function totemkilled(n,l,w)
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2032,7 +2040,7 @@ function totemalive(n,l,w)
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2062,7 +2070,7 @@ function totemdead()
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2080,7 +2088,7 @@ function totemrecovery()
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2760,7 +2768,7 @@ function eyeTrigger(n,l,w)
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2776,7 +2784,7 @@ function eyeGoByeBye()
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2792,7 +2800,7 @@ function eyeGoByeByeDismissed()
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
@@ -2809,7 +2817,7 @@ function eyeRecovery()
 		if Spellups["MS"]["channel"] == "echo" or Spellups["MS"]["channel"] == "print" then
 			 hadarprint(message)
 		else
-			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message)
+			 SendSpecial(Spellups["MS"]["channel"] .. " " ..message.."@w")
 		end
    end
 
