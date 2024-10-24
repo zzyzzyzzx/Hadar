@@ -1,8 +1,13 @@
 Hadar's Group Manager
 
-V1.63
+V1.65
+October 23 2024
+-fixed feature that had random uppercase H that stood for Hadar, now lowercast and stnads for nothing
+
+V1.64
 April 25 2024
 -made it so remort invites can be limited to the autoinvite list
+
 v1.63
 January 4 2024
 -fixed gt rename <stuff> bug
