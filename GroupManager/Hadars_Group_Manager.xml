@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.64"
+   version="1.65"
    >
 
 </plugin>
@@ -454,9 +454,9 @@ function hgmTellMessage(p,m)
           a = trim(string.lower(a))
           if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
                if ismember(a,"BL") then
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked "..a.." to join the party, @Dblacklisted @Rno invite sent@w")
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked "..a.." to join the party, @Dblacklisted @Rno invite sent@w")
                else
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked "..a.." to join the party, @Ginvite sent@w")
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked "..a.." to join the party, @Ginvite sent@w")
                     SendSpecial("group invite "..a)
                end
           else
@@ -465,9 +465,9 @@ function hgmTellMessage(p,m)
      elseif command == HGMVariable["GL"]["Phrase"] and args == nil then
           if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
                if ismember(p,"BL") then
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked to join the party, @Dblacklisted @Rno invite sent@w")
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked to join the party, @Dblacklisted @Rno invite sent@w")
                else
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." Has asked to join the party, @Ginvite sent@w")
+                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked to join the party, @Ginvite sent@w")
                     SendSpecial("group invite "..p)
                end
           else
