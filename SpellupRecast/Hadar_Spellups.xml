@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.12"
+   version="1.13"
    >
 
 </plugin>
@@ -926,6 +926,9 @@ function SlistUpdate(name, line, wildcards)
     if tg == 2 or tg == 3 then
         Spellups["AS"]["spellup"][sn] = nm
     end
+	if sn == 414 then
+		Spellups["AS"]["spellup"][sn] = nm
+	end
     if tg == 5 then
         Spellups["AS"]["other"][sn] = nm
     end
