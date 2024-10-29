@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.13"
+   version="1.14"
    >
 
 </plugin>
@@ -326,6 +326,15 @@ sequence="100"
 		name="do_vis"
 		match="vis"
 		script="make_vis"
+		enabled="y"
+		sequence="1"
+		ignore_case="y"
+	>
+	</alias>
+	<alias
+		name="do_land"
+		match="land"
+		script="make_land"
 		enabled="y"
 		sequence="1"
 		ignore_case="y"
@@ -1656,12 +1665,28 @@ function make_vis()
 		return
 	end
 	
-	Spellups["GL"]["disabled"] = "yes"
+	HSPDisable("silentoff")
 	
 	SendNoEcho("vis")
 	EnableAlias("do_vis", true)
 	
-	DoAfterSpecial(1, "hsp disable silent", 10) -- execute
+	DoAfterSpecial(1, "hsp disable silenton", 10) -- execute
+end
+
+function make_land()
+	if Spellups["GL"]["disabled"] == "yes" then
+		return
+	end
+
+	hadarprint("Letting you land","script")
+	EnableAlias("do_land", false)
+	
+	HSPDisable("silentoff")
+	
+	SendNoEcho("land")
+	EnableAlias("do_land", true)
+	
+	DoAfterSpecial(1, "hsp disable silenton", 10) -- execute
 end
 
 function HSPreload()
