@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.14"
+   version="1.15"
    >
 
 </plugin>
@@ -498,7 +498,7 @@ function OnPluginBroadcast(msg, id, name, text)
 			
 			currentmana = tonumber(gmcpval("vitals.mana"))
 			if type(currentmana) ~= "number" then
-				currentmana = nil
+				currentmana = 0
 			end
 		end
 		if (text == "char.maxstats") then
