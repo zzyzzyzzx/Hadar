@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.15"
+   version="1.16"
    >
 
 </plugin>
@@ -515,10 +515,14 @@ function OnPluginBroadcast(msg, id, name, text)
 		end
 		if Spellups["GL"]["SpellsDisabled"] == "yes" then
 			hadarprint("SpellsDisabled == yes","debug")
+			hadarprint(Spellups["GL"]["DisabledReason"],"debug")
 			if Spellups["GL"]["DisabledReason"] == "died" then
 				currentmana = 0
 				Spellups["GL"]["DisabledReason"] = "died2"
+			else
+				return
 			end
+			maxmana = tonumber(gmcpval("maxstats.maxmana"))
 			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
 			currentmana = tonumber(gmcpval("vitals.mana"))
 			if currentmana >= percentage then
