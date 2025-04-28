@@ -15,7 +15,7 @@
    save_state="y"
    date_written="2016-09-20 14:51:44"
    requires="4.00"
-   version="1.54"
+   version="1.55"
    >
 <description trim="y">
 <![CDATA[
@@ -396,7 +396,6 @@ function OnPluginBroadcast(msg, id, name, text)
 		
 			if i=="qp" then Hadarsqpstrackers.qp=v end
 			if i=="tierqp" then Hadarsqpstrackers.tierqp=v end
-			if i=="mccp" then Hadarsqpstrackers.mccp=v end
 			if i=="lucky" then Hadarsqpstrackers.lucky=v end
 			if i=="double" then Hadarsqpstrackers.double=v end
 			if i=="totqp" then Hadarsqpstrackers.totqp=v end
@@ -473,7 +472,6 @@ function MakeOutput(where)
 local output = "@CL@cast "..string.upper(where)
 	if where=="q" then
 		output = output.." @W(@R"..Hadarsqpstrackersqtime.hour.."@Wh @R"..Hadarsqpstrackersqtime.min.."@Wm @R"..Hadarsqpstrackersqtime.sec.."@Ws)@w @CT@cotal @CQ@cps@W: @R"..Hadarsqpstrackers.totqp.." @W/ @CB@creakdown@W: @R"..Hadarsqpstrackers.qp.."@C @Cb@case"
-		if tonumber(Hadarsqpstrackers.mccp) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.mccp.." @Cm@cccp@W" end
 		if tonumber(Hadarsqpstrackers.lucky) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.lucky.." @Cl@cucky" end
 		if tonumber(Hadarsqpstrackers.tier) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.tierqp.." @Ct@cier" end
 		if tonumber(Hadarsqpstrackers.opk) ~= 0 then output = output.."@W, @R"..Hadarsqpstrackers.opk.." @Co@cpk" end
@@ -513,7 +511,7 @@ local output = "@CL@cast "..string.upper(where)
 	output = output .. "@w"
 	
 	if tonumber(Hadarsqpstrackers.daily)==1 then
-	Hadarsqpstrackers.dailyqps=Hadarsqpstrackers.qp+Hadarsqpstrackers.mccp+Hadarsqpstrackers.tierqp
+	Hadarsqpstrackers.dailyqps=Hadarsqpstrackers.qp+Hadarsqpstrackers.tierqp
 	
 	end
 	
@@ -624,7 +622,6 @@ if Hadarsqpstrackerstotal.tier == nil then Hadarsqpstrackerstotal.tier=0 end
 if Hadarsqpstrackerstotal.bonus == nil then Hadarsqpstrackerstotal.bonus=0 end
 if Hadarsqpstrackerstotal.success == nil then Hadarsqpstrackerstotal.success=0 end
 if Hadarsqpstrackerstotal.avgqp == nil then Hadarsqpstrackerstotal.avgqp=0 end
-if Hadarsqpstrackerstotal.mccp == nil then Hadarsqpstrackerstotal.mccp=0 end
 if Hadarsqpstrackerstotal.trivia == nil then Hadarsqpstrackerstotal.trivia=0 end
 if Hadarsqpstrackerstotal.trains == nil then Hadarsqpstrackerstotal.trains=0 end
 if Hadarsqpstrackerstotal.pracs == nil then  Hadarsqpstrackerstotal.pracs=0 end
