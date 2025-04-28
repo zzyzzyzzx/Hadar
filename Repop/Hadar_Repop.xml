@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2016-09-20 09:04:48"
    requires="4.00"
-   version="1.52"
+   version="1.54"
    >
 </plugin>
 
@@ -49,6 +49,21 @@
 <![CDATA[
 
 require "gmcphelper" -- adds the gmcp() function for simplifying data access
+dofile(GetInfo(60) .. "aardwolf_colors.lua")
+
+function hadarprint(str,level)
+
+	if level == "debug" and expTracker["GL"].Debug == "yes" then
+		AnsiNote(ColoursToANSI("@G[@YDEBUG@G]@W:@w"..str))
+	elseif level == "error" then
+          AnsiNote(ColoursToANSI("@R[@MRepop @rERROR@R]@W:@w"..str))
+     elseif level == "script" then
+          AnsiNote(ColoursToANSI("@G[@CR@cepop@CT@cracker@G]@c"..str))
+     else
+		AnsiNote(ColoursToANSI(str))
+	end
+	
+end
 
 function gmcp(what) --pulled from gmcp helper, lets see if fixes older version
 	result, value = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval", what)
@@ -73,8 +88,8 @@ end -- function OnPluginSaveState
 
 function setChannel(name, line, wildcards)
 	if wildcards[1] ~= nil then
-		repopVar.channel = wildcards[1]
-		ColourNote("Teal","","Repop Report channel set to ","Green","",repopVar.channel)
+		repopVar.chan = wildcards[1]
+		hadarprint("@CRepop report channel set to @G"..repopVar.chan,"script")
 	end
 end
 
@@ -82,7 +97,7 @@ function repopset()
 	HadarBackup = repopVar.repopString
 	repopVar.repopString = utils.inputbox ("Has 3 variables:\n${name} - Area\n${hour} - Time hours\n${min} - Time mins", "Look of repopTracker", repopVar.repopString, "Courier", 9)
 	if repopVar.repopString ~= nil then
-		SendNoEcho("echo repop will look like: "..repopVar.repopString)
+		hadarprint("repop will look like: "..repopVar.repopString,"script")
 	else
 		repopVar.repopString = HadarBackup
 	end
@@ -97,7 +112,7 @@ function OnPluginInstall ()
 		return
 	end -- they didn't enable us last time
 	
-	print("had help (to see all of hadar's plugin helpfiles), or repop help to just see this one")
+	hadarprint("had help (to see all of hadar's plugin helpfiles), or repop help to just see this one","script")
   
 	OnPluginEnable ()
 end
@@ -116,6 +131,7 @@ end
 
 function buildInitial()
 	repopVar.repopString = "@W${name} @Cr@cepoped @Ca@ct @R${hour}@w:@R${min}@w"
+	repopVar.chan = "echo"
 	SaveState()
 end
 
@@ -138,7 +154,11 @@ local time
 	  end
 	  	repopVar.Data = interp(repopVar.repopString, {name = zone, hour = timehour, min = timemin})
 		--repopVar.Data = string.format(repopVar.repopString,zone,timehour,timemin)
-		SendSpecial(repopVar.channel.." "..repopVar.Data)
+		if repopVar.chan == "echo" or repopVar.chan == "print" then
+			hadarprint(repopVar.Data)
+		else
+			SendSpecial(repopVar.chan.." "..repopVar.Data)
+		end
 		
 		
 		
