@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.65"
+   version="1.66"
    >
 
 </plugin>
@@ -244,7 +244,7 @@ function OnPluginEnable ()
           hadarprint("Looks like this is your first install, Lets get you setup! hgm for help","script")
 		injectVars()
 	end
-     AddTrigger("ClannieJoins", HGMVariable["GL"]["ClanTrigger"], "", 3 , -1, 1, "", "HGMautoinvitetrigger")
+     AddTrigger("ClannieJoins", HGMVariable["GL"]["ClanTrigger"], "", 3 , -1, 0, "", "HGMautoinvitetrigger")
 
      local fonts = utils.getfontfamilies ()
    	
