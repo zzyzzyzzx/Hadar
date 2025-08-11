@@ -794,6 +794,9 @@ function hgmsetmsg(msg)
 end
 
 function ismember(set,key)
+     if set == nil or set == "" then
+          return false
+     end
      set = string.lower(set)
      if HGMVariable[key] == nil then
           return false
@@ -1097,6 +1100,11 @@ function hgmblacklist(msg)
      if two == "" or two == " " then
           two = nil
      end
+     if (one == "add" or one == "remove") and two == nil then
+          hadarprint("You need to specify a name, EG. hgm trust add hadar", "script")
+          return
+     end
+
      if two ~= nil then
           two = string.lower(two)
           
@@ -1152,6 +1160,11 @@ function hgmtrusted(msg)
      if two == "" or two == " " then
           two = nil
      end
+     if (one == "add" or one == "remove") and two == nil then
+     hadarprint("You need to specify a name, EG. hgm trust add hadar", "script")
+          return
+     end
+
      if two ~= nil then
           two = string.lower(two)
           
