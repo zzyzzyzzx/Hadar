@@ -195,7 +195,15 @@ function hadarprint(str,level)
 						return ascii_2_utf8[c]
 					end)
 			end
-			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
+			-- safer mapping: keep hex intact until fromhex
+			text = string.gsub(text, "(%x%x)", function(hex)
+				local val = tonumber(hex, 16)
+				if val and val >= 32 and val <= 126 then
+					return hex -- keep ASCII as hex
+				else
+					return ascii_2_utf8[hex] or hex
+				end
+			end)
 			AnsiNote(ColoursToANSI(utils.fromhex(text)))
 		else
 			AnsiNote(ColoursToANSI(str))
@@ -205,6 +213,7 @@ function hadarprint(str,level)
 	end
 	
 end
+
 
 function OnPluginSaveState ()
 	SetVariable ("HGMVariable", "HGMVariable = " .. serialize.save_simple (HGMVariable))
