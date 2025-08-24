@@ -193,7 +193,7 @@ end
 
 function buildInitial()
 
-	idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+	idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${ @CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
      
      
 	idreport.maxid = 25
@@ -257,6 +257,7 @@ function hidMain(n,l,w)
     showid(first,rest)
   else
     EnableTriggerGroup("idCap", true)
+    totalstat = 0
     local blegh, megh = rest:match("([0-9.a-zA-Z]*)%s*(.*)")
     if blegh == "worn" then
       --SendNoEcho("identify "..first.." worn")
@@ -293,7 +294,7 @@ function hadarresetfull()
      report = {}
 	idreport = {}
      
-     idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+     idreport.output = "${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${ @CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
      
      
 	idreport.maxid = 25
@@ -630,26 +631,36 @@ function infoCap(name, line, wildcards, styles)
 
   if (int ~= nil) then
     report.Int = int
+    totalstat = totalstat + tonumber(int)
   end -- if
 
   if (wis ~= nil) then
     report.Wis = wis
+    totalstat = totalstat + tonumber(wis)
   end -- if
 
   if (luck ~= nil) then
     report.Luck = luck
+    totalstat = totalstat + tonumber(luck)
   end -- if
 
   if (str ~= nil) then
     report.Str = str
+    totalstat = totalstat + tonumber(str)
   end -- if
 
   if (dex ~= nil) then
     report.Dex = dex
+    totalstat = totalstat + tonumber(dex)
   end -- if
 
   if (con ~= nil) then
     report.Con = con
+    totalstat = totalstat + tonumber(con)
+  end -- if
+
+  if (totalstat > 0 or totalstat < 0) then
+    report.totalstat = totalstat
   end -- if
 
   if (hp ~= nil) then
@@ -992,7 +1003,7 @@ function makeOutput()
 		, keywords = report.Keywords
 		, type = report.Type
 		, worth = report.Worth
-		, totalstat = report.totalstats
+		, totalstat = report.totalstat
 		, material = report.Material
 		, affmod = report.AffectMods
 		, foundat = report.FoundAt
@@ -1403,7 +1414,7 @@ elseif param == "examples" then
 helpfile = [[
 +---------------------------[Identify Examples]------------------------+
 Default:
-${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w
+${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${ @CT@cot@CS@ctats@W:@R|totalstat}${ @CS@ctr@W:@R|str}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w
 
 Bid Number and name only:
 ${BID:|bidnum}${RBID:|rbidnum}${LBID:|lbidnum} ${name} 
