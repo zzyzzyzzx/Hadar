@@ -286,7 +286,7 @@ end --end of qpsgoalMain()
 function hadarreset()
      hadarprint("@Yif this was a mistake your output was:@W")
      print(idreport.output)
-     idreport.output = "${@GBID:@w|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${@CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
+     idreport.output = "${@GBID:@w|bidnum}${RBID:|rbidnum}${LBID:|lbidnum}@c[@CID@w:@R${repid}@c]@w ${name} @CL@cvl@W:@R${lvl} ${@Ca@cvg@CD@cmg@W:@R|avedam} ${@Cw@cear@CL@coc@W:@R|wearable}${@CL@ceads @CTo@W:@R|leadsto} @G(${@CW@ceight@W:@R|weight}@G) @g[${@CC@capacity@W:@R|capacity}${ @CT@cot@CW@ceight@w:@R|totweight}${ @CW@ceight@CR@ceduction@W:@R|weightred}${@CH@cr@W:@R|hr}${ @CD@cr@W:@R|dr}${ @CI@cnflicts@W:@R|inflicts}${ @CS@cpecials@W:@R|specials}${@CU@cse@W:@R|spelluse}${ @CN@came@W:@R|spellname}${ @CL@cevel@W:@R|spelllevel}${ @CT@cot@CS@ctats@W:@R|totalstat}${ @CI@cnt@W:@R|int}${ @CW@cis@W:@R|wis}${ @CD@cex@W:@R|dex}${ @CC@con@W:@R|con}${ @CL@cuck@W:@R|luck}${ @Cp@coints@W:@R|score}@g]@w @G(@w${enchantsolid}${enchantreso}${enchantillum}@G)@w"
      hadarprint("@CReport output set to original")
 end
 
