@@ -150,6 +150,7 @@ dofile(GetInfo(60) .. "aardwolf_colors.lua")
 local overwriteChannel = "echo"
 local OldChannel = nil
 
+totalstat = 0
 
 function OnPluginSaveState ()
 	SetVariable ("idreport", "idreport = " .. serialize.save_simple (idreport))
@@ -1217,6 +1218,7 @@ end
 
 function autoidenta(name, line, wildcards)
 	if idreport.autoid == "yes" then
+    totalstat = 0
 		EnableTriggerGroup("idCap", true)
 		report.bidNum = wildcards[1]
 		SendSpecial("bid "..report.bidNum)
@@ -1225,6 +1227,7 @@ end
 
 function autoidentr(name, line, wildcards)
 	if idreport.autoid == "yes" then
+    totalstat = 0
 		EnableTriggerGroup("idCap", true)
 		report.rbidNum = wildcards[1]
 		SendSpecial("rbid "..report.rbidNum)
@@ -1232,6 +1235,7 @@ function autoidentr(name, line, wildcards)
 end
 
 function autoidentl(name, line, wildcards)
+  totalstat = 0
 	if idreport.autoid == "yes" then
     EnableTriggerGroup("idCap", true)
 		report.lbidNum = wildcards[1]
@@ -1240,6 +1244,7 @@ function autoidentl(name, line, wildcards)
 end
 
 function hidlbid(str)
+  totalstat = 0
   local first, rest = str:match("(%d+)%s*(.*)")
   EnableTriggerGroup("idCap", true)
   report.lbidNum = first
@@ -1253,6 +1258,7 @@ function hidlbid(str)
 end
 
 function hidrbid(str)
+  totalstat = 0
   local first, rest = str:match("(%d+)%s*(.*)")
   EnableTriggerGroup("idCap", true)
   report.rbidNum = first
@@ -1266,6 +1272,7 @@ function hidrbid(str)
 end
 
 function hidbid(str)
+  totalstat = 0
   local first, rest = str:match("(%d+)%s*(.*)")
   EnableTriggerGroup("idCap", true)
   report.bidNum = first
