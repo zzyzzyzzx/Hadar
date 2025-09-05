@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.05"
+   version="2.06"
    >
 
 </plugin>
@@ -661,6 +661,7 @@ function Raw_Update(retval, page, status, headers, full_status, request_url)
                 SetAlphaOption("script_prefix", "\\\\\\")
             end
             Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+            HPMVar["cache"] = {}
             hadarprint("Updating is complete, Have a muddish day!","script")
         elseif tonumber(raw_version) < tonumber(PLUGIN_VERSION) then
           hadarprint("Your development is too quick!","error")
