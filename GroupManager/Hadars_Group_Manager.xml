@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.66"
+   version="1.67"
    >
 
 </plugin>
@@ -195,7 +195,15 @@ function hadarprint(str,level)
 						return ascii_2_utf8[c]
 					end)
 			end
-			text = string.gsub(text, ("(%x%x)"), ascii_2_utf8)
+			-- safer mapping: keep hex intact until fromhex
+			text = string.gsub(text, "(%x%x)", function(hex)
+				local val = tonumber(hex, 16)
+				if val and val >= 32 and val <= 126 then
+					return hex -- keep ASCII as hex
+				else
+					return ascii_2_utf8[hex] or hex
+				end
+			end)
 			AnsiNote(ColoursToANSI(utils.fromhex(text)))
 		else
 			AnsiNote(ColoursToANSI(str))
@@ -205,6 +213,7 @@ function hadarprint(str,level)
 	end
 	
 end
+
 
 function OnPluginSaveState ()
 	SetVariable ("HGMVariable", "HGMVariable = " .. serialize.save_simple (HGMVariable))
@@ -794,6 +803,9 @@ function hgmsetmsg(msg)
 end
 
 function ismember(set,key)
+     if set == nil or set == "" then
+          return false
+     end
      set = string.lower(set)
      if HGMVariable[key] == nil then
           return false
@@ -1097,6 +1109,11 @@ function hgmblacklist(msg)
      if two == "" or two == " " then
           two = nil
      end
+     if (one == "add" or one == "remove") and two == nil then
+          hadarprint("You need to specify a name, EG. hgm trust add hadar", "script")
+          return
+     end
+
      if two ~= nil then
           two = string.lower(two)
           
@@ -1152,6 +1169,11 @@ function hgmtrusted(msg)
      if two == "" or two == " " then
           two = nil
      end
+     if (one == "add" or one == "remove") and two == nil then
+     hadarprint("You need to specify a name, EG. hgm trust add hadar", "script")
+          return
+     end
+
      if two ~= nil then
           two = string.lower(two)
           
