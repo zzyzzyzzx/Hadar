@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.06"
+   version="2.07"
    >
 
 </plugin>
@@ -546,6 +546,7 @@ function buildCache()
      hadarprint("BuildCache().cache_Len: ("..cache_Len..")","debug")
      cache_res = 0
      hadarprint("BuildCache().cache_res: ("..cache_res..")","debug")
+     HPMVar["cache"] = {}
      HPMVar["Initialized"]="no"
      
      async_ok, async = pcall (require, "async")
