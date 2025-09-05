@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2024-05-07 09:00:00"
    requires="4.00"
-   version="2.04"
+   version="2.05"
    >
 
 </plugin>
@@ -259,6 +259,8 @@ function pmMain(n,l,wc)
           HadarHelp()
      elseif first == "show" then
           tprint(HPMVar["cache"])
+     elseif first == "delcache" then
+          HPMVar["cache"] = {}
      elseif first == "debug" then
           if HPMVar["Debug"] == "no" then
                HPMVar["Debug"] = "yes"
@@ -541,15 +543,21 @@ end
 
 function buildCache()
      cache_Len = tablelength(rawPluginUrl)
+     hadarprint("BuildCache().cache_Len: ("..cache_Len..")","debug")
      cache_res = 0
+     hadarprint("BuildCache().cache_res: ("..cache_res..")","debug")
      HPMVar["Initialized"]="no"
      
      async_ok, async = pcall (require, "async")
      if async_ok then
           
-     for a,b in pairs (rawPluginUrl) do
-         plugin_page = async.doAsyncRemoteRequest(b, raw_get_cache, "HTTPS") 
-     end -- end for loop
+          for a,b in pairs (rawPluginUrl) do
+               if b == nil or b == "" or b==" " then
+                    return
+               else
+                    plugin_page = async.doAsyncRemoteRequest(b, raw_get_cache, "HTTPS") 
+               end
+          end -- end for loop
 			
 	else
 		hadarprint("something went wrong with async in building cache","error")
@@ -559,10 +567,12 @@ end --end function buildCache()
 
 function raw_get_cache(retval, page, status, headers, full_status, request_url)
      local WName,rawname,ghVersion,pid,lVersion,lname
-     
-     cache_res = cache_res + 1
 
-     hadarprint("Status:"..status,"debug")
+
+     cache_res = cache_res + 1
+     hadarprint("raw_get_cache().cache_res: ("..cache_res..")","debug")
+     hadarprint("----------------","debug")
+     if status~= nil then hadarprint("Status:"..status,"debug") else hadarprint("Status:NIL","debug") end
      
      if status == 200 then
           WName = getName(page,false)
@@ -580,12 +590,13 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           HPMVar["cache"][cache_res] = {}
      else
           hadarprint("Cant connect to github","error")
+          cache_res = cache_res + 1
           return
      end
      
    
      if cache_res >= cache_Len then   
-          hadarprint("Fired Cache_Res("..cache_res..") >= cache_Len("..cache_Len..")","debug")   
+          hadarprint("Fired(1) Cache_Res("..cache_res..") >= cache_Len("..cache_Len..")","debug")   
           HPMVar["cache"][cache_res]["ShortName"] = WName
           HPMVar["cache"][cache_res]["RawName"] = rawname
           HPMVar["cache"][cache_res]["GHVersion"] = ghVersion
@@ -600,7 +611,7 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
                HPMCheck()
           end
      else
-          hadarprint("Fired Cache_Res("..cache_res..") < cache_Len("..cache_Len..")","debug")   
+          hadarprint("Fired(2) Cache_Res("..cache_res..") < cache_Len("..cache_Len..")","debug")   
           HPMVar["cache"][cache_res]["ShortName"] = WName
           HPMVar["cache"][cache_res]["RawName"] = rawname
           HPMVar["cache"][cache_res]["GHVersion"] = ghVersion
@@ -610,6 +621,7 @@ function raw_get_cache(retval, page, status, headers, full_status, request_url)
           HPMVar["cache"][cache_res]["url"] = request_url
      
      end -- end counting if
+     hadarprint("----------------","debug")
      
      
 end--end raw_get
