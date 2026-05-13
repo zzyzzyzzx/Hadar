@@ -1141,8 +1141,9 @@ function affoff(name,line,wc)
 		end --end for loop
 	end
 
-	if table.find(Spellups["AS"]["list"][sn]["recovery"],Spellups["RT"]["affectedrecovery"]) ~= nil then
-		hadarprint("affected by recovery:"..Spellups["AS"]["list"][sn]["name"].." not recasting","debug")
+	local entry = Spellups["AS"]["list"][sn]
+	if entry and entry["recovery"] and table.find(entry["recovery"],Spellups["RT"]["affectedrecovery"]) ~= nil then
+		hadarprint("affected by recovery:"..entry["name"].." not recasting","debug")
 		return
 	end
 
