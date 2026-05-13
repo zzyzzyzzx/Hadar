@@ -914,13 +914,27 @@ function SendSlistCommand()
 		EnableTrigger("HSPRecoveriesStart", true)
 		hadarprint("***Getting Skills/Spells","script")
 		SendNoEcho("slist hsp")
+		-- If slist output is interrupted (lag, link flap, conflict with
+		-- another plugin), HSP_stop_sList may never fire and the capture
+		-- gate stays locked. Schedule a 10-second safety reset so a future
+		-- broadcast can retry the request.
+		check(AddTimer("HSPslistSafety", 0, 0, 10, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "HSP_slist_safety_reset"))
 	end
 end
 
 function HSP_stop_sList()
 		EnableTriggerGroup("HSPslistCapture", false)
+		DeleteTimer("HSPslistSafety")
 		SaveState()
 		hadarprint("***Got all skills/spells","script")
+end
+
+function HSP_slist_safety_reset()
+	if slistCommandSent then
+		hadarprint("slist capture didn't complete in 10s, resetting gate","debug")
+		EnableTriggerGroup("HSPslistCapture", false)
+		slistCommandSent = false
+	end
 end
 
 function SlistUpdate(name, line, wildcards)
