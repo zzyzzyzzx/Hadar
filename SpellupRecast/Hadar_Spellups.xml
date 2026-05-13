@@ -929,7 +929,11 @@ function SlistUpdate(name, line, wildcards)
 	local tg = tonumber(wildcards[3]) -- target
 	local du = tonumber(wildcards[4]) -- duration
 	local pc = tonumber(wildcards[5]) -- percent practiced
-	local rc = tonumber(wildcards[6]) -- recovery
+	-- Recovery is captured as ([+-]?[0-9,]+) so the regex tolerates multi-
+	-- recovery rows like "3,4". tonumber returns nil on those; coerce to -1
+	-- (the "no recovery" sentinel) so the rc ~= -1 guards below skip the
+	-- RT writes that would otherwise crash on a nil table key.
+	local rc = tonumber(wildcards[6]) or -1 -- recovery
 	local ty = tonumber(wildcards[7]) -- type
 	
 	Spellups["AS"]["list"][sn] = {name = nm,target = tg,duration = du,prac = pc,recovery = rc,type = ty}
