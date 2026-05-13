@@ -473,12 +473,8 @@ end
 function OnPluginBroadcast(msg, id, name, text)
 	if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
 		if (text == "char.status") then
+			currentState = tonumber(gmcp("char.status.state"))
 
-               res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-               luastmt = "gmcpdata = " .. gmcparg
-               assert (loadstring (luastmt or "")) ()
-               currentState = tonumber(gmcpval("status.state"))
-			
 			if currentState == 3 and Spellups["GL"]["autoaura"] == "yes" and Spellups["GL"]["autoaurafired"] == "no" then
 				hadarprint("Should be wearing eqipment "..Spellups["GL"]["float"],"debug")
 				Spellups["GL"]["autoaurafired"] = "yes"
@@ -492,21 +488,13 @@ function OnPluginBroadcast(msg, id, name, text)
 			SendSlistCommand()
 		end	
 		if (text == "char.vitals") then
-			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-            luastmt = "gmcpdata = " .. gmcparg
-            assert (loadstring (luastmt or "")) ()
-			
-			currentmana = tonumber(gmcpval("vitals.mana"))
+			currentmana = tonumber(gmcp("char.vitals.mana"))
 			if type(currentmana) ~= "number" then
 				currentmana = 0
 			end
 		end
 		if (text == "char.maxstats") then
-			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-            luastmt = "gmcpdata = " .. gmcparg
-            assert (loadstring (luastmt or "")) ()
-			
-			maxmana = tonumber(gmcpval("maxstats.maxmana"))
+			maxmana = tonumber(gmcp("char.maxstats.maxmana"))
 			if maxmana == nil or maxmana == -1 then
 				Spellups["EX"]["percentageStop"] = 0
 			else
@@ -522,9 +510,9 @@ function OnPluginBroadcast(msg, id, name, text)
 			else
 				return
 			end
-			maxmana = tonumber(gmcpval("maxstats.maxmana"))
+			maxmana = tonumber(gmcp("char.maxstats.maxmana"))
 			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
-			currentmana = tonumber(gmcpval("vitals.mana"))
+			currentmana = tonumber(gmcp("char.vitals.mana"))
 			if currentmana >= percentage then
 				if Spellups["GL"]["DisabledReason"] == "died2" then
 					hadarprint("trying to recast","debug")
