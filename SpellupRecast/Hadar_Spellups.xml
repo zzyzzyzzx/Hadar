@@ -1153,7 +1153,7 @@ function affoff(name,line,wc)
 
 	local subclass = gmcp("char.base.subclass")
 	local playerTier = tonumber(gmcp("char.base.tier")) or -1
-	local playerLevel = tonumber(gmcp("char.base.tier")) or -1
+	local playerLevel = tonumber(gmcp("char.base.level")) or -1
 	local totalLevel = tonumber(playerLevel+playerTier)
 
 	if subclass == "Priest" then --make a subclass exception for falling sanc
