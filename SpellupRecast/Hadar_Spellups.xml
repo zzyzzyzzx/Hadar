@@ -1263,12 +1263,6 @@ function sfail(name,line,wc)
         return
     end
 	
-	if fl == 6 then
-		if Spellups["GL"]["autoaura"] == 1 then
-			--setup auto aura stuff here
-		end
-	end
-	
 	if fl == 1 or fl == 6 then
 		hadarprint("FL 1 or 6!","debug")
 		if sn == 414 then -- check if party sanctuary failed we are going to just do the recast here
