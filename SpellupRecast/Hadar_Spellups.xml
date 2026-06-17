@@ -1091,6 +1091,10 @@ function testshow(arg)
 	print(gmcp("room.info.zone"))
 end
 
+-- Tracks the non-aura item worn in the floating slot (loc 27).
+-- When auto-aura swaps the user's aura into slot 27 to cast sanctuary,
+-- Spellups["GL"]["float"] remembers what was there before so OnPluginBroadcast
+-- can re-wear it after the cast (see "wear "..Spellups["GL"]["float"]).
 function invmon(nm,ln,wc)
 	if tonumber(wc.action) == 1 and tonumber(wc.loc) == 27 then
 		if tonumber(Spellups["GL"]["auranumber"]) ~= tonumber(wc.id) then
