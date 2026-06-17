@@ -82,10 +82,11 @@
 <trigger
 	name="HSPRecoveriesCapture"
 	enabled="n"
-	match="^[0-9]+,[^,]+,[0-9]+$"
+	match="^([0-9]+),([^,]+),([0-9]+)$"
 	regexp="y"
 	omit_from_output="y"
 	sequence="100"
+	script="RecoveriesUpdate"
 >
 </trigger>
 <trigger
@@ -985,6 +986,24 @@ function SlistUpdate(name, line, wildcards)
 	end
 		
 end  --end update
+
+-- Parses a single row of the {recoveries hsp} section of slist hsp.
+-- Each row is "<rc>,<name>,<seconds_remaining>". seconds > 0 means the
+-- group is in cooldown; 0 means it isn't. Mirroring the server's view
+-- into Spellups["RT"]["affectedrecovery"] keeps the table in sync on
+-- every slist refresh.
+function RecoveriesUpdate(name, line, wildcards)
+	local rc = tonumber(wildcards[1])
+	local seconds = tonumber(wildcards[3])
+
+	if rc == nil or seconds == nil then return end
+
+	if seconds > 0 then
+		Spellups["RT"]["affectedrecovery"][rc] = seconds
+	else
+		Spellups["RT"]["affectedrecovery"][rc] = nil
+	end
+end
 ----------------------------------------------------------------------------------------------------
 --							  End Standard Template	 				        --
 --														       	  --
