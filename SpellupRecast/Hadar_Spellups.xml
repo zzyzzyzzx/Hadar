@@ -1809,11 +1809,21 @@ function recoveryupTotem(sn,timer)
 end
 
 function recon(n,l,wc)
+	-- {recon}sn,timer carries a RECOVERY GROUP number (not a skill number).
+	-- Spellups["RT"][rc] is only populated by SlistUpdate for recovery groups
+	-- where the player has a practiced spell -- so casting a spell from a
+	-- group with no practiced anchor (e.g. a barely-learned attack spell)
+	-- leaves Spellups["RT"][rc] nil and the metadata read below would crash.
 	local sn = tonumber(wc.sn)
 	local tm = tonumber(wc.timer)
-	
+
 	Spellups["RT"]["affectedrecovery"][sn] = tm
-	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].."("..sn..")".." For:"..tm,"debug")
+	local entry = Spellups["RT"][sn]
+	if entry then
+		hadarprint("Recovery on:"..entry["name"].."("..sn..")".." For:"..tm,"debug")
+	else
+		hadarprint("Recovery on unknown group "..sn.." for "..tm.."s","debug")
+	end
 
 	if sn==65 then
 		recoveryupTotem(624,tm)
@@ -1825,9 +1835,20 @@ end
 
 function recoff(n,l,wc)
 	local sn = tonumber(wc.sn)
-	local skillnum = Spellups["RT"][sn]["skillnum"]
-	local skilltype = Spellups["RT"][sn]["type"]
-	local skillname = Spellups["RT"][sn]["name"]
+	local entry = Spellups["RT"][sn]
+
+	-- If we have no metadata for this recovery group, still clear any
+	-- affectedrecovery entry so a stale value (e.g. from a previous crash
+	-- in recon()) can't persist forever and silently block recasts.
+	if entry == nil then
+		Spellups["RT"]["affectedrecovery"][sn] = nil
+		hadarprint("recoff for unknown recovery group "..sn..", cleared","debug")
+		return
+	end
+
+	local skillnum = entry["skillnum"]
+	local skilltype = entry["type"]
+	local skillname = entry["name"]
 
 	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
 		if Spellups["AF"]["list"][skillnum] ~= nil then
@@ -1851,7 +1872,7 @@ function recoff(n,l,wc)
 		end
             cast_spells()
 	end --end elemental focus recoverynumber
-						
+
 end
 
 function rcwarning(arg)
