@@ -1147,7 +1147,7 @@ function affoff(name,line,wc)
 		for i,v in pairs(Spellups["EX"]["wraithform"]) do
 
 			if table.find(v,Spellups["AF"]["list"]) then
-				--left empty becaue
+				-- spell v is still active on the player; no need to requeue
 			else
 				local ctype = tonumber(Spellups["AS"]["list"][v]["type"])
 				Spellups["QS"][v] = Spellups["AS"]["list"][v]["name"]
