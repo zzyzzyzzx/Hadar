@@ -59,6 +59,15 @@
      </trigger>
      <trigger
      enabled="y"
+     match="^(.+) has already been invited into this group\.$"
+     omit_from_output="n"
+     regexp="y"
+     script="hgminviteexists"
+     sequence="100"
+     >
+     </trigger>
+     <trigger
+     enabled="y"
      match="^Type \'(.+)\' or \'(.+)\' to accept or decline\.$"
      omit_from_output="n"
      regexp="y"
@@ -328,6 +337,7 @@ function injectVars()
      v["GT"]["lastmsg"] = "none"
      v["GT"]["HereMsg"] = "yes"
      v["GT"]["NotHere"] = "none"
+     v["GT"]["AlreadyInvited"] = "none"
      v["GT"]["Here"] = "none"
 
      v["BL"]["Remove"] = 0
@@ -515,6 +525,10 @@ function hgminvitedmob()
      HGMVariable["GT"]["Mob"] = "yes"
 end
 
+function hgminviteexists()
+     HGMVariable["GT"]["AlreadyInvited"] = "yes"
+end
+
 function hgmsamegeoup()
      HGMVariable["GT"]["samegroup"] = "yes"
 end
@@ -529,6 +543,7 @@ function hgmresetgroupmsg()
      HGMVariable["GT"]["Mob"] = "no"
      HGMVariable["GT"]["samegroup"] = "no"
      HGMVariable["GT"]["offline"] = "no"
+     HGMVariable["GT"]["AlreadyInvited"] = "no"
 end
 
 function hgmMakeGroupMessage(msg)
@@ -551,6 +566,10 @@ function hgmMakeGroupMessage(msg)
      elseif HGMVariable["GT"]["offline"] == "yes" then
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RPerson Offline@w")
           HGMVariable["GT"]["offline"] = "yes"
+          return
+     elseif HGMVariable["GT"]["AlreadyInvited"] == "yes" then
+          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RPerson Already invited@w")
+          HGMVariable["GT"]["AlreadyInvited"] = "yes"
           return
      else
           SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)

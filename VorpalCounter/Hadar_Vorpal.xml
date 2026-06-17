@@ -10,7 +10,7 @@
    purpose="Quick and dirty vorpal counter"
    date_written="2016-11-30"
    requires="4.98"
-   version="3.53"
+   version="3.54"
    save_state="y"
    >
 <description trim="y">
@@ -201,9 +201,10 @@ function checkExist(tbl, idx, val)
      end
 
      if not vorpalInfo[tbl][idx] then
-     print(tbl..idx)
-               vorpalInfo[tbl][idx] = val
-               SetVariable("vorpalInfo", serialize.save("vorpalInfo")) 
+          print(tbl..idx)
+          vorpalInfo[tbl][idx] = val
+          -- FIX #5: was passing a string instead of the table to serialize
+          SetVariable("vorpalInfo", "vorpalInfo = " .. serialize.save_simple(vorpalInfo))
      end
      
 end
@@ -238,7 +239,9 @@ function injectVars()
 ------------------Last Vorpal only---------------------------
      v["LS"]["killCount"] = 0
      v["LS"]["lastVorpalTime"] = os.time()
-     v["LS"]["lastVorpalDate"] = 0
+     -- FIX #4: initialize as a proper date table instead of 0,
+     -- so vorpShow can safely index it before any vorpal has occurred
+     v["LS"]["lastVorpalDate"] = os.date("*t")
      v["LS"]["lastVorpalMob"] = "None"
 -------------------------------------------------------------
 
@@ -263,30 +266,25 @@ end
 
 function makeMessage(chan)
      vorpTimeDiff(os.time(),vorpalInfo["SN"]["startTime"],"SN")
-     vorpTimeDiff(os.time(),vorpalInfo["LS"]["lastVorpalTime"],"SN")
      chan = string.lower(chan)
      local str = interp(vorpalInfo["GL"]["Message"], {logo = vorpalInfo["GL"]["Logo"], kills = vorpalInfo["LS"]["killCount"] ,mob = vorpalInfo["LS"]["lastVorpalMob"], session = vorpalInfo["SN"]["sessionCount"], mort = vorpalInfo["MT"]["mortCount"], total = vorpalInfo["AT"]["allCount"]})
      
-     if vorpalInfo["GL"]["commLog"] == "on" and vorpalInfo["GL"]["mainWindow"] == "off" then
-          CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",str, vorpalInfo["GL"]["commLogTab"], true)
-          vorpalInfo["LS"]["killCount"] = 0
-          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
-          return
-     elseif vorpalInfo["GL"]["commLog"] == "off" and vorpalInfo["GL"]["mainWindow"] == "on" then
+     -- FIX #6: separated the two branches so that when both windows are on,
+     -- the message is printed to the main window AND sent to the comm log
+     if vorpalInfo["GL"]["mainWindow"] == "on" then
           if chan == "echo" or chan == "print" then
                hadarprint(str)
           else
                SendSpecial(chan.." "..str)
           end
-          vorpalInfo["LS"]["killCount"] = 0
-          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
-     elseif vorpalInfo["GL"]["commLog"] == "on" and vorpalInfo["GL"]["mainWindow"] == "on" then
-          CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",str, vorpalInfo["GL"]["commLogTab"], true)
-          vorpalInfo["LS"]["killCount"] = 0
-          vorpalInfo["LS"]["lastVorpalTime"] = os.time()
-          return
      end
-     
+
+     if vorpalInfo["GL"]["commLog"] == "on" then
+          CallPlugin("b555825a4a5700c35fa80780","storeFromOutside",str, vorpalInfo["GL"]["commLogTab"], true)
+     end
+
+     vorpalInfo["LS"]["killCount"] = 0
+     vorpalInfo["LS"]["lastVorpalTime"] = os.time()
 end
 
 function VorpCount(name, line, wildcards, styles)
@@ -295,61 +293,31 @@ function VorpCount(name, line, wildcards, styles)
 	vorpalInfo["SN"]["sessionCount"] = vorpalInfo["SN"]["sessionCount"]+1
      vorpalInfo["LS"]["lastVorpalDate"] = os.date("*t")
      vorpalInfo["LS"]["lastVorpalMob"] = wildcards[2]
+     -- FIX #7: call vorpKills() so kill counters are actually incremented
+     vorpKills()
 		
 	makeMessage(vorpalInfo["GL"]["Channel"])
 	SaveState()
 end
 
+-- FIX #10: replaced if/elseif chains with lookup tables
+local dayNames = {
+     "@CS@cunday", "@CM@conday", "@CT@cuesday", "@CW@cednesday",
+     "@CT@chursday", "@CF@criday", "@CS@caturday"
+}
+
+local monthNames = {
+     "@CJ@can@W.", "@CF@ceb@W.", "@CM@car@W.", "@CA@cpr@W.", "@CM@cay",
+     "@CJ@cun@W.", "@CJ@cul@W.", "@CA@cug@W.", "@CS@cept@W.",
+     "@CO@cct@W.", "@CN@cov@W.", "@CD@cec@W."
+}
+
 function getDay(val)
-     local str
-     if val == 1 then
-          str = "@CS@cunday"
-     elseif val == 2 then
-          str = "@CM@conday"
-     elseif val == 3 then
-          str = "@CT@cuesday"
-     elseif val == 4 then
-          str = "@CW@cednesday"
-     elseif val == 5 then
-          str = "@CT@chursday"
-     elseif val == 6 then
-          str = "@CF@criday"
-     elseif val == 7 then
-          str = "@CS@caturday"
-     end
-          
-     return str
+     return dayNames[val] or "???"
 end
      
 function getMonth(val)
-     local str
-     if val == 1 then
-          str = "@CJ@can@W."
-     elseif val == 2 then
-          str = "@CF@ceb@W."
-     elseif val == 3 then
-          str = "@CM@car@W."
-     elseif val == 4 then
-          str = "@CA@cpr@W."
-     elseif val == 5 then
-          str = "@CM@cay"
-     elseif val == 6 then
-          str = "@CJ@cun@W."
-     elseif val == 7 then
-          str = "@CJ@cul@W."
-     elseif val == 8 then
-          str = "@CA@cug@W."
-     elseif val == 9 then
-          str = "@CS@cept@W."
-     elseif val == 10 then
-          str = "@CO@cct@W."
-     elseif val == 11 then
-          str = "@CN@cov@W."
-     elseif val == 12 then
-          str = "@CD@cec@W."
-     end
-         
-     return str
+     return monthNames[val] or "???"
 end
 
 function vorpShow(str)
@@ -362,22 +330,29 @@ function vorpShow(str)
 	end
      
      if str == "echo" or str == "print" then
-          local vorpdate = getDay(vorpalInfo["AT"]["Date"]["wday"]) .. "@W, " .. getMonth(vorpalInfo["AT"].Date.month) .. " @G" .. vorpalInfo["AT"].Date.day .. " @G" .. vorpalInfo["AT"].Date.year
-          local vorptime = "@G"..vorpalInfo["AT"].Date.hour.."@W:@G"..vorpalInfo["AT"].Date.min.."@W:@G"..vorpalInfo["AT"].Date.sec
+          local atDate = vorpalInfo["AT"]["Date"]
+          local lsDate = vorpalInfo["LS"]["lastVorpalDate"]
+
+          local vorpdate = getDay(atDate["wday"]) .. "@W, " .. getMonth(atDate.month) .. " @G" .. atDate.day .. " @G" .. atDate.year
+          local vorptime = "@G"..atDate.hour.."@W:@G"..atDate.min.."@W:@G"..atDate.sec
           local vorpdatetime = vorpdate .. " @Dat " .. vorptime .. "@w"
           local DTlen = string.len(strip_colours(vorpdatetime))
           local math1 = 50-DTlen
           
-          local vorpdate2 = getDay(vorpalInfo["LS"]["lastVorpalDate"]["wday"]) .. "@W, " .. getMonth(vorpalInfo["LS"].lastVorpalDate.month) .. " @G" .. vorpalInfo["LS"].lastVorpalDate.day .. " @G" .. vorpalInfo["LS"].lastVorpalDate.year
-          local vorptime2 = "@G"..vorpalInfo["LS"].lastVorpalDate.hour.."@W:@G"..vorpalInfo["LS"].lastVorpalDate.min.."@W:@G"..vorpalInfo["LS"].lastVorpalDate.sec
+          -- FIX #4: lsDate is now always a table, so this is safe
+          local vorpdate2 = getDay(lsDate["wday"]) .. "@W, " .. getMonth(lsDate.month) .. " @G" .. lsDate.day .. " @G" .. lsDate.year
+          local vorptime2 = "@G"..lsDate.hour.."@W:@G"..lsDate.min.."@W:@G"..lsDate.sec
           local vorpdatetime2 = vorpdate2 .. " @Dat " .. vorptime2 .. "@w"
           local DTlen2 = string.len(strip_colours(vorpdatetime2))
           local math2 = 50-DTlen2
           
-          local avgsession = tonumber(vorpalInfo["SN"]["sessionCount"])/tonumber(vorpalInfo["SN"]["killCount"])
-          local avgmort = tonumber(vorpalInfo["MT"]["mortCount"])/tonumber(vorpalInfo["MT"]["killCount"])
-          local avgalltime = tonumber(vorpalInfo["AT"]["allCount"])/tonumber(vorpalInfo["AT"]["killCount"])
-          
+          -- FIX #3: guard against division by zero if kill counts are 0
+          local sessionKills = vorpalInfo["SN"]["killCount"]
+          local mortKills    = vorpalInfo["MT"]["killCount"]
+          local allKills     = vorpalInfo["AT"]["killCount"]
+          local avgsession = sessionKills > 0 and (tonumber(vorpalInfo["SN"]["sessionCount"]) / sessionKills) or 0
+          local avgmort     = mortKills    > 0 and (tonumber(vorpalInfo["MT"]["mortCount"])   / mortKills)    or 0
+          local avgalltime  = allKills     > 0 and (tonumber(vorpalInfo["AT"]["allCount"])    / allKills)     or 0
           
           hadarprint("@x165+@x247--------------------------@x046[@CV@corpal @CC@counter@x046]@x247----------------------------@x165+@w")
           hadarprint("@x165|                                                                      |")
@@ -444,8 +419,10 @@ function vorpWindow(str)
           second = nil
      end
      
+     -- FIX #2: compare against "on"/"off" strings instead of truthy check,
+     -- since both "on" and "off" are truthy in Lua
      if first == "main" and second == nil then
-          if vorpalInfo["GL"]["mainWindow"] then
+          if vorpalInfo["GL"]["mainWindow"] == "on" then
                vorpalInfo["GL"]["mainWindow"] = "off"
                hadarprint("Main Window@W:@R DE-ACTIVE@w","script")
           else
@@ -461,7 +438,7 @@ function vorpWindow(str)
      end
      
      if first == "comm" and second == nil then
-          if vorpalInfo["GL"]["commLog"] then
+          if vorpalInfo["GL"]["commLog"] == "on" then
                vorpalInfo["GL"]["commLog"] = "off"
                hadarprint("Comm Log@W:@R DE-ACTIVE@w","script")
           else
@@ -476,9 +453,9 @@ function vorpWindow(str)
           hadarprint("Comm Log@W:@R DE-ACTIVE@w","script")
      end
      
-     if not vorpalInfo["GL"]["mainWindow"] and not vorpalInfo["GL"]["commLog"] then
+     if vorpalInfo["GL"]["mainWindow"] ~= "on" and vorpalInfo["GL"]["commLog"] ~= "on" then
           hadarprint("Both main window and comm log can not be deactivated","error")
-          hadarprint("Activating main winow","script")
+          hadarprint("Activating main window","script")
           vorpalInfo["GL"]["mainWindow"] = "on"
      end
      

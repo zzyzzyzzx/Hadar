@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2021-12-31 00:00:00"
    requires="4.00"
-   version="1.16"
+   version="1.17"
    >
 
 </plugin>
@@ -82,10 +82,11 @@
 <trigger
 	name="HSPRecoveriesCapture"
 	enabled="n"
-	match="^[0-9]+,[^,]+,[0-9]+$"
+	match="^([0-9]+),([^,]+),([0-9]+)$"
 	regexp="y"
 	omit_from_output="y"
 	sequence="100"
+	script="RecoveriesUpdate"
 >
 </trigger>
 <trigger
@@ -473,12 +474,8 @@ end
 function OnPluginBroadcast(msg, id, name, text)
 	if id == "3e7dedbe37e44942dd46d264" then -- message from the GMCP Handler
 		if (text == "char.status") then
+			currentState = tonumber(gmcp("char.status.state"))
 
-               res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-               luastmt = "gmcpdata = " .. gmcparg
-               assert (loadstring (luastmt or "")) ()
-               currentState = tonumber(gmcpval("status.state"))
-			
 			if currentState == 3 and Spellups["GL"]["autoaura"] == "yes" and Spellups["GL"]["autoaurafired"] == "no" then
 				hadarprint("Should be wearing eqipment "..Spellups["GL"]["float"],"debug")
 				Spellups["GL"]["autoaurafired"] = "yes"
@@ -492,21 +489,13 @@ function OnPluginBroadcast(msg, id, name, text)
 			SendSlistCommand()
 		end	
 		if (text == "char.vitals") then
-			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-            luastmt = "gmcpdata = " .. gmcparg
-            assert (loadstring (luastmt or "")) ()
-			
-			currentmana = tonumber(gmcpval("vitals.mana"))
+			currentmana = tonumber(gmcp("char.vitals.mana"))
 			if type(currentmana) ~= "number" then
 				currentmana = 0
 			end
 		end
 		if (text == "char.maxstats") then
-			res, gmcparg = CallPlugin("3e7dedbe37e44942dd46d264","gmcpval","char")
-            luastmt = "gmcpdata = " .. gmcparg
-            assert (loadstring (luastmt or "")) ()
-			
-			maxmana = tonumber(gmcpval("maxstats.maxmana"))
+			maxmana = tonumber(gmcp("char.maxstats.maxmana"))
 			if maxmana == nil or maxmana == -1 then
 				Spellups["EX"]["percentageStop"] = 0
 			else
@@ -522,9 +511,9 @@ function OnPluginBroadcast(msg, id, name, text)
 			else
 				return
 			end
-			maxmana = tonumber(gmcpval("maxstats.maxmana"))
+			maxmana = tonumber(gmcp("char.maxstats.maxmana"))
 			local percentage = (maxmana*Spellups["GL"]["percEnable"]/100)
-			currentmana = tonumber(gmcpval("vitals.mana"))
+			currentmana = tonumber(gmcp("char.vitals.mana"))
 			if currentmana >= percentage then
 				if Spellups["GL"]["DisabledReason"] == "died2" then
 					hadarprint("trying to recast","debug")
@@ -713,17 +702,15 @@ function buildInitial()
     }
 end
 
-function checkExist(tbl, idx, val) 
+function checkExist(tbl, idx, val)
 
      if not Spellups[tbl] then
           Spellups[tbl] = {}
      end
 
      if not Spellups[tbl][idx] then
-               Spellups[tbl][idx] = val
-               SetVariable("Spellups", serialize.save("Spellups")) 
+          Spellups[tbl][idx] = val
      end
-     
 end
 
 function injectVars()
@@ -914,13 +901,27 @@ function SendSlistCommand()
 		EnableTrigger("HSPRecoveriesStart", true)
 		hadarprint("***Getting Skills/Spells","script")
 		SendNoEcho("slist hsp")
+		-- If slist output is interrupted (lag, link flap, conflict with
+		-- another plugin), HSP_stop_sList may never fire and the capture
+		-- gate stays locked. Schedule a 10-second safety reset so a future
+		-- broadcast can retry the request.
+		check(AddTimer("HSPslistSafety", 0, 0, 10, "", timer_flag.Enabled+timer_flag.OneShot+timer_flag.Replace, "HSP_slist_safety_reset"))
 	end
 end
 
 function HSP_stop_sList()
 		EnableTriggerGroup("HSPslistCapture", false)
+		DeleteTimer("HSPslistSafety")
 		SaveState()
 		hadarprint("***Got all skills/spells","script")
+end
+
+function HSP_slist_safety_reset()
+	if slistCommandSent then
+		hadarprint("slist capture didn't complete in 10s, resetting gate","debug")
+		EnableTriggerGroup("HSPslistCapture", false)
+		slistCommandSent = false
+	end
 end
 
 function SlistUpdate(name, line, wildcards)
@@ -929,7 +930,11 @@ function SlistUpdate(name, line, wildcards)
 	local tg = tonumber(wildcards[3]) -- target
 	local du = tonumber(wildcards[4]) -- duration
 	local pc = tonumber(wildcards[5]) -- percent practiced
-	local rc = tonumber(wildcards[6]) -- recovery
+	-- Recovery is captured as ([+-]?[0-9,]+) so the regex tolerates multi-
+	-- recovery rows like "3,4". tonumber returns nil on those; coerce to -1
+	-- (the "no recovery" sentinel) so the rc ~= -1 guards below skip the
+	-- RT writes that would otherwise crash on a nil table key.
+	local rc = tonumber(wildcards[6]) or -1 -- recovery
 	local ty = tonumber(wildcards[7]) -- type
 	
 	Spellups["AS"]["list"][sn] = {name = nm,target = tg,duration = du,prac = pc,recovery = rc,type = ty}
@@ -981,6 +986,24 @@ function SlistUpdate(name, line, wildcards)
 	end
 		
 end  --end update
+
+-- Parses a single row of the {recoveries hsp} section of slist hsp.
+-- Each row is "<rc>,<name>,<seconds_remaining>". seconds > 0 means the
+-- group is in cooldown; 0 means it isn't. Mirroring the server's view
+-- into Spellups["RT"]["affectedrecovery"] keeps the table in sync on
+-- every slist refresh.
+function RecoveriesUpdate(name, line, wildcards)
+	local rc = tonumber(wildcards[1])
+	local seconds = tonumber(wildcards[3])
+
+	if rc == nil or seconds == nil then return end
+
+	if seconds > 0 then
+		Spellups["RT"]["affectedrecovery"][rc] = seconds
+	else
+		Spellups["RT"]["affectedrecovery"][rc] = nil
+	end
+end
 ----------------------------------------------------------------------------------------------------
 --							  End Standard Template	 				        --
 --														       	  --
@@ -1075,6 +1098,10 @@ function testshow(arg)
 	print(gmcp("room.info.zone"))
 end
 
+-- Tracks the non-aura item worn in the floating slot (loc 27).
+-- When auto-aura swaps the user's aura into slot 27 to cast sanctuary,
+-- Spellups["GL"]["float"] remembers what was there before so OnPluginBroadcast
+-- can re-wear it after the cast (see "wear "..Spellups["GL"]["float"]).
 function invmon(nm,ln,wc)
 	if tonumber(wc.action) == 1 and tonumber(wc.loc) == 27 then
 		if tonumber(Spellups["GL"]["auranumber"]) ~= tonumber(wc.id) then
@@ -1131,7 +1158,7 @@ function affoff(name,line,wc)
 		for i,v in pairs(Spellups["EX"]["wraithform"]) do
 
 			if table.find(v,Spellups["AF"]["list"]) then
-				--left empty becaue
+				-- spell v is still active on the player; no need to requeue
 			else
 				local ctype = tonumber(Spellups["AS"]["list"][v]["type"])
 				Spellups["QS"][v] = Spellups["AS"]["list"][v]["name"]
@@ -1141,14 +1168,15 @@ function affoff(name,line,wc)
 		end --end for loop
 	end
 
-	if table.find(Spellups["AS"]["list"][sn]["recovery"],Spellups["RT"]["affectedrecovery"]) ~= nil then
-		hadarprint("affected by recovery:"..Spellups["AS"]["list"][sn]["name"].." not recasting","debug")
+	local entry = Spellups["AS"]["list"][sn]
+	if entry and entry["recovery"] and table.find(entry["recovery"],Spellups["RT"]["affectedrecovery"]) ~= nil then
+		hadarprint("affected by recovery:"..entry["name"].." not recasting","debug")
 		return
 	end
 
 	local subclass = gmcp("char.base.subclass")
 	local playerTier = tonumber(gmcp("char.base.tier")) or -1
-	local playerLevel = tonumber(gmcp("char.base.tier")) or -1
+	local playerLevel = tonumber(gmcp("char.base.level")) or -1
 	local totalLevel = tonumber(playerLevel+playerTier)
 
 	if subclass == "Priest" then --make a subclass exception for falling sanc
@@ -1257,12 +1285,6 @@ function sfail(name,line,wc)
         Spellups["QS"][sn] = nil
         return
     end
-	
-	if fl == 6 then
-		if Spellups["GL"]["autoaura"] == 1 then
-			--setup auto aura stuff here
-		end
-	end
 	
 	if fl == 1 or fl == 6 then
 		hadarprint("FL 1 or 6!","debug")
@@ -1796,11 +1818,21 @@ function recoveryupTotem(sn,timer)
 end
 
 function recon(n,l,wc)
+	-- {recon}sn,timer carries a RECOVERY GROUP number (not a skill number).
+	-- Spellups["RT"][rc] is only populated by SlistUpdate for recovery groups
+	-- where the player has a practiced spell -- so casting a spell from a
+	-- group with no practiced anchor (e.g. a barely-learned attack spell)
+	-- leaves Spellups["RT"][rc] nil and the metadata read below would crash.
 	local sn = tonumber(wc.sn)
 	local tm = tonumber(wc.timer)
-	
+
 	Spellups["RT"]["affectedrecovery"][sn] = tm
-	hadarprint("Recovery on:"..Spellups["RT"][sn]["name"].."("..sn..")".." For:"..tm,"debug")
+	local entry = Spellups["RT"][sn]
+	if entry then
+		hadarprint("Recovery on:"..entry["name"].."("..sn..")".." For:"..tm,"debug")
+	else
+		hadarprint("Recovery on unknown group "..sn.." for "..tm.."s","debug")
+	end
 
 	if sn==65 then
 		recoveryupTotem(624,tm)
@@ -1812,9 +1844,20 @@ end
 
 function recoff(n,l,wc)
 	local sn = tonumber(wc.sn)
-	local skillnum = Spellups["RT"][sn]["skillnum"]
-	local skilltype = Spellups["RT"][sn]["type"]
-	local skillname = Spellups["RT"][sn]["name"]
+	local entry = Spellups["RT"][sn]
+
+	-- If we have no metadata for this recovery group, still clear any
+	-- affectedrecovery entry so a stale value (e.g. from a previous crash
+	-- in recon()) can't persist forever and silently block recasts.
+	if entry == nil then
+		Spellups["RT"]["affectedrecovery"][sn] = nil
+		hadarprint("recoff for unknown recovery group "..sn..", cleared","debug")
+		return
+	end
+
+	local skillnum = entry["skillnum"]
+	local skilltype = entry["type"]
+	local skillname = entry["name"]
 
 	if Spellups["RT"]["affectedrecovery"][sn] ~= nil then
 		if Spellups["AF"]["list"][skillnum] ~= nil then
@@ -1838,7 +1881,7 @@ function recoff(n,l,wc)
 		end
             cast_spells()
 	end --end elemental focus recoverynumber
-						
+
 end
 
 function rcwarning(arg)
