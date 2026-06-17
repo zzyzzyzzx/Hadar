@@ -713,17 +713,15 @@ function buildInitial()
     }
 end
 
-function checkExist(tbl, idx, val) 
+function checkExist(tbl, idx, val)
 
      if not Spellups[tbl] then
           Spellups[tbl] = {}
      end
 
      if not Spellups[tbl][idx] then
-               Spellups[tbl][idx] = val
-               SetVariable("Spellups", serialize.save("Spellups")) 
+          Spellups[tbl][idx] = val
      end
-     
 end
 
 function injectVars()
