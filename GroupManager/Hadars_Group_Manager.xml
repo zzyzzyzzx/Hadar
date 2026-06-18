@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.68"
+   version="1.69"
    >
 
 </plugin>
@@ -319,7 +319,7 @@ function injectVars()
      v["GL"]["AutoRemortInvite"] = "List"
      
      
-     v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Ghelp <command>@w"
+     v["GT"]["message"] = "${logo}commands are as follows: @R${commands}@c, to see more please use @Gihelp <command>@w"
      v["GT"]["Name"] = nil
      v["GT"]["invite"] = "no"
      v["GT"]["leader"] = "yes"
@@ -448,53 +448,62 @@ function OnPluginBroadcast (msg, id, name, text)
 	end
 end
 
-function hgmTellMessage(p,m)
-     if p == nil then return end
-     if m == nil then return end
-     
-     p = string.lower(p)
-     command = string.gsub(m,"'","")
-     
-     if args == "" or args == " " then
-          args = nil
-     end
+local function hgmCleanName(s)
+    if s == nil then return nil end
+    s = tostring(s):lower():match("%a+")   -- first run of letters only
+    if not s then return nil end
+    return s:sub(1, 12)
+end
 
-     if command == HGMVariable["GL"]["Phrase"] then
-          hgmrefresh()
-     end
-     
-     if command == HGMVariable["GL"]["Phrase"] and HGMVariable["GL"]["Leader"] == "" then
-          SendSpecial("tell "..p.." "..HGMVariable["GL"]["Logo"].."I am not currently in a group, Sorry@w")
-          HGMVariable["GT"]["lastTell"] = p
-          SaveState()
-          return
-     end
-     
-     if command == HGMVariable["GL"]["Phrase"] and args ~= nil then
-          local a, b = args:match("(%w+)%s*(.*)") or nil
-          a = trim(string.lower(a))
-          if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
-               if ismember(a,"BL") then
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked "..a.." to join the party, @Dblacklisted @Rno invite sent@w")
-               else
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked "..a.." to join the party, @Ginvite sent@w")
-                    SendSpecial("group invite "..a)
-               end
-          else
-               SendSpecial("tell "..p.." "..HGMVariable["GL"]["Logo"].."The current leader is@W: @G"..HGMVariable["GL"]["Leader"].."@w")
-          end
-     elseif command == HGMVariable["GL"]["Phrase"] and args == nil then
-          if HGMVariable["GL"]["Leader"] == HGMVariable["GL"]["Name"] then
-               if ismember(p,"BL") then
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked to join the party, @Dblacklisted @Rno invite sent@w")
-               else
-                    SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..p.." has asked to join the party, @Ginvite sent@w")
-                    SendSpecial("group invite "..p)
-               end
-          else
-               SendSpecial("tell "..p.." "..HGMVariable["GL"]["Logo"].."The current leader is@W: @G"..HGMVariable["GL"]["Leader"].."@w")
-          end
-     end
+function hgmTellMessage(p, m)
+    if p == nil or m == nil then return end
+
+    p = hgmCleanName(p)
+    if not p then return end             -- not a sane name, ignore the tell
+
+    local GL      = HGMVariable["GL"]
+    local logo    = GL["Logo"]
+    local phrase  = GL["Phrase"]
+    local command = string.gsub(m, "'", "")   -- was a global; now local
+
+    -- normalize the (external) args global
+    if type(args) ~= "string" or trim(args) == "" then
+        args = nil
+    end
+
+    if command ~= phrase then return end       -- nothing else applies
+    hgmrefresh()
+
+    -- Not in a group
+    if GL["Leader"] == "" then
+        SendSpecial("tell "..p.." "..logo.."I am not currently in a group, Sorry@w")
+        HGMVariable["GT"]["lastTell"] = p
+        SaveState()
+        return
+    end
+
+    -- We're not the leader: point them at whoever is
+    if GL["Leader"] ~= GL["Name"] then
+        SendSpecial("tell "..p.." "..logo.."The current leader is@W: @G"..GL["Leader"].."@w")
+        return
+    end
+
+    -- We are the leader: figure out who's being invited
+    local target = args and hgmCleanName(args)   -- named target, if any
+    local asked
+    if target then
+        asked = p.." has asked "..target.." to join the party,"
+    else
+        target = p                               -- fall back to the teller
+        asked  = p.." has asked to join the party,"
+    end
+
+    if ismember(target, "BL") then
+        SendSpecial("gtell "..logo..asked.." @Dblacklisted @Rno invite sent@w")
+    else
+        SendSpecial("gtell "..logo..asked.." @Ginvite sent@w")
+        SendSpecial("group invite "..target)
+    end
 end
 
 function hgmiscommand(cmd)
@@ -546,251 +555,217 @@ function hgmresetgroupmsg()
      HGMVariable["GT"]["AlreadyInvited"] = "no"
 end
 
+local HGM_INVITE_FAILS = {
+    { flag = "InOtherGroup",   reason = "In Another Group" },
+    { flag = "CantSee",        reason = "Do not see player with that name" },
+    { flag = "Mob",            reason = "Tried to invite NPC" },
+    { flag = "samegroup",      reason = "Member already in group" },
+    { flag = "offline",        reason = "Person Offline" },
+    { flag = "AlreadyInvited", reason = "Person Already invited" },
+}
+
 function hgmMakeGroupMessage(msg)
-     if HGMVariable["GT"]["InOtherGroup"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RIn Another Group@w")
-          HGMVariable["GT"]["InOtherGroup"] = "no"
-          return
-     elseif HGMVariable["GT"]["CantSee"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RDo not see player with that name@w")
-          HGMVariable["GT"]["CantSee"] = "no"
-          return
-     elseif HGMVariable["GT"]["Mob"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RTried to invite NPC@w")
-          HGMVariable["GT"]["Mob"] = "no"
-          return
-     elseif HGMVariable["GT"]["samegroup"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RMember already in group@w")
-          HGMVariable["GT"]["samegroup"] = "no"
-          return
-     elseif HGMVariable["GT"]["offline"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RPerson Offline@w")
-          HGMVariable["GT"]["offline"] = "yes"
-          return
-     elseif HGMVariable["GT"]["AlreadyInvited"] == "yes" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Invite Failed @W- @RPerson Already invited@w")
-          HGMVariable["GT"]["AlreadyInvited"] = "yes"
-          return
-     else
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..msg)
-     end
+    local GT   = HGMVariable["GT"]
+    local logo = HGMVariable["GL"]["Logo"]
+
+    for _, f in ipairs(HGM_INVITE_FAILS) do
+        if GT[f.flag] == "yes" then
+            SendSpecial("gtell "..logo.."Invite Failed @W- @R"..f.reason.."@w")
+            GT[f.flag] = "no"
+            return
+        end
+    end
+
+    SendSpecial("gtell "..logo..(hgmCleanText(msg) or ""))
 end
 
 function canI(command, player)
-     -- can player do command
+    if player == nil then
+        hadarprint("CanI just tried to check a non-existant player.", "error")
+        return false
+    end
+    if not hgmiscommand(command) then
+        hadarprint("CanI just tried to check a non-existant command.", "error")
+        return false
+    end
+    if ismember(player, "BL") then
+        return false   -- blacklisted: never
+    end
 
-     if player == nil then
-          hadarprint("CanI just tried to check a non-existant player.", "error")
-          return false
-     end
+    -- Leader can do everything.
+    if HGMVariable["GL"]["Leader"] == player then
+        return true
+    end
 
-     if hgmiscommand(command) == false then
-          hadarprint("CanI just tried to check a non-existant command.", "error")
-          return false
-     end
-
-     if ismember(player,"BL") then
-          -- player is blacklisted, they can't ever do anything
-          return false
-     end
-
-     -- this is a challenge on this variable for its contents
-     -- HGMVariable["GT"][command]
-     -- no is all, yes is trusted, leader is leader
-
-     -- leader can do everything so let them always be true
-     if HGMVariable["GL"]["Leader"] == player then
-          return true
-          --is command set to leader
-     elseif HGMVariable["GT"][command] == "leader" then
-          -- is the player leader, leaders can do all.
-          if HGMVariable["GL"]["Leader"] == player then
-               return true
-          end
-
-     -- is the command set to trusted
-     elseif HGMVariable["GT"][command] == "yes" then
-          -- is the player on the trusted list
-          return ismember(player,"TR")
-
-     -- is the command set to all
-     elseif HGMVariable["GT"][command] == "no" then
-          -- return true
-          return true
-
-     -- else
-     else
-          -- return false
-          return false
-     end
-
+    -- Otherwise the permission level on this command decides:
+    --   "no" = anyone, "yes" = trusted only, "leader" = leader only (handled above)
+    local level = HGMVariable["GT"][command]
+    if level == "no" then
+        return true
+    elseif level == "yes" then
+        return ismember(player, "TR")
+    else
+        return false
+    end
 end
 
-function hgmGroupMessage(msg,msg_raw)
+local hgmMsgQueue = {}
 
-     if msg == nil then return end
-     
-     local message = msg:match("^%(Group%) .+: '(.+)'")
-     local player = gmcp("comm.channel.player")
-     local command
-     local args
-     local argsraw
-     local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick, GrHere, GrNot, GrBoth"
-     
-     if message == nil then
-          return
-     end
-     
-     if message ~= nil then
-          command, argsraw = message:match("(%w+)%s*(.*)")
-          if command == nil then return end
-          command = string.lower(command)
-          args = string.lower(argsraw)
-     end
-     
-     if command == "leader" or command == "invite" or command == "rename" or command == "flag" or command == "cancel" or command == "kick" or command == "ihelp" or command == "grhere" or command == "grnot" or command == "grboth" then
-          if ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] == player then
-               return
-          elseif ismember(player,"BL") and HGMVariable["GT"]["lastmsg"] ~= player then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Sorry "..player.." you are blacklisted - can't use commands")
-               HGMVariable["GT"]["lastmsg"] = player
-               return
-          end
-     end
-     
-     if command == "ihelp" and args == "" then
-          local helpmsg = interp(HGMVariable["GT"]["message"], {
-          commands = listCmds,
-          logo = HGMVariable["GL"]["Logo"]
-          })
-          SendSpecial("gtell "..helpmsg)
-          return
-     elseif command == "ihelp" and args == "leader" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."leader <person>- promotes a person to leader of the group "..hgmcheckSettings("leader"))
-          return
-     elseif command == "ihelp" and args == "invite" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."invite <person>- invites a person to this group "..hgmcheckSettings("invite"))
-          return
-     elseif command == "ihelp" and args == "rename" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."rename <new name>- renames the group "..hgmcheckSettings("rename"))
-          return
-     elseif command == "ihelp" and args == "flag" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."flag <Public or private>- flag group public or private "..hgmcheckSettings("flag"))
-          return
-     elseif command == "ihelp" and args == "cancel" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."cancel <person>- cancels a sent invite "..hgmcheckSettings("cancel"))
-          return
-     elseif command == "ihelp" and args == "kick" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."kick <person>- kicks a person "..hgmcheckSettings("kick"))
-          return
-     elseif command == "ihelp" and args == "grhere" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."grhere - sends a message with who is here "..hgmcheckSettings("grhere"))
-          return
-     elseif command == "ihelp" and args == "grnot" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."grnot - sends a message with who is NOT here "..hgmcheckSettings("grhere"))
-          return
-     elseif command == "ihelp" and args == "grboth" then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."grboth - sends a message with who is and is not here "..hgmcheckSettings("grboth"))
-          return
-     end
+function hgmQueueGroupMessage(text)
+    hgmMsgQueue[#hgmMsgQueue + 1] = text
+    DoAfterSpecial(1, "hgmFlushGroupMessage()", sendto.script)
+end
 
-     local extraArgs = {}
+function hgmFlushGroupMessage()
+    local text = table.remove(hgmMsgQueue, 1)
+    if text ~= nil then
+        hgmMakeGroupMessage(text)   -- your existing function, unchanged
+    end
+end
 
-     for i in string.gmatch(args, "%S+") do
-        table.insert(extraArgs, i)
+local function hgmCleanText(s)
+    if s == nil then return nil end
+    return (tostring(s):gsub("%c", ""))
+end
+
+local HGM_BL_COMMANDS = {
+    leader = true, invite = true, rename = true, flag = true, cancel = true,
+    kick = true, ihelp = true, grhere = true, grnot = true, grboth = true,
+}
+
+local HGM_HELP = {
+    leader = "leader <person>- promotes a person to leader of the group ",
+    invite = "invite <person>- invites a person to this group ",
+    rename = "rename <new name>- renames the group ",
+    flag   = "flag <Public or private>- flag group public or private ",
+    cancel = "cancel <person>- cancels a sent invite ",
+    kick   = "kick <person>- kicks a person ",
+    grhere = "grhere - sends a message with who is here ",
+    grnot  = "grnot - sends a message with who is NOT here ",
+    grboth = "grboth - sends a message with who is and is not here ",
+}
+
+function hgmGroupMessage(msg, msg_raw)
+    if msg == nil then return end
+
+    local message = msg:match("^%(Group%) .+: '(.+)'")
+    if message == nil then return end
+
+    local command, argsraw = message:match("(%w+)%s*(.*)")
+    if command == nil then return end
+    command = string.lower(command)
+    local args = string.lower(argsraw or "")
+
+    local player = hgmCleanName(gmcp("comm.channel.player"))
+    if not player then return end
+
+    local GL   = HGMVariable["GL"]
+    local GT   = HGMVariable["GT"]
+    local logo = GL["Logo"]
+    local phrase = GL["Phrase"]
+    local listCmds = "Leader, Invite, Rename, Flag, Cancel, Kick, GrHere, GrNot, GrBoth"
+
+    -- Blacklist gate
+    if HGM_BL_COMMANDS[command] and ismember(player, "BL") then
+        if GT["lastmsg"] ~= player then
+            SendSpecial("gtell "..logo.."Sorry "..player.." you are blacklisted - can't use commands")
+            GT["lastmsg"] = player
+        end
+        return
+    end
+
+    -- ihelp (table-driven instead of the if/elseif ladder)
+    if command == "ihelp" then
+        if args == "" then
+            SendSpecial("gtell "..interp(GT["message"], { commands = listCmds, logo = logo }))
+        else
+            local h = HGM_HELP[args]
+            if h then
+                SendSpecial("gtell "..logo..h..hgmcheckSettings(args))
+            end
+        end
+        return
+    end
+
+    -- Split remaining args into first token (one) and the rest (two)
+    local parts = {}
+    for w in string.gmatch(args, "%S+") do parts[#parts + 1] = w end
+    local one = parts[1]
+    local two = (#parts > 1) and table.concat(parts, " ", 2) or nil
+
+    local isGrCmd = (command == "grhere" or command == "grnot" or command == "grboth")
+
+    if not isGrCmd and hgmiscommand(command) and one == nil then
+        return
+    end
+
+    if isleaderonly(command) and player ~= GL["Leader"] then
+        return
+    end
+
+    if command == phrase then
+        if ismember(one, "BL") then
+            SendSpecial("gtell "..logo..args.." is blacklisted - no invite sent")
+            return
+        end
+        hgmresetgroupmsg()
+        hgmrefresh()
+        if GL["Leader"] == "" then
+            hadarprint("I do not know how we ended up here", "error")
         end
 
-    local one = extraArgs[1]
-    local two
-    if #extraArgs > 1 then
-        two = table.concat(extraArgs," ",2)
-    else
-        two = nil
+        local target = hgmCleanName(one)
+        if not target then return end
+        local reason = two and hgmCleanText(two)
+
+        local notice = reason
+            and (player.." Sending out invite to "..target.." for: "..reason)
+            or  (player.." Sending out invite to "..target)
+
+        SendSpecial("group invite "..target)
+        hgmQueueGroupMessage(notice)
+
+        if reason then
+            SendSpecial("tell "..target.." "..logo..player.." Asked to invite you to the group "..GT["Name"].." @W(@C"..reason.."@W)@w")
+        else
+            SendSpecial("tell "..target.." "..logo..player.." Asked to invite you to the group "..GT["Name"])
+        end
+
+    elseif command == "leader" and canI(command, player) then
+        local name = (one == "me") and player or hgmCleanName(one)
+        if not name then return end
+        SendSpecial("gtell "..logo..player.." asked to change leader to "..name)
+        SendSpecial("group leader "..name)
+
+    elseif command == "rename" and canI(command, player) then
+        local newname = msg_raw and msg_raw:match("^%@.+%(.+Group.+%) .+: 'rename (.+)'")
+        newname = newname and hgmCleanText(newname)
+        if not newname or newname == "" then return end
+        SendSpecial("gtell "..logo..player.." asked to change group name to "..newname)
+        SendSpecial("group rename "..newname.."@w")
+
+    elseif command == "flag" and canI(command, player) then
+        if one == "public" or one == "private" then
+            SendSpecial("gtell "..logo..player.." asked to change flag to "..one)
+            SendSpecial("group flag "..one)
+        end
+
+    elseif command == "cancel" and canI(command, player) then
+        local name = hgmCleanName(one)
+        if not name then return end
+        SendSpecial("gtell "..logo..player.." Wants to cancel invite sent to "..name)
+        SendSpecial("group cancel "..name)
+
+    elseif command == "kick" and canI(command, player) then
+        local name = hgmCleanName(one)
+        if not name then return end
+        SendSpecial("gtell "..logo..player.." asked to kick "..name)
+        SendSpecial("group kick "..name)
+
+    elseif isGrCmd then
+        hgmrefresh()
+        hgmishere("gt", command)
     end
-     
-     if two == "" or two == " " then two = nil end
-     if command == "grhere" or command == "grnot" or command == "grboth" then 
-     else
-          if hgmiscommand(command) and one == nil then 
-               --SendSpecial("gtell "..HGMVariable["GL"]["Logo"].."Please do not send blank params")
-               return
-          end
-     end
-
-     if isleaderonly(command) then
-          if player ~= HGMVariable["GL"]["Leader"] then
-               return
-          end
-     end
-
-     if command == HGMVariable["GL"]["Phrase"] and ismember(one,"BL") then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..args.." is blacklisted - no invite sent")
-     elseif command == HGMVariable["GL"]["Phrase"] and not(ismember(one,"BL")) then
-          hgmresetgroupmsg()
-          hgmrefresh()
-          if HGMVariable["GL"]["Leader"] == "" then
-               hadarprint("I do not know how we ended up here","error")
-          end
-          if HGMVariable["GT"]["invite"] == "yes" and ismember(player,"TR") then
-               local msg
-               if two == nil then
-                    msg = player.." Sending out invite to "..one
-               else
-                    msg = player.." Sending out invite to "..one.." for: "..two
-               end
-               SendSpecial("group invite "..one)
-               DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
-               if two == nil then
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
-               else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"] .. " @W(@C"..two.."@W)@w")
-               end
-          else
-               local msg
-               if two == nil then
-                    msg = player.." Sending out invite to "..one
-               else
-                    msg = player.." Sending out invite to "..one.." for: "..two
-               end
-               SendSpecial("group invite "..one)
-               DoAfterSpecial(1,"hgmMakeGroupMessage('"..msg.."')", sendto.script)
-               if two == nil then
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"])
-               else
-                    SendSpecial("tell "..one.." "..HGMVariable["GL"]["Logo"]..player.." Asked to invite you to the group "..HGMVariable["GT"]["Name"] .. " @W(@C"..two.."@W)@w")
-               end
-          end
-     elseif command == "leader" and canI(command, player) then
-          if #args > 12 then return end
-          if args == "me" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..player)
-               SendSpecial("group leader "..player)
-          else
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change leader to "..args)
-               SendSpecial("group leader "..args)
-          end
-     elseif command == "rename" and canI(command, player) then
-          local colormsg = msg_raw:match("^%@.+%(.+Group.+%) .+: 'rename (.+)'")
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change group name to "..colormsg)
-          SendSpecial("group rename "..colormsg.."@w")
-     elseif command == "flag" and canI(command, player) then
-          if one == "public" or one == "private" then
-               SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to change flag name to "..args)
-               SendSpecial("group flag "..one)
-          end
-     elseif command == "cancel" and canI(command, player) then
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." Wants to cancel invite sent to "..args)
-          SendSpecial("group cancel "..args)
-     elseif command == "kick" and canI(command, player) then
-          if #args > 12 then return end
-          SendSpecial("gtell "..HGMVariable["GL"]["Logo"]..player.." asked to kick "..args)
-          SendSpecial("group kick "..args)
-     elseif command == "grhere" or command == "grnot" or command == "grboth" and args == "" and canI(command, player) then
-          hgmrefresh()
-          hgmishere("gt",command)
-     else
-          --dont put shit here, causes a loop
-     end
 end
 
 function hgmrenamefailureexists(name, line, wildcards)
@@ -1402,117 +1377,107 @@ function hgmConfig(args)
      SaveState()
 end
 
-function hgmishere(args,cmd)
-     HGMVariable["GT"]["NotHere"] = "none"
-     HGMVariable["GT"]["Here"] = "none"
-     group_list = nil
-     group_list = {}
-     HGMVariable["GL"]["NHCount"] = 0
-     HGMVariable["GL"]["HereCount"] = 0
-     local chan
-     local one
-     local two
+function hgmishere(args, cmd)
+    if fullgroup.reason == "no group"
+       or fullgroup.reason == "group disband"
+       or fullgroup.reason == "group leave" then
+        hadarprint("Please join a group before using this command", "error")
+        return
+    end
 
-     if fullgroup.reason == "no group" or fullgroup.reason == "group disband" or fullgroup.reason == "group leave" then
-          hadarprint("Please join a group before using this command","error")
-          return
-     end
+    -- Parse "one [two...]"
+    local one, two
+    if args ~= nil then
+        one, two = args:match("(%w+)%s*(.*)")
+    end
+    if one == nil or one == "" or one == " " then one = nil else one = string.lower(one) end
+    if two == "" or two == " " then two = nil end
 
-     if args == nil then
-          one = nil
-          two = nil
-     else
-          one, two = args:match("(%w+)%s*(.*)")
-     end
+    -- Config subcommands (entered locally, never from the group channel)
+    if one == "setlow" or one == "sethigh" then
+        local n = tonumber(two)
+        if n == nil then
+            hadarprint("HGM here "..one.." <number> expected number got something else", "error")
+            return
+        end
+        if one == "setlow" then
+            HGMVariable["GL"]["LevelLow"] = n
+            hadarprint("Set here Low level to:"..n)
+        else
+            HGMVariable["GL"]["LevelHigh"] = n
+            hadarprint("Set here high level to:"..n)
+        end
+        return
+    elseif one == "sh" then
+        HGMVariable["GL"]["LevelLow"]  = 200
+        HGMVariable["GL"]["LevelHigh"] = 201
+        hadarprint("Here set to SH range", "script")
+        return
+    elseif one == "setchan" then
+        local c = two and two:match("%S+")           -- single token, no whitespace
+        if c == nil then
+            hadarprint("HGM here setchan <channel> expected a channel name", "error")
+            return
+        end
+        HGMVariable["GL"]["HereChan"] = c
+        hadarprint("Channel set to:"..c, "script")
+        return
+    end
 
-     if one == nil or one == "" or one ==" " then
-          one = nil
-     else
-          one = string.lower(one)
-     end
-     if two == "" or two == " " then two = nil end
+    -- Display path: which route to broadcast on
+    local chan
+    if one == "tell" then
+        chan = args        -- whole "tell <name>" string
+    else
+        chan = one         -- "gt", a channel name, or nil
+    end
 
-     if one == "setlow" then
-          if tonumber(two) ~= nil then
-               HGMVariable["GL"]["LevelLow"] = two
-               hadarprint("Set here Low level to:"..HGMVariable["GL"]["LevelLow"])
-               return
-          else
-               hadarprint("HGM here setlow <number> expected number got something else","error")
-               return
-          end
-     elseif one == "sethigh" then
-          if tonumber(two) ~= nil then
-               HGMVariable["GL"]["LevelHigh"] = two
-               hadarprint("Set here high level to:"..HGMVariable["GL"]["LevelHigh"])
-               return
-          else
-               hadarprint("HGM here sethigh <number> expected number got something else","error")
-               return
-          end
-     elseif one == "sh" then
-          HGMVariable["GL"]["LevelLow"] = 200
-          HGMVariable["GL"]["LevelHigh"] = 201
-          hadarprint("Here set to SH range","script")
-          return
-     elseif one == "setchan" then
-          HGMVariable["GL"]["HereChan"] = two
-          hadarprint("Channel set to:"..HGMVariable["GL"]["HereChan"],"script")
-          return
-     elseif one == "tell" then
-          chan = args
-     else
-          if one~=nil or one ~= "" or one ~= " " then
-               chan = one
-          end
-     end
+    -- Bucket members by presence within the level band
+    local lvlLow  = tonumber(HGMVariable["GL"]["LevelLow"])  or 1
+    local lvlHigh = tonumber(HGMVariable["GL"]["LevelHigh"]) or 999
 
-     for i,v in ipairs(fullgroup.members) do
-          table.insert(group_list,v)
-     end 
-     
-     for i,v in ipairs(group_list) do
-          if tonumber(v.info.lvl) >= tonumber(HGMVariable["GL"]["LevelLow"]) and tonumber(v.info.lvl) <= tonumber(HGMVariable["GL"]["LevelHigh"]) then
-               if tonumber(v.info.here) == 0 then
-                    if HGMVariable["GT"]["NotHere"] == "none" then
-                         HGMVariable["GL"]["NHCount"] = HGMVariable["GL"]["NHCount"] + 1
-                         HGMVariable["GT"]["NotHere"] = "@R"..v.name
-                    else
-                         HGMVariable["GL"]["NHCount"] = HGMVariable["GL"]["NHCount"] + 1
-                         HGMVariable["GT"]["NotHere"] = HGMVariable["GT"]["NotHere"] .."@W,@R ".. v.name
-                    end
-               else
-                    if HGMVariable["GT"]["Here"] == "none" then
-                         HGMVariable["GL"]["HereCount"] = HGMVariable["GL"]["HereCount"] + 1
-                         HGMVariable["GT"]["Here"] = "@G"..v.name
-                    else
-                         HGMVariable["GL"]["HereCount"] = HGMVariable["GL"]["HereCount"] + 1
-                         HGMVariable["GT"]["Here"] = HGMVariable["GT"]["Here"] .."@W,@G ".. v.name
-                    end
-               end
-          end
-     end
-     
-     if cmd == "grhere" then
-          if chan == nil or chan == "" or chan == " " then
-               SendSpecial(HGMVariable["GL"]["HereChan"].." @CHere@g(@Y"..HGMVariable["GL"]["HereCount"] .."@g)@w:@w " ..HGMVariable["GT"]["Here"].."@w")
-          else
-               SendSpecial(chan.." @CHere@g(@Y"..HGMVariable["GL"]["HereCount"] .."@g)@w:@w " ..HGMVariable["GT"]["Here"].."@w")
-          end
-     elseif cmd == "grnot" then
-          if chan == nil or chan == "" or chan == " " then
-               SendSpecial(HGMVariable["GL"]["HereChan"].." @CNot Here@g(@Y"..HGMVariable["GL"]["NHCount"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
-          else
-               SendSpecial(chan.." @CNot Here@g(@Y"..HGMVariable["GL"]["NHCount"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
-          end
-     elseif cmd == "grboth" then
-          if chan == nil or chan == "" or chan == " " then
-               SendSpecial(HGMVariable["GL"]["HereChan"].." @CHere@g(@Y"..HGMVariable["GL"]["HereCount"] .."@g)@w:@w " ..HGMVariable["GT"]["Here"].."@w @C:: @CNot Here@g(@Y"..HGMVariable["GL"]["NHCount"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
-          else
-               SendSpecial(chan.." @CHere@g(@Y"..HGMVariable["GL"]["HereCount"] .."@g)@w:@w " ..HGMVariable["GT"]["Here"].."@w @C:: @CNot Here@g(@Y"..HGMVariable["GL"]["NHCount"] .."@g)@w:@w " ..HGMVariable["GT"]["NotHere"].."@w")
-          end
-     end
+    local here, notHere = {}, {}
+    for _, v in ipairs(fullgroup.members) do
+        local lvl = tonumber(v.info.lvl)
+        if lvl and lvl >= lvlLow and lvl <= lvlHigh then
+            if tonumber(v.info.here) == 0 then
+                notHere[#notHere + 1] = v.name
+            else
+                here[#here + 1] = v.name
+            end
+        end
+    end
 
+    local function joinColored(names, color)
+        if #names == 0 then return "none" end
+        return color..table.concat(names, "@W,"..color.." ")
+    end
+
+    local hereStr    = joinColored(here,    "@G")
+    local notHereStr = joinColored(notHere, "@R")
+
+    -- Keep the state other code may read
+    HGMVariable["GT"]["Here"]      = hereStr
+    HGMVariable["GT"]["NotHere"]   = notHereStr
+    HGMVariable["GL"]["HereCount"] = #here
+    HGMVariable["GL"]["NHCount"]   = #notHere
+
+    -- Resolve channel, falling back to the configured default
+    local channel = chan
+    if channel == nil or channel == "" or channel == " " then
+        channel = HGMVariable["GL"]["HereChan"]
+    end
+
+    local hereSeg    = "@CHere@g(@Y"..#here.."@g)@w:@w "..hereStr.."@w"
+    local notHereSeg = "@CNot Here@g(@Y"..#notHere.."@g)@w:@w "..notHereStr.."@w"
+
+    if cmd == "grhere" then
+        SendSpecial(channel.." "..hereSeg)
+    elseif cmd == "grnot" then
+        SendSpecial(channel.." "..notHereSeg)
+    elseif cmd == "grboth" then
+        SendSpecial(channel.." "..hereSeg.." @C:: "..notHereSeg)
+    end
 end
 
 function hgmpwarimport()
