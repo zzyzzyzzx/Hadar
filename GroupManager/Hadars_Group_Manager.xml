@@ -11,7 +11,7 @@
    save_state="y"
    date_written="2020-01-01 00:00:00"
    requires="4.00"
-   version="1.69"
+   version="1.70"
    >
 
 </plugin>
@@ -448,7 +448,7 @@ function OnPluginBroadcast (msg, id, name, text)
 	end
 end
 
-local function hgmCleanName(s)
+function hgmCleanName(s)
     if s == nil then return nil end
     s = tostring(s):lower():match("%a+")   -- first run of letters only
     if not s then return nil end
@@ -623,7 +623,7 @@ function hgmFlushGroupMessage()
     end
 end
 
-local function hgmCleanText(s)
+function hgmCleanText(s)
     if s == nil then return nil end
     return (tostring(s):gsub("%c", ""))
 end
